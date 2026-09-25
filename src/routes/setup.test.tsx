@@ -1,14 +1,11 @@
 // @vitest-environment happy-dom
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, type RouteObject } from 'react-router';
-import { RouterProvider } from 'react-router/dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { routes } from '../app/routes';
 import type { Seats } from '../core/model';
 import { STRINGS } from '../core/strings';
 import { appStore } from '../store/instance';
-import { resetApp } from '../test/app';
+import { renderRoute, resetApp } from '../test/app';
 
 const S = STRINGS.setup;
 
@@ -25,26 +22,9 @@ function seedPlayers(names: string[]): string[] {
   });
 }
 
-/**
- * React Router mutates a lazy route's shared `.lazy` object in place once it resolves
- * (it replaces `route.lazy.Component` with `undefined` on the object it was handed), so
- * reusing the app's singleton `routes` array across more than one router in this file leaves
- * later renders with no way to load `/setup` again. Cloning each route (and its `.lazy` object)
- * before handing it to a fresh router keeps that mutation local to that one router.
- */
-function cloneRoute(route: RouteObject): RouteObject {
-  const { children, lazy, ...rest } = route;
-  return {
-    ...rest,
-    lazy: lazy && typeof lazy === 'object' ? { ...lazy } : lazy,
-    ...(children ? { children: children.map(cloneRoute) } : {}),
-  } as RouteObject;
-}
-
-/** Renders /setup on a fresh router and waits for the lazy screen to mount. */
+/** Renders /setup and waits for the lazy screen to mount. */
 async function renderSetup() {
-  const router = createMemoryRouter(routes.map(cloneRoute), { initialEntries: ['/setup'] });
-  const rendered = render(<RouterProvider router={router} />);
+  const rendered = renderRoute('/setup');
   await screen.findByRole('heading', { name: S.title });
   return rendered;
 }
