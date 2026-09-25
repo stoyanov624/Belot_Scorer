@@ -39,6 +39,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 - History needs helpers over the stored `Deal` (it keeps the inputs, not the `DealScore`): re-score each Deal with `match.rules` to show its rows
 - The end screen's «Към началния екран» must call `leaveMatch()`, or resume-on-start sends the player straight back to `/end`
+- Home's «Продължи мача» also shows for an ended match (it opens `/end`); decide its label or hide it once the end screen exists
 
 ## Phase 6: Share & import
 
