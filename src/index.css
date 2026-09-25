@@ -27,11 +27,13 @@
 }
 
 @layer base {
+  /* Fallbacks are the pub theme, so the first paint is dark before theme.ts runs. */
   html {
-    background-color: var(--t-bg);
+    color-scheme: dark;
+    background-color: var(--t-bg, oklch(0.19 0.03 50));
     background-image: var(--t-glow);
     background-attachment: fixed;
-    color: var(--t-text);
+    color: var(--t-text, oklch(0.95 0.02 80));
     font-family: var(--font-sans);
     font-weight: 600;
     -webkit-tap-highlight-color: transparent;

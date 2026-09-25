@@ -13,10 +13,13 @@ if (!root) throw new Error('#root missing');
 
 const router = createBrowserRouter(routes);
 
+// Paint the default theme at once (no white page while IndexedDB loads); the subscription
+// switches to the stored theme when hydration sets it.
+syncTheme(appStore, document.documentElement);
+
 // Render only after saved data has loaded, so no component ever sees the empty defaults
 // and no write can overwrite stored data before it has been read.
 void hydrateAppStore().then(() => {
-  syncTheme(appStore, document.documentElement);
   createRoot(root).render(
     <StrictMode>
       <RouterProvider router={router} />

@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { THEMES } from '../core/tokens';
 import { createDocumentStorage } from '../storage/document';
 import { memoryKv } from '../storage/kv';
-import { createAppStore } from '../store/app-store';
+import { createAppStore, STORAGE_KEY } from '../store/app-store';
 import { applyTheme, feltStyle, syncTheme } from './theme';
 
-const makeStore = () =>
+const makeStore = (kv = memoryKv()) =>
   createAppStore({
-    storage: createDocumentStorage(memoryKv()),
+    storage: createDocumentStorage(kv),
     newId: () => 'id',
     now: () => 0,
     removePhoto: async () => {},
@@ -34,6 +34,22 @@ describe('theme', () => {
     stop();
     store.getState().updateSettings({ theme: 'home' });
     expect(root.dataset.theme).toBe('casino');
+  });
+
+  it('applies the default before hydration and the stored theme once hydration loads it', async () => {
+    const kv = memoryKv();
+    const saved = makeStore(kv);
+    await saved.persist.rehydrate();
+    saved.getState().updateSettings({ theme: 'night' });
+    await vi.waitFor(() => expect(JSON.stringify(kv.data.get(STORAGE_KEY))).toContain('night'));
+
+    const store = makeStore(kv);
+    const root = document.createElement('html');
+    syncTheme(store, root);
+    expect(root.dataset.theme).toBe('pub');
+    await store.persist.rehydrate();
+    expect(root.dataset.theme).toBe('night');
+    expect(root.style.getPropertyValue('--t-bg')).toBe(THEMES.night.bg);
   });
 
   it('gives a felt its background and rim colour', () => {
