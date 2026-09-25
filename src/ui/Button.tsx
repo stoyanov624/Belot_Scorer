@@ -1,7 +1,14 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cx } from './cx';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'dangerText' | 'ghost' | 'muted';
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'danger'
+  | 'dangerText'
+  | 'dangerFilled'
+  | 'ghost'
+  | 'muted';
 type Size = 'sm' | 'md' | 'lg' | 'bar';
 
 const BASE =
@@ -11,6 +18,8 @@ const VARIANT: Record<Variant, string> = {
   secondary: 'bg-s1 text-text border border-line',
   danger: 'bg-transparent text-team-b border border-team-b',
   dangerText: 'bg-transparent text-team-b',
+  /** Filled team-b look, e.g. the end-match sheet's "Приключи мача". */
+  dangerFilled: 'bg-team-b text-on',
   ghost: 'bg-transparent text-muted',
   muted: 'bg-s3 text-muted',
 };

@@ -6,11 +6,13 @@ import type { Seat as SeatIndex } from '../core/model';
 import { teamOf } from '../core/rules';
 import { STRINGS } from '../core/strings';
 import { ThemeSheet } from '../features/settings/ThemeSheet';
+import { ClearSheet } from '../features/table/ClearSheet';
 import { Coaster } from '../features/table/Coaster';
 import { ContractPill } from '../features/table/ContractPill';
 import { ContractSheet } from '../features/table/ContractSheet';
 import { contractLine, declOptionPoints, headerLine } from '../features/table/copy';
 import { DealEndSheet } from '../features/table/DealEndSheet';
+import { EndMatchSheet } from '../features/table/EndMatchSheet';
 import { Seat } from '../features/table/Seat';
 import { playerAt as playerAtSeat } from '../features/table/seat-player';
 import { TableHeader } from '../features/table/TableHeader';
@@ -21,9 +23,6 @@ import { feltStyle } from '../ui/theme';
 const S = STRINGS.table;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly SeatIndex[];
 const GRID_AREAS = { gridTemplateAreas: "'. n .' 'w c e' '. s .'" };
-
-/** Wired in later tasks (clear, match end). */
-const later = () => {};
 
 export function Table() {
   // The match object only changes on store writes, so selecting it whole is stable.
@@ -38,6 +37,8 @@ export function Table() {
   const [openSeat, setOpenSeat] = useState<SeatIndex | null>(null);
   const [contractSheet, setContractSheet] = useState<'set' | 'toPoints' | null>(null);
   const [dealEndOpen, setDealEndOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [endMatchOpen, setEndMatchOpen] = useState(false);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -57,7 +58,7 @@ export function Table() {
         line={headerLine(match)}
         dealNo={match.games.length + 1}
         historyCount={match.games.length}
-        onClear={later}
+        onClear={() => setClearOpen(true)}
         onTheme={() => setThemeOpen(true)}
       />
 
@@ -117,12 +118,21 @@ export function Table() {
         >
           {S.endDeal}
         </Button>
-        <Button size="bar" onClick={later}>
+        <Button size="bar" onClick={() => setEndMatchOpen(true)}>
           {S.endMatch}
         </Button>
       </div>
 
       <ThemeSheet open={themeOpen} onClose={() => setThemeOpen(false)} />
+      <ClearSheet open={clearOpen} onClose={() => setClearOpen(false)} />
+      <EndMatchSheet
+        open={endMatchOpen}
+        onClose={() => setEndMatchOpen(false)}
+        onEnded={() => {
+          setEndMatchOpen(false);
+          navigate('/end');
+        }}
+      />
       <ContractSheet
         open={contractSheet !== null}
         mode={contractSheet ?? 'set'}
