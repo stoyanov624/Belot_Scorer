@@ -19,10 +19,11 @@ import {
   updateDeclaration,
 } from './match';
 import type { Deal, Match } from './model';
+import { MatchSchema } from './model';
 import { DEFAULT_RULES } from './rules';
 
-const fresh = (bestOf: 1 | 3 | 5 | 7 = 1) =>
-  createMatch({ seats: ['p0', 'p1', 'p2', 'p3'], teamA: 'Ние', teamB: 'Вие', bestOf });
+const fresh = (bestOf: 1 | 3 | 5 | 7 = 1, targetScore = DEFAULT_RULES.targetScore) =>
+  createMatch({ seats: ['p0', 'p1', 'p2', 'p3'], teamA: 'Ние', teamB: 'Вие', bestOf, targetScore });
 
 const fakeDeal = (a: number, b: number): Deal => ({
   a,
@@ -55,6 +56,55 @@ describe('current deal', () => {
     m = updateDeclaration(m, 'x', { top: 'K' });
     expect(m.current).toEqual([{ id: 'x', seat: 0, key: 'terca', top: 'K', rank: null }]);
     expect(removeDeclaration(m, 'x').current).toEqual([]);
+  });
+
+  it('updateDeclaration: undefined top leaves it intact and stays schema-valid', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    m = updateDeclaration(m, 'x', { top: 'K' });
+    const result = updateDeclaration(m, 'x', { top: undefined });
+    expect(result.current[0]?.top).toBe('K');
+    expect(MatchSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('updateDeclaration: rejects a top that is not a valid top for the sequence', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    m = updateDeclaration(m, 'x', { top: '7' });
+    expect(m.current[0]?.top).toBeNull();
+  });
+
+  it('updateDeclaration: ignores rank on a non-kare declaration', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    m = updateDeclaration(m, 'x', { rank: 'J' });
+    expect(m.current[0]?.rank).toBeNull();
+  });
+
+  it('updateDeclaration: top null clears an existing top', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    m = updateDeclaration(m, 'x', { top: 'K' });
+    m = updateDeclaration(m, 'x', { top: null });
+    expect(m.current[0]?.top).toBeNull();
+  });
+
+  it('updateDeclaration: applies a valid top and a valid kare rank', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    m = addDeclaration(m, { id: 'k', seat: 0, key: 'kare' });
+    m = updateDeclaration(m, 'x', { top: 'A' });
+    m = updateDeclaration(m, 'k', { rank: 'J' });
+    expect(m.current[0]?.top).toBe('A');
+    expect(m.current[1]?.rank).toBe('J');
+  });
+
+  it('updateDeclaration: returns the same reference when nothing applies', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = addDeclaration(m, { id: 'x', seat: 0, key: 'terca' });
+    expect(updateDeclaration(m, 'x', {})).toBe(m);
+    expect(updateDeclaration(m, 'x', { top: '7' })).toBe(m);
+    expect(updateDeclaration(m, 'missing', { top: 'A' })).toBe(m);
   });
 
   it('ignores a declaration that is not allowed', () => {
@@ -144,10 +194,18 @@ describe('saveDeal', () => {
     expect(r.ended).toBe(false);
   });
 
-  it('respects a custom target score', () => {
-    const rules = { ...DEFAULT_RULES, targetScore: 101 };
+  it('respects the target score snapshotted onto the match', () => {
+    const r = saveDeal(setContract(withGames(fresh(1, 101), [95, 0]), 'hearts', 0), {
+      cardPointsA: 10,
+      capo: null,
+    });
+    expect(r.ok && r.ended).toBe(true);
+  });
+
+  it('a different rules.targetScore does not change auto-end (the match snapshot wins)', () => {
+    const rules = { ...DEFAULT_RULES, targetScore: 200 };
     const r = saveDeal(
-      setContract(withGames(fresh(), [95, 0]), 'hearts', 0),
+      setContract(withGames(fresh(1, 101), [95, 0]), 'hearts', 0),
       { cardPointsA: 10, capo: null },
       rules,
     );
@@ -168,6 +226,65 @@ describe('undoLastDeal', () => {
   it('is a no-op without deals', () => {
     const m = fresh();
     expect(undoLastDeal(m)).toBe(m);
+  });
+});
+
+describe('ended match', () => {
+  const ended = (): Match => endMatch(withGames(fresh(), [160, 0]));
+
+  it('setContract is a no-op', () => {
+    const m = ended();
+    expect(setContract(m, 'hearts', 0)).toBe(m);
+  });
+
+  it('addDeclaration is a no-op', () => {
+    const m = { ...ended(), contract: 'hearts', caller: 0 } as Match;
+    expect(addDeclaration(m, { id: 'x', seat: 0, key: 'belot' })).toBe(m);
+  });
+
+  it('removeDeclaration is a no-op', () => {
+    const m = ended();
+    expect(removeDeclaration(m, 'x')).toBe(m);
+  });
+
+  it('updateDeclaration is a no-op', () => {
+    const m = ended();
+    expect(updateDeclaration(m, 'x', { top: '7' })).toBe(m);
+  });
+
+  it('clearCurrentDeal is a no-op', () => {
+    const m = ended();
+    expect(clearCurrentDeal(m)).toBe(m);
+  });
+
+  it('undoLastDeal is a no-op: same reference, series unchanged', () => {
+    const m = ended();
+    const result = undoLastDeal(m);
+    expect(result).toBe(m);
+    expect(result.series).toEqual(m.series);
+  });
+
+  it('saveDeal returns match-ended even with a contract on the match object', () => {
+    const m: Match = { ...ended(), contract: 'hearts', caller: 0 };
+    expect(saveDeal(m, { cardPointsA: 10, capo: null })).toEqual({
+      ok: false,
+      error: 'match-ended',
+    });
+  });
+
+  it('saveDeal on an ended match refuses even with a contract already set', () => {
+    let m = setContract(fresh(), 'hearts', 0);
+    m = endMatch(m);
+    expect(saveDeal(m, { cardPointsA: 10, capo: null })).toEqual({
+      ok: false,
+      error: 'match-ended',
+    });
+  });
+
+  it('nextMatch and rematch stay callable on an ended match', () => {
+    const m = ended();
+    expect(nextMatch(m).status).toBe('playing');
+    expect(rematch(m).status).toBe('playing');
   });
 });
 

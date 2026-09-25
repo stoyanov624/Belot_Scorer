@@ -4,6 +4,7 @@ import type {
   Card,
   ContractKey,
   Deal,
+  Declaration,
   DeclKey,
   KareRank,
   Match,
@@ -13,7 +14,15 @@ import type {
   Team,
 } from './model';
 import type { ResolveError } from './resolve';
-import { DEAL_ORDER, DEFAULT_RULES, declPoints, type RulesConfig, teamOf } from './rules';
+import {
+  DEAL_ORDER,
+  DEFAULT_RULES,
+  declPoints,
+  isSequence,
+  type RulesConfig,
+  teamOf,
+  validTops,
+} from './rules';
 import { type ScoreError, scoreDeal } from './score';
 
 export interface NewMatch {
@@ -21,9 +30,14 @@ export interface NewMatch {
   teamA: string;
   teamB: string;
   bestOf: BestOf;
+  targetScore: number;
 }
 
-const EMPTY_DEAL = { current: [], contract: null, caller: null };
+const EMPTY_DEAL: Pick<Match, 'current' | 'contract' | 'caller'> = {
+  current: [],
+  contract: null,
+  caller: null,
+};
 
 export function createMatch(opts: NewMatch): Match {
   return {
@@ -33,19 +47,22 @@ export function createMatch(opts: NewMatch): Match {
     hang: 0,
     series: { A: 0, B: 0 },
     status: 'playing',
-  } as Match;
+  };
 }
 
 export function setContract(m: Match, contract: ContractKey, caller: Seat): Match {
+  if (m.status === 'ended') return m;
   return { ...m, contract, caller, current: contract === 'nt' ? [] : m.current };
 }
 
 export function addDeclaration(m: Match, decl: { id: string; seat: Seat; key: DeclKey }): Match {
+  if (m.status === 'ended') return m;
   if (!allowedDeclarations(m, decl.seat).options.includes(decl.key)) return m;
   return { ...m, current: [...m.current, { ...decl, top: null, rank: null }] };
 }
 
 export function removeDeclaration(m: Match, id: string): Match {
+  if (m.status === 'ended') return m;
   return { ...m, current: m.current.filter((d) => d.id !== id) };
 }
 
@@ -54,14 +71,35 @@ export function updateDeclaration(
   id: string,
   patch: { top?: Card | null; rank?: KareRank | null },
 ): Match {
-  return { ...m, current: m.current.map((d) => (d.id === id ? { ...d, ...patch } : d)) };
+  if (m.status === 'ended') return m;
+  let changed = false;
+  const current = m.current.map((d): Declaration => {
+    if (d.id !== id) return d;
+    let next = d;
+    if (
+      patch.top !== undefined &&
+      isSequence(d.key) &&
+      (patch.top === null || validTops(d.key).includes(patch.top))
+    ) {
+      next = { ...next, top: patch.top };
+      changed = true;
+    }
+    if (patch.rank !== undefined && d.key === 'kare') {
+      next = { ...next, rank: patch.rank };
+      changed = true;
+    }
+    return next;
+  });
+  if (!changed) return m;
+  return { ...m, current };
 }
 
 export function clearCurrentDeal(m: Match): Match {
-  return { ...m, ...EMPTY_DEAL } as Match;
+  if (m.status === 'ended') return m;
+  return { ...m, ...EMPTY_DEAL };
 }
 
-export type SaveDealError = 'no-contract' | ResolveError | ScoreError;
+export type SaveDealError = 'no-contract' | 'match-ended' | ResolveError | ScoreError;
 export type SaveDealResult =
   | { ok: true; match: Match; ended: boolean }
   | { ok: false; error: SaveDealError };
@@ -71,6 +109,7 @@ export function saveDeal(
   input: { cardPointsA: number | null; capo: Team | null },
   rules: RulesConfig = DEFAULT_RULES,
 ): SaveDealResult {
+  if (m.status === 'ended') return { ok: false, error: 'match-ended' };
   if (m.contract === null || m.caller === null) return { ok: false, error: 'no-contract' };
   const score = scoreDeal(
     { contract: m.contract, caller: m.caller, decls: m.current, hang: m.hang, ...input },
@@ -100,13 +139,14 @@ export function saveDeal(
     ...EMPTY_DEAL,
     games: [...m.games, deal],
     hang: score.nextHang,
-  } as Match;
+  };
   const t = totals(next);
-  const ended = Math.max(t.A, t.B) >= rules.targetScore && t.A !== t.B && input.capo === null;
+  const ended = Math.max(t.A, t.B) >= m.targetScore && t.A !== t.B && input.capo === null;
   return { ok: true, match: ended ? endMatch(next) : next, ended };
 }
 
 export function undoLastDeal(m: Match): Match {
+  if (m.status === 'ended') return m;
   const last = m.games.at(-1);
   if (!last) return m;
   return { ...m, games: m.games.slice(0, -1), hang: last.prevHang };
@@ -149,6 +189,11 @@ export function endMatch(m: Match): Match {
 
 export const seriesNeed = (bestOf: BestOf) => Math.ceil(bestOf / 2);
 
+/**
+ * True for bestOf 1 even mid-match — a single-match series is "over" the moment it starts.
+ * Combine with `status === 'ended'` to know whether the current match, and so the series, has
+ * actually finished.
+ */
 export function isSeriesOver(m: Pick<Match, 'bestOf' | 'series'>): boolean {
   const need = seriesNeed(m.bestOf);
   return m.bestOf === 1 || m.series.A >= need || m.series.B >= need;
@@ -161,7 +206,7 @@ export function matchNumber(m: Match): number {
 }
 
 export function nextMatch(m: Match): Match {
-  return { ...m, ...EMPTY_DEAL, games: [], hang: 0, status: 'playing' } as Match;
+  return { ...m, ...EMPTY_DEAL, games: [], hang: 0, status: 'playing' };
 }
 
 export function rematch(m: Match): Match {

@@ -12,11 +12,17 @@ export type ContractKey = z.infer<typeof ContractKeySchema>;
 export const DeclKeySchema = z.enum(['belot', 'terca', 'kvarta', 'kvinta', 'kare']);
 export type DeclKey = z.infer<typeof DeclKeySchema>;
 
-/** Low → high. */
+/**
+ * `.options` is NOT rank order — integer-like keys ('10') are hoisted by JS object key
+ * order regardless of definition order. Use `CARDS` from rules.ts for card rank order.
+ */
 export const CardSchema = z.enum(['7', '8', '9', '10', 'J', 'Q', 'K', 'A']);
 export type Card = z.infer<typeof CardSchema>;
 
-/** Weakest → strongest four-of-a-kind. */
+/**
+ * `.options` is NOT rank order — integer-like keys ('10') are hoisted by JS object key
+ * order regardless of definition order. Use `KARE_RANKS` from rules.ts for four-of-a-kind order.
+ */
 export const KareRankSchema = z.enum(['Q', 'K', '10', 'A', '9', 'J']);
 export type KareRank = z.infer<typeof KareRankSchema>;
 
@@ -85,6 +91,8 @@ export const MatchSchema = z.object({
   caller: SeatSchema.nullable(),
   hang: points,
   bestOf: BestOfSchema,
+  /** Snapshotted from the rules when the match started; changing the device setting mid-match must not move it. */
+  targetScore: z.number().int().positive(),
   series: z.object({ A: points, B: points }),
   status: MatchStatusSchema,
 });

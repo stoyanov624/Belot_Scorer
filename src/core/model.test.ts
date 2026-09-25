@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MatchSchema, PlayerSchema } from './model';
+import { DEFAULT_RULES } from './rules';
 
 describe('model schemas', () => {
   it('accepts a valid player and trims the name', () => {
@@ -23,6 +24,7 @@ describe('model schemas', () => {
       caller: null,
       hang: 0,
       bestOf: 3,
+      targetScore: DEFAULT_RULES.targetScore,
       series: { A: 0, B: 0 },
       status: 'playing',
     };
