@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-25 at commit 85b74e3._ Current state only; history lives in git.
+_Last updated: 2026-09-25 at commit b1f638a._ Current state only; history lives in git.
 
 ## Done
 
@@ -19,6 +19,7 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 ## Open product questions
 
 - **Copy not in the handoff:** the note shown instead of «Изтрий играча» for a seated player (placeholder text is live in `src/core/strings.ts`'s `register.inMatch`), and the accessible labels of the team-name fields — confirm the wording.
+- **Resuming and leaving a match** (see [Backlog](Backlog.md) Phase 5b) — decide at the start of the 5b plan.
 
 ## Known gaps
 

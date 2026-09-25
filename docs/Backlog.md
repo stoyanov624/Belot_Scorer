@@ -25,21 +25,25 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5a: Home, players and setup
 
-- A started match is replaced without warning when "Раздавай!" is pressed again from setup, as in the prototype — `src/routes/setup.tsx`'s `start()` calls `startMatch` unconditionally once the draft is complete
-- `src/core/persisted.ts`: the `MIGRATIONS` JSDoc sits above the unrelated `V1State` schema instead of directly above `MIGRATIONS`
 - `src/ui/controls.test.tsx`'s `toContain('h-11')` assertion also matches `BASE`'s `min-h-11`, so it's weaker than it looks
-- `src/app/RootLayout.tsx`'s padding (`px-4 py-6` = 16/24px) doesn't match the handoff's home padding (`48px 20px 32px`) — sides 16 vs 20, bottom 24 vs 32
-- `src/routes/home.tsx`'s players section label has a `tracking-[0.06em]` not called for by the spec
 - `src/routes/setup.test.tsx` asserts a couple of sheet titles as Bulgarian literals (`'Място: Север'`, `'Нов играч'`) instead of via `STRINGS`
+
+## Phase 5b: Table & play
+
+- Resume/leave a match: on startup with a stored match, go to /table (playing) or /end (ended)? Does going Home or starting a new setup leave the match (`leaveMatch` has no caller yet; ADR 0010's 'until the match is left')? The prototype stores `screen` and resumes. Decide at the start of the 5b plan.
+- A started match is replaced without warning when "Раздавай!" is pressed again from setup, as in the prototype — `src/routes/setup.tsx`'s `start()` calls `startMatch` unconditionally once the draft is complete
+- RootLayout padding: decide per-screen padding with the table — `src/app/RootLayout.tsx`'s `px-4 py-6` (16/24px) doesn't match the handoff's home padding (`48px 20px 32px`)
 
 ## Phase 6: Share & import
 
 - Payload v2, codec, link, multi-part QR, scanner, `.belot` file, merge/continue/replace ([ADR 0005](adr/0005-share-format-v2-no-prototype-compat.md))
 - Export the `belot-state.backup` document after a failed load
+- Share «Текущия мач» payload must carry `match.rules` ([ADR 0009](adr/0009-match-snapshots-rules.md))
 
 ## Phase 7: PWA & polish
 
 - `vite-plugin-pwa`, manifest and icons, favicon, a11y pass, Playwright happy path, bundle check
+- a11y: single-choice groups (emoji grid, theme/felt tiles) use `aria-pressed` toggles; consider radio-group semantics
 - Playwright smoke script for `/dev/ui`: every theme, avatar ring border widths, switching popovers, Sheet Esc, the dark pre-paint background
 
 ## Unassigned
