@@ -7,6 +7,7 @@ import {
   declPoints,
   KARE_RANKS,
   otherTeam,
+  RulesConfigSchema,
   seqLength,
   teamOf,
   validTops,
@@ -75,5 +76,20 @@ describe('orders', () => {
 
   it('KARE_RANKS contains exactly the schema members', () => {
     expect([...KARE_RANKS].sort()).toEqual([...KareRankSchema.options].sort());
+  });
+});
+
+describe('RulesConfigSchema', () => {
+  it('accepts the default rules unchanged', () => {
+    expect(RulesConfigSchema.parse(DEFAULT_RULES)).toEqual(DEFAULT_RULES);
+  });
+
+  it('rejects negative declaration points', () => {
+    const bad = { ...DEFAULT_RULES, declPoints: { ...DEFAULT_RULES.declPoints, belot: -1 } };
+    expect(RulesConfigSchema.safeParse(bad).success).toBe(false);
+  });
+
+  it('rejects a zero target score', () => {
+    expect(RulesConfigSchema.safeParse({ ...DEFAULT_RULES, targetScore: 0 }).success).toBe(false);
   });
 });

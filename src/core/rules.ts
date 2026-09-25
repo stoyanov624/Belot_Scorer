@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { Card, ContractKey, DeclKey, KareRank, Seat, Team } from './model';
 
 export type ContractKind = 'color' | 'nt' | 'at';
@@ -10,6 +11,29 @@ export interface RulesConfig {
   capoBonus: number;
   ntMultiplier: number;
 }
+
+const nonNegative = z.number().int().nonnegative();
+
+export const RulesConfigSchema = z.object({
+  targetScore: z.number().int().positive(),
+  declPoints: z.object({
+    belot: nonNegative,
+    terca: nonNegative,
+    kvarta: nonNegative,
+    kvinta: nonNegative,
+  }),
+  karePoints: z.object({
+    Q: nonNegative,
+    K: nonNegative,
+    '10': nonNegative,
+    A: nonNegative,
+    '9': nonNegative,
+    J: nonNegative,
+  }),
+  maxCardPoints: z.object({ color: nonNegative, nt: nonNegative, at: nonNegative }),
+  capoBonus: nonNegative,
+  ntMultiplier: z.number().int().positive(),
+}) satisfies z.ZodType<RulesConfig>;
 
 export const DEFAULT_RULES: RulesConfig = {
   targetScore: 151,
