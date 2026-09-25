@@ -1,12 +1,14 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cx } from './cx';
 
-type Tone = 'a' | 'b' | 'neutral';
+type Tone = 'a' | 'b' | 'neutral' | 'sunken';
 
 const TONE: Record<Tone, string> = {
   a: 'bg-team-a text-on',
   b: 'bg-team-b text-on',
   neutral: 'bg-s3 text-text',
+  /** For chips on an `s2` card (the deal-end sheet's resolution cards). */
+  sunken: 'bg-s1 text-text',
 };
 
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {

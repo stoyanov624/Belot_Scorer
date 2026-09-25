@@ -13,6 +13,7 @@ import {
   declOptionPoints,
   headerLine,
   pointsHint,
+  resolutionCardLabel,
   resolutionErrors,
   resolutionLines,
   teamNameOf,
@@ -35,6 +36,18 @@ describe('declLabel', () => {
 
   it('labels a sequence with no top yet by its name only', () => {
     expect(declLabel({ key: 'kvinta', top: null, rank: null })).toBe('Квинта');
+  });
+});
+
+describe('resolutionCardLabel', () => {
+  it('labels a sequence with its points from the rules', () => {
+    expect(resolutionCardLabel({ key: 'terca', rank: null }, DEFAULT_RULES)).toBe('Терца · 2');
+    expect(resolutionCardLabel({ key: 'kvinta', rank: null }, DEFAULT_RULES)).toBe('Квинта · 10');
+  });
+
+  it('labels a four-of-a-kind with its points once the rank is set, else just "Каре"', () => {
+    expect(resolutionCardLabel({ key: 'kare', rank: 'J' }, DEFAULT_RULES)).toBe('Каре · 20');
+    expect(resolutionCardLabel({ key: 'kare', rank: null }, DEFAULT_RULES)).toBe('Каре');
   });
 });
 

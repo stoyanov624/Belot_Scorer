@@ -9,6 +9,7 @@ import { renderRoute, resetApp } from '../test/app';
 
 const S = STRINGS.table;
 const CS = STRINGS.contract;
+const DS = STRINGS.deal;
 const NAMES = ['Иван', 'Петър', 'Мария', 'Гошо'] as const;
 
 beforeEach(() => {
@@ -327,5 +328,28 @@ describe('Contract sheet', () => {
 
     expect(appStore.getState().match?.contract).toBe('spades');
     expect(appStore.getState().match?.caller).toBe(3);
+    // The deal-end sheet follows; with no sequences it starts at the points step.
+    expect(screen.getByRole('dialog', { name: DS.pointsTitle(1) })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+  });
+});
+
+describe('Deal-end sheet', () => {
+  it('opens from "Край на раздаване" when a contract is set, resolving the declarations first', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    appStore.getState().addDeclaration(0, 'terca');
+    appStore.getState().addDeclaration(1, 'terca');
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+
+    const sheet = screen.getByRole('dialog', { name: DS.resolveTitle });
+    expect(within(sheet).getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+
+    await userEvent.click(within(sheet).getByRole('button', { name: DS.cancel }));
+
+    expect(screen.queryByRole('dialog', { name: DS.resolveTitle })).toBeNull();
   });
 });

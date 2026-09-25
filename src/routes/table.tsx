@@ -10,6 +10,7 @@ import { Coaster } from '../features/table/Coaster';
 import { ContractPill } from '../features/table/ContractPill';
 import { ContractSheet } from '../features/table/ContractSheet';
 import { contractLine, declOptionPoints, headerLine } from '../features/table/copy';
+import { DealEndSheet } from '../features/table/DealEndSheet';
 import { Seat } from '../features/table/Seat';
 import { playerAt as playerAtSeat } from '../features/table/seat-player';
 import { TableHeader } from '../features/table/TableHeader';
@@ -21,7 +22,7 @@ const S = STRINGS.table;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly SeatIndex[];
 const GRID_AREAS = { gridTemplateAreas: "'. n .' 'w c e' '. s .'" };
 
-/** Wired in Tasks 7–9 (clear, deal end, match end). */
+/** Wired in later tasks (clear, match end). */
 const later = () => {};
 
 export function Table() {
@@ -35,6 +36,7 @@ export function Table() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [openSeat, setOpenSeat] = useState<SeatIndex | null>(null);
   const [contractSheet, setContractSheet] = useState<'set' | 'toPoints' | null>(null);
+  const [dealEndOpen, setDealEndOpen] = useState(false);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -108,7 +110,9 @@ export function Table() {
         <Button
           variant="primary"
           size="bar"
-          onClick={() => (match.contract === null ? setContractSheet('toPoints') : later())}
+          onClick={() =>
+            match.contract === null ? setContractSheet('toPoints') : setDealEndOpen(true)
+          }
         >
           {S.endDeal}
         </Button>
@@ -123,9 +127,16 @@ export function Table() {
         mode={contractSheet ?? 'set'}
         onClose={() => setContractSheet(null)}
         onConfirmed={() => {
-          // Task 7 opens the deal-end sheet here when contractSheet === 'toPoints'.
+          if (contractSheet === 'toPoints') setDealEndOpen(true);
           setContractSheet(null);
         }}
+      />
+      <DealEndSheet
+        open={dealEndOpen}
+        onClose={() => setDealEndOpen(false)}
+        onChangeContract={() => setContractSheet('set')}
+        // Task 8 saves the deal; the match-end navigation for `ended` comes with it.
+        onSaved={() => setDealEndOpen(false)}
       />
     </div>
   );

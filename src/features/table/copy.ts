@@ -24,6 +24,15 @@ export function declLabel(d: { key: DeclKey; top: Card | null; rank: KareRank | 
   return STRINGS.decls[d.key];
 }
 
+/** A resolution card's heading, e.g. "Терца · 2"; a four of a kind shows points only once ranked. */
+export function resolutionCardLabel(
+  d: { key: DeclKey; rank: KareRank | null },
+  rules: RulesConfig,
+): string {
+  if (d.key === 'kare' && d.rank === null) return STRINGS.decls.kare;
+  return `${STRINGS.decls[d.key]} · ${declPoints(d, rules)}`;
+}
+
 /** The points shown on a declaration's option button. Kare shows its lowest value with a "+". */
 export function declOptionPoints(key: DeclKey, rules: RulesConfig): string {
   if (key !== 'kare') return String(declPoints({ key, rank: null }, rules));
