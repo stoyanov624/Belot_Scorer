@@ -37,9 +37,13 @@ flowchart LR
 - **Theme tokens live in TypeScript** and reach Tailwind v4 as CSS variables ([ADR 0004](../adr/0004-theme-tokens-in-typescript.md)), written to `<html>` by `src/ui/theme.ts`'s `syncTheme`. Each token is a Tailwind colour of the same name (`bg-s1`, `text-muted`, `border-line`, `text-on`), except the team colours: tokens `a`/`b` are the utilities `bg-team-a`, `text-team-b`, `border-team-b`….
 - **Sheets and popovers use the native `<dialog>` and popover APIs, not a dependency** ([ADR 0008](../adr/0008-native-dialog-and-popover-over-vaul.md)).
 
+## Overlay contract
+
+`Sheet` and `Popover` (`src/ui`) are controlled. The caller owns the `open` state and changes it; the component only reports a user dismissal (Esc, overlay tap, light dismiss) through `onClose`, and only while `open` is still true. The native `close`/`toggle` events arrive late, after the caller may already have closed this overlay or opened another, so those late events are ignored. `Sheet` keeps its children mounted while closed.
+
 ## Gotchas
 
-- **The React Compiler memoizes expressions, not just components.** Every hook call must be a plain top-level statement of the component — never inside an object literal, array, or other expression. `src/routes/dev-ui.tsx` originally built its popover anchors as `{ below: useRef(null), above: useRef(null), … }`; the compiler memoized that object, and on the next render React saw fewer hook calls than before and crashed with "Rendered fewer hooks than expected". The fix (commit `5d4574b`) hoists each `useRef` to its own top-level `const` and assembles the object afterwards.
+- **The React Compiler memoizes expressions, not just components.** Every hook call must be a plain top-level statement of the component — never inside an object literal, array, or other expression. `src/routes/dev-ui.tsx` originally built its popover anchors as `{ below: useRef(null), above: useRef(null), … }`; the compiler memoized that object, and on the next render React saw fewer hook calls than before and crashed with "Rendered fewer hooks than expected". The fix (commit `5d4574b`) hoists each `useRef` to its own top-level `const` and assembles the object afterwards. Biome's `correctness/useHookAtTopLevel` (on through `recommended`) catches conditional hooks but not this case.
 - **Never name a colour token after a Tailwind utility suffix.** The team colours were first the Tailwind colours `a`/`b`; `border-b` then meant border-bottom-width, and an Avatar with `border-[3px] border-b` computed a 1px bottom border. They are now `team-a`/`team-b` (`src/index.css`).
 - **Biome suppressions in JSX** use `{/* biome-ignore lint/<group>/<rule>: reason */}` directly before the element (see `src/ui/Segmented.tsx`); a plain `// biome-ignore …` line works before a non-JSX-attribute node such as `<dialog>` in `src/ui/Sheet.tsx`. Never disable a rule in `biome.json`.
 
