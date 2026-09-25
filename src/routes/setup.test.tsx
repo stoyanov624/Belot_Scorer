@@ -207,8 +207,11 @@ describe('Setup', () => {
     await renderSetup();
     await userEvent.click(screen.getByRole('button', { name: S.deal }));
 
-    expect(screen.getByRole('dialog', { name: S.replaceTitle })).toBeTruthy();
-    expect(screen.getByText(S.replaceBody(t.A, t.B))).toBeTruthy();
+    const dialog = screen.getByRole('dialog', { name: S.replaceTitle });
+    // The body is the sheet's subtitle, so it also describes the dialog.
+    expect(dialog.getAttribute('aria-describedby')).toBe(
+      screen.getByText(S.replaceBody(t.A, t.B)).id,
+    );
 
     // "Отказ" keeps the old match untouched.
     await userEvent.click(screen.getByRole('button', { name: S.replaceCancel }));

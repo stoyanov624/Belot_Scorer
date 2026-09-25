@@ -168,25 +168,25 @@ export function Component() {
           if (registerSeat !== null) seatPlayer(registerSeat, playerId);
         }}
       />
-      <Sheet open={replacing !== null} onClose={() => setReplacing(null)} title={S.replaceTitle}>
+      <Sheet
+        open={replacing !== null}
+        onClose={() => setReplacing(null)}
+        title={S.replaceTitle}
+        subtitle={replacing && S.replaceBody(totals(replacing).A, totals(replacing).B)}
+      >
         {replacing !== null && (
-          <>
-            <p className="text-base font-semibold text-muted">
-              {S.replaceBody(totals(replacing).A, totals(replacing).B)}
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <Button onClick={() => setReplacing(null)}>{S.replaceCancel}</Button>
-              <Button
-                variant="danger"
-                onClick={() => {
-                  setReplacing(null);
-                  beginMatch();
-                }}
-              >
-                {S.replaceConfirm}
-              </Button>
-            </div>
-          </>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button onClick={() => setReplacing(null)}>{S.replaceCancel}</Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                setReplacing(null);
+                beginMatch();
+              }}
+            >
+              {S.replaceConfirm}
+            </Button>
+          </div>
         )}
       </Sheet>
     </div>
