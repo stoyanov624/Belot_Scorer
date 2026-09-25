@@ -34,6 +34,8 @@ Read in this order:
 - [0006 Block persistence writes until the stored document has loaded](adr/0006-gate-persistence-writes-until-load.md)
 - [0007 Pin pnpm 10 via packageManager](adr/0007-pin-pnpm-10.md)
 - [0008 Sheets and popovers on the native dialog and popover APIs, not vaul](adr/0008-native-dialog-and-popover-over-vaul.md)
+- [0009 A match snapshots its scoring rules when it starts](adr/0009-match-snapshots-rules.md)
+- [0010 A player seated in the current match cannot be deleted](adr/0010-seated-player-cannot-be-deleted.md)
 
 ## Product spec
 
@@ -50,6 +52,7 @@ The design handoff is final: its Bulgarian copy is used verbatim. Where the spec
 - [Phase 1–2: scaffold and core](superpowers/plans/2026-09-25-phase-1-2-scaffold-and-core.md)
 - [Phase 3: store and persistence](superpowers/plans/2026-09-25-phase-3-store-and-persistence.md)
 - [Phase 4: UI foundation](superpowers/plans/2026-09-25-phase-4-ui-foundation.md)
+- [Phase 5a: home, players, setup](superpowers/plans/2026-09-25-phase-5a-players-and-setup.md)
 - [Vault and handoff: spec](superpowers/specs/2026-09-25-obsidian-vault-design.md) · [plan](superpowers/plans/2026-09-25-obsidian-vault.md)
 
 ## Testing references
