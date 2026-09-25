@@ -54,6 +54,22 @@ describe('ContractSheet', () => {
     }
   });
 
+  it("lays the callers out in 4 columns: avatar ringed in the seat's team colour above the name", () => {
+    startMatch();
+    render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
+
+    const buttons = NAMES.map((name) => screen.getByRole('button', { name }));
+    expect(buttons[0]?.parentElement?.className.split(' ')).toContain('grid-cols-4');
+    buttons.forEach((button, seat) => {
+      expect(button.className.split(' ')).toContain('flex-col');
+      const avatar = button.querySelector('[aria-hidden="true"]');
+      expect(avatar?.className.split(' ')).toContain(
+        seat % 2 === 0 ? 'border-team-a' : 'border-team-b',
+      );
+      expect(button.lastElementChild?.textContent).toBe(NAMES[seat]);
+    });
+  });
+
   it('does nothing until both a contract and a caller are picked, then reads "Готово"', async () => {
     startMatch();
     render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);

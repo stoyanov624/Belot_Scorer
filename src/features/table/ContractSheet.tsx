@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { type ContractKey, ContractKeySchema, type Seat } from '../../core/model';
-import { RED_CONTRACTS } from '../../core/rules';
+import { RED_CONTRACTS, teamOf } from '../../core/rules';
 import { STRINGS } from '../../core/strings';
 import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
@@ -92,7 +92,8 @@ function ContractForm({
         <legend className="p-0 text-[13px] font-extrabold uppercase tracking-[0.06em] text-muted">
           {S.caller}
         </legend>
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* Mockup 06: four columns, the avatar (ringed in its team's colour) above the name. */}
+        <div className="grid grid-cols-4 gap-2">
           {SEATS.map((seat) => {
             const player = playerAt(match, roster, seat);
             const selected = caller === seat;
@@ -103,12 +104,17 @@ function ContractForm({
                 aria-pressed={selected}
                 onClick={() => setCaller(seat)}
                 className={cx(
-                  'flex h-14 items-center gap-2.5 rounded-2xl border-2 bg-s2 px-2.5 transition-transform active:scale-[0.98]',
+                  'flex min-w-0 flex-col items-center gap-1.5 rounded-[18px] border-2 bg-s2 px-1 py-2 transition-transform active:scale-[0.98]',
                   selected ? 'border-team-a' : 'border-transparent',
                 )}
               >
-                <PlayerAvatar player={player} size={44} decorative />
-                <span className="truncate text-[15px] font-extrabold">{player.name}</span>
+                <PlayerAvatar
+                  player={player}
+                  size={44}
+                  ring={teamOf(seat) === 'A' ? 'a' : 'b'}
+                  decorative
+                />
+                <span className="max-w-full truncate text-xs font-extrabold">{player.name}</span>
               </button>
             );
           })}
