@@ -50,6 +50,11 @@ describe('Chip', () => {
     render(<Chip selected>Q</Chip>);
     expect(screen.getByRole('button', { name: 'Q' }).getAttribute('aria-pressed')).toBe('true');
   });
+
+  it('is a plain action button, not a toggle, when selected is not passed', () => {
+    render(<Chip>Терца</Chip>);
+    expect(screen.getByRole('button', { name: 'Терца' }).hasAttribute('aria-pressed')).toBe(false);
+  });
 });
 
 describe('Segmented', () => {

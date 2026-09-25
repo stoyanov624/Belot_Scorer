@@ -25,6 +25,13 @@ describe('Avatar', () => {
     expect(screen.getByRole('img').style.width).toBe('68px');
   });
 
+  it('lets a style override the numeric size (the table passes a clamp() width)', () => {
+    // happy-dom drops clamp() values, so a plain length stands in for it here.
+    render(<Avatar name="Иво" emoji="🐻" size={92} style={{ width: '5rem', height: '5rem' }} />);
+    expect(screen.getByRole('img').style.width).toBe('5rem');
+    expect(screen.getByRole('img').style.fontSize).toBe('46px');
+  });
+
   it('colours the team ring with a team-* utility, never the border-b width utility', () => {
     render(<Avatar name="Иво" emoji="🐻" size={60} ring="b" />);
     const classes = screen.getByRole('img').className.split(' ');

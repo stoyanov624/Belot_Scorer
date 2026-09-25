@@ -4,6 +4,8 @@ export interface SheetProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Shown right of the title, in the same row (e.g. the deal sheet's contract pill). */
+  aside?: ReactNode;
   children: ReactNode;
 }
 
@@ -12,7 +14,7 @@ export interface SheetProps {
  * The caller owns `open`; `onClose` fires only for a user dismissal (Esc, overlay tap) while
  * open. Children stay mounted while closed.
  */
-export function Sheet({ open, onClose, title, children }: SheetProps) {
+export function Sheet({ open, onClose, title, aside, children }: SheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -39,9 +41,12 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
     >
       <div className="flex max-h-[88dvh] flex-col gap-4 overflow-y-auto px-5 pt-3.5 pb-[26px]">
         <div aria-hidden className="mx-auto h-[5px] w-10 shrink-0 rounded-[3px] bg-line" />
-        <h2 id={titleId} className="text-2xl font-black">
-          {title}
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id={titleId} className="min-w-0 text-2xl font-black">
+            {title}
+          </h2>
+          {aside}
+        </div>
         {children}
       </div>
     </dialog>

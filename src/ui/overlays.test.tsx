@@ -17,6 +17,18 @@ describe('Sheet', () => {
     expect(dialog.open).toBe(true);
   });
 
+  it('renders an aside next to the title', () => {
+    render(
+      <Sheet open onClose={() => {}} title="T" aside={<button type="button">pill</button>}>
+        <p>body</p>
+      </Sheet>,
+    );
+    const heading = screen.getByRole('heading', { name: 'T' });
+    expect(heading.parentElement?.contains(screen.getByRole('button', { name: 'pill' }))).toBe(
+      true,
+    );
+  });
+
   it('closes when the open prop turns false', () => {
     const { rerender } = render(
       <Sheet open onClose={() => {}} title="T">

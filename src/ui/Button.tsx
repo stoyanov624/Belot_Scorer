@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import { cx } from './cx';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'dangerText' | 'ghost' | 'muted';
-type Size = 'sm' | 'md' | 'lg';
+type Size = 'sm' | 'md' | 'lg' | 'bar';
 
 const BASE =
   'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap transition-transform active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 aria-disabled:active:scale-100';
@@ -18,6 +18,8 @@ const SIZE: Record<Size, string> = {
   sm: 'h-11 rounded-[14px] px-4 text-[15px] font-extrabold',
   md: 'h-14 rounded-[18px] px-4 text-[17px] font-extrabold',
   lg: 'h-16 rounded-[20px] px-5 text-xl font-black',
+  /** The table's bottom action bar (§4): 58px. */
+  bar: 'h-[58px] rounded-[20px] px-4 text-[17px] font-black',
 };
 
 /**

@@ -141,7 +141,7 @@ describe('Setup', () => {
     expect(match?.bestOf).toBe(3);
     expect(match?.rules).toEqual(rules);
 
-    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: STRINGS.table.deal(1) })).toBeTruthy();
   });
 
   it('starts with the default team name when the field is left blank', async () => {
@@ -221,7 +221,7 @@ describe('Setup', () => {
 
     expect(appStore.getState().match?.games).toHaveLength(0);
     expect(appStore.getState().match?.status).toBe('playing');
-    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: STRINGS.table.deal(1) })).toBeTruthy();
   });
 
   it('replaces a playing match with no saved deals without confirming', async () => {
@@ -238,7 +238,7 @@ describe('Setup', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(appStore.getState().match?.games).toHaveLength(0);
-    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: STRINGS.table.deal(1) })).toBeTruthy();
   });
 
   it('replaces an ended match without confirming', async () => {
@@ -260,6 +260,6 @@ describe('Setup', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(appStore.getState().match?.status).toBe('playing');
     expect(appStore.getState().match?.games).toHaveLength(0);
-    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: STRINGS.table.deal(1) })).toBeTruthy();
   });
 });

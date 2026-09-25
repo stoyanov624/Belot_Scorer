@@ -11,14 +11,17 @@ const TONE: Record<Tone, string> = {
 
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: Tone;
-  /** A selected chip always uses the accent, whatever its tone. */
+  /**
+   * Makes the chip a toggle (`aria-pressed`); a selected chip always uses the accent, whatever
+   * its tone. Leave it out for a plain action chip (e.g. the table's remove-declaration chips).
+   */
   selected?: boolean;
   size?: 'sm' | 'md';
 }
 
 export function Chip({
   tone = 'neutral',
-  selected = false,
+  selected,
   size = 'md',
   type = 'button',
   className,

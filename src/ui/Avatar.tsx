@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { cx } from './cx';
 
 const RING = { a: 'border-team-a', b: 'border-team-b', line: 'border-line' } as const;
@@ -14,6 +15,8 @@ export interface AvatarProps {
    * gets `alt=""` and the emoji/initial drops its `role`/`aria-label`.
    */
   decorative?: boolean;
+  /** Overrides the size-derived width/height/font-size, e.g. with a fluid `clamp()`. */
+  style?: CSSProperties;
 }
 
 /** Round player avatar: photo, else emoji, else the name's first letter. */
@@ -24,8 +27,9 @@ export function Avatar({
   size,
   ring = 'line',
   decorative = false,
+  style: styleOverride,
 }: AvatarProps) {
-  const style = { width: size, height: size, fontSize: Math.round(size * 0.5) };
+  const style = { width: size, height: size, fontSize: Math.round(size * 0.5), ...styleOverride };
   const frame = cx(
     'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] bg-s2 shadow-[0_6px_18px_oklch(0.08_0.02_50/0.6)]',
     RING[ring],
