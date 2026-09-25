@@ -92,7 +92,7 @@ export function Seat({
       </button>
       {/* Mounted only while open: keeps closed seats out of the accessibility tree, since the
           native popover UA stylesheet that would otherwise hide them doesn't apply in happy-dom
-          (component tests) — see docs/adr/0008. */}
+          (component tests) — see docs/Architecture/Testing.md. */}
       {declOpen && (
         <Popover
           open={declOpen}
@@ -101,6 +101,9 @@ export function Seat({
           placement={PLACEMENT[seat]}
           label={STRINGS.table.declares(player.name)}
         >
+          <p className="p-1 text-[13px] font-extrabold text-muted">
+            {STRINGS.table.declares(player.name)}
+          </p>
           {declBlockedMessage ? (
             <p className="p-1 text-sm font-bold text-muted">{declBlockedMessage}</p>
           ) : (

@@ -189,6 +189,7 @@ describe('Declarations popover', () => {
     await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
 
     const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    expect(within(dialog).getByText(S.declares('Иван'))).toBeTruthy();
     expect(within(dialog).getByText(S.blocked['no-contract'])).toBeTruthy();
     expect(within(dialog).queryAllByRole('button')).toHaveLength(0);
   });
@@ -236,32 +237,31 @@ describe('Declarations popover', () => {
     expect(within(seat('Север')).getByRole('button', { name: S.removeDecl('Терца') })).toBeTruthy();
   });
 
-  it('narrows to Белот once 9 of 8 cards are used, then blocks with the 8-card message', async () => {
+  it('narrows to Белот once 8 of 8 cards are used, then blocks with the 8-card message', async () => {
     startMatch();
     appStore.getState().setContract('hearts', 0);
-    // Nine of a seat's eight cards used: past what a single declaration could reach through the
-    // guarded action, so seed `current` directly to exercise the popover's own filtering.
-    appStore.setState((s) => ({
-      match: s.match && {
-        ...s.match,
-        current: [
-          { id: 'seed-1', seat: 0, key: 'kvinta', top: null, rank: null },
-          { id: 'seed-2', seat: 0, key: 'kvarta', top: null, rank: null },
-        ],
-      },
-    }));
     renderRoute('/table');
 
-    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
-    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
+    const openDialog = () => screen.getByRole('dialog', { name: S.declares('Иван') });
+
+    // Квинта (5 cards), then Терца (3 more): exactly the seat's 8 cards, the real legal path to
+    // the boundary (a quinte plus a quarte, 9 cards, is illegal and the store already refuses it).
+    await userEvent.click(avatar);
+    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Квинта 10' }));
+
+    await userEvent.click(avatar);
+    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Терца 2' }));
+
+    await userEvent.click(avatar);
+    const dialog = openDialog();
     expect(within(dialog).getByRole('button', { name: 'Белот 2' })).toBeTruthy();
     expect(within(dialog).queryAllByRole('button')).toHaveLength(1);
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Белот 2' }));
-    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+    await userEvent.click(avatar);
 
-    const dialog2 = screen.getByRole('dialog', { name: S.declares('Иван') });
-    expect(within(dialog2).getByText(S.blocked['no-cards'])).toBeTruthy();
+    expect(within(openDialog()).getByText(S.blocked['no-cards'])).toBeTruthy();
   });
 
   it('places the popover below N, above S, right of W and left of E', async () => {
