@@ -51,7 +51,7 @@ describe('Home', () => {
     await userEvent.type(screen.getByRole('textbox', { name: 'Име или прякор' }), 'Иво');
     await userEvent.click(screen.getByRole('button', { name: 'Запази' }));
 
-    await userEvent.click(screen.getByRole('button', { name: /Иво/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Иво' }));
 
     expect(screen.getByRole('dialog', { name: 'Редакция на играч' })).toBeTruthy();
     const nameInput = screen.getByRole('textbox', { name: 'Име или прякор' }) as HTMLInputElement;

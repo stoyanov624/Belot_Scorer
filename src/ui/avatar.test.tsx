@@ -31,6 +31,16 @@ describe('Avatar', () => {
     expect(classes).toContain('border-team-b');
     expect(classes).not.toContain('border-b');
   });
+
+  it('drops its accessible name and role when decorative, next to a visible name', () => {
+    const { rerender } = render(<Avatar name="Иво" emoji="🐻" size={60} decorative />);
+    expect(screen.queryByRole('img')).toBeNull();
+
+    rerender(<Avatar name="Иво" emoji="🐻" photoUrl="blob:x" size={60} decorative />);
+    expect(screen.queryByRole('img')).toBeNull();
+    const img = document.querySelector('img');
+    expect(img?.getAttribute('alt')).toBe('');
+  });
 });
 
 describe('usePhotoUrl', () => {

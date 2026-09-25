@@ -8,13 +8,22 @@ export function PlayerAvatar({
   player,
   size,
   ring,
+  decorative,
 }: {
   player: Pick<Player, 'name' | 'emoji' | 'photo'>;
   size: number;
   ring?: AvatarProps['ring'];
+  decorative?: AvatarProps['decorative'];
 }) {
   const photoUrl = usePhotoUrl(player.photo, photoStore);
   return (
-    <Avatar name={player.name} emoji={player.emoji} photoUrl={photoUrl} size={size} ring={ring} />
+    <Avatar
+      name={player.name}
+      emoji={player.emoji}
+      photoUrl={photoUrl}
+      size={size}
+      ring={ring}
+      decorative={decorative}
+    />
   );
 }

@@ -58,7 +58,7 @@ export function Home() {
                   onClick={() => setRegister({ playerId: player.id })}
                   className="flex w-full flex-col items-center gap-1.5 transition-transform active:scale-95"
                 >
-                  <PlayerAvatar player={player} size={68} />
+                  <PlayerAvatar player={player} size={68} decorative />
                   <span className="w-full truncate text-center text-sm font-extrabold">
                     {player.name}
                   </span>
