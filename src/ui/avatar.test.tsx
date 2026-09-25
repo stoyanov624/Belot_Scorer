@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { render, renderHook, screen, waitFor } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Avatar } from './Avatar';
 import { usePhotoUrl } from './usePhotoUrl';
@@ -49,5 +49,18 @@ describe('usePhotoUrl', () => {
     expect(create).toHaveBeenCalledWith(blob);
     unmount();
     expect(revoke).toHaveBeenCalledWith('blob:photo');
+  });
+
+  it('stays null when the photo read fails', async () => {
+    const create = vi.spyOn(URL, 'createObjectURL');
+    let reject: (error: Error) => void = () => {};
+    const get = () =>
+      new Promise<Blob | undefined>((_, fail) => {
+        reject = fail;
+      });
+    const { result } = renderHook(() => usePhotoUrl('ph1', { get }));
+    await act(async () => reject(new Error('idb down')));
+    expect(result.current).toBeNull();
+    expect(create).not.toHaveBeenCalled();
   });
 });
