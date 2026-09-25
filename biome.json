@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": { "includes": ["**", "!docs", "!dist", "!test/prototype/legacy.js"] },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always" } },
+  "linter": { "rules": { "recommended": true } },
+  "overrides": [
+    {
+      "includes": ["src/core/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "react": "src/core must stay platform-free (ADR 0001).",
+                  "react-dom": "src/core must stay platform-free (ADR 0001).",
+                  "react-dom/client": "src/core must stay platform-free (ADR 0001).",
+                  "react-router": "src/core must stay platform-free (ADR 0001).",
+                  "zustand": "src/core must stay platform-free (ADR 0001).",
+                  "idb-keyval": "src/core must stay platform-free (ADR 0001)."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
