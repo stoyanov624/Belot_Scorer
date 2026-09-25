@@ -14,7 +14,8 @@
     "typecheck": "tsc -b && tsc -p tsconfig.core.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "pnpm lint && pnpm typecheck && pnpm test"
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "docs:check": "node scripts/check-doc-links.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",

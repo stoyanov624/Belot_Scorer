@@ -5,3 +5,7 @@ dev-dist/
 *.local
 coverage/
 .superpowers/
+
+# Obsidian: share link settings only, not per-machine layout or plugins
+docs/.obsidian/*
+!docs/.obsidian/app.json

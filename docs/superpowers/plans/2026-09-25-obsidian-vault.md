@@ -163,7 +163,7 @@ Each note starts with `# <Title>`, then one sentence saying what the note covers
   - **Non-goals:** no backend, no accounts, no live sync (DATA_MODEL §4 limits), not playing cards.
   - **Platforms:** a web SPA now, React Native later, which is why `src/core` is platform-free (ADR 0001).
   - **Language:** the UI is in Bulgarian, with final copy in the handoff.
-  - **Status:** link to [Status](../Status.md) and the roadmap.
+  - **Status:** link to Status (`../Status.md`) and the roadmap.
   - **See also:** the design-handoff README, GAME_RULES and DATA_MODEL; the roadmap.
 - [ ] **Step 2: `docs/Architecture/Overview.md`**. Cover:
   - **Layers:** `src/core` (pure domain) → `src/storage` (key-value adapters, document storage, photo store) → `src/store` (Zustand store, actions, production instance) → UI (`src/App.tsx`, `main.tsx`; screens from Phase 4/5).
