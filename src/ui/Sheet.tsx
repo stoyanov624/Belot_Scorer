@@ -4,7 +4,9 @@ export interface SheetProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  /** Shown right of the title, in the same row (e.g. the deal sheet's contract pill). */
+  /** Shown under the title, in its column; also describes the dialog (e.g. a hint). */
+  subtitle?: ReactNode;
+  /** Shown right of the title column, aligned to its top (e.g. the deal sheet's contract pill). */
   aside?: ReactNode;
   children: ReactNode;
 }
@@ -14,9 +16,11 @@ export interface SheetProps {
  * The caller owns `open`; `onClose` fires only for a user dismissal (Esc, overlay tap) while
  * open. Children stay mounted while closed.
  */
-export function Sheet({ open, onClose, title, aside, children }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle, aside, children }: SheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const subtitleId = useId();
+  const hasSubtitle = subtitle !== undefined && subtitle !== null;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -30,6 +34,7 @@ export function Sheet({ open, onClose, title, aside, children }: SheetProps) {
     <dialog
       ref={ref}
       aria-labelledby={titleId}
+      aria-describedby={hasSubtitle ? subtitleId : undefined}
       onClose={() => {
         // `close` also fires after the caller set `open` to false; only a user close counts.
         if (open) onClose();
@@ -41,10 +46,17 @@ export function Sheet({ open, onClose, title, aside, children }: SheetProps) {
     >
       <div className="flex max-h-[88dvh] flex-col gap-4 overflow-y-auto px-5 pt-3.5 pb-[26px]">
         <div aria-hidden className="mx-auto h-[5px] w-10 shrink-0 rounded-[3px] bg-line" />
-        <div className="flex items-center justify-between gap-3">
-          <h2 id={titleId} className="min-w-0 text-2xl font-black">
-            {title}
-          </h2>
+        <div data-sheet-head className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h2 id={titleId} className="text-2xl font-black">
+              {title}
+            </h2>
+            {hasSubtitle && (
+              <p id={subtitleId} className="text-sm font-semibold text-pretty text-muted">
+                {subtitle}
+              </p>
+            )}
+          </div>
           {aside}
         </div>
         {children}

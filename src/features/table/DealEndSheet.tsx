@@ -1,14 +1,30 @@
 import { useState } from 'react';
-import type { Declaration } from '../../core/model';
+import type { ContractKey, Declaration, Team } from '../../core/model';
 import { type Resolution, resolve } from '../../core/resolve';
-import { isSequence, KARE_RANKS, type RulesConfig, teamOf, validTops } from '../../core/rules';
+import {
+  isSequence,
+  KARE_RANKS,
+  RED_CONTRACTS,
+  type RulesConfig,
+  teamOf,
+  validTops,
+} from '../../core/rules';
+import { type DealScore, scoreDeal } from '../../core/score';
 import { STRINGS } from '../../core/strings';
 import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
 import { cx } from '../../ui/cx';
 import { Sheet } from '../../ui/Sheet';
-import { resolutionCardLabel, resolutionErrors, resolutionLines, teamNameOf } from './copy';
+import {
+  calcRows,
+  dealVerdict,
+  pointsHint,
+  resolutionCardLabel,
+  resolutionErrors,
+  resolutionLines,
+  teamNameOf,
+} from './copy';
 import { playerAt } from './seat-player';
 
 const S = STRINGS.deal;
@@ -18,9 +34,10 @@ type Step = 'decls' | 'points';
 export interface DealEndSheetProps {
   open: boolean;
   onClose: () => void;
-  /** Step 2's contract pill: change the contract (Task 8). */
+  /** Step 2's contract pill. The table closes this sheet and opens the contract sheet, which
+   * reopens this one on confirm (step 2's inputs start over). */
   onChangeContract: () => void;
-  /** Fires after the deal is saved; `ended` when that save ended the match (Task 8). */
+  /** Fires after the deal is saved; `ended` when that save ended the match. */
   onSaved: (ended: boolean) => void;
 }
 
@@ -29,9 +46,9 @@ const needsResolving = (d: Pick<Declaration, 'key'>) => isSequence(d.key) || d.k
 
 /**
  * The "Край на раздаване" sheet. Step 1 ("Уточнете обявите") resolves sequences and fours of
- * a kind and only appears when the deal has any; step 2 enters the card points (Task 8).
+ * a kind and only appears when the deal has any; step 2 enters the card points and saves.
  */
-export function DealEndSheet({ open, onClose }: DealEndSheetProps) {
+export function DealEndSheet({ open, onClose, onChangeContract, onSaved }: DealEndSheetProps) {
   const match = useAppStore((s) => s.match);
   // null = the step this opening starts at. Reset on open (not on close, so the title holds
   // still while the sheet animates out); set during render, React's "adjust state on a prop
@@ -45,14 +62,231 @@ export function DealEndSheet({ open, onClose }: DealEndSheetProps) {
 
   const start: Step = match?.current.some(needsResolving) ? 'decls' : 'points';
   const step = chosen ?? start;
-  const title = step === 'decls' ? S.resolveTitle : S.pointsTitle((match?.games.length ?? 0) + 1);
+  const contract = match?.contract ?? null;
+  const points = step === 'points';
+  const title = points ? S.pointsTitle((match?.games.length ?? 0) + 1) : S.resolveTitle;
+  const subtitle = points ? contract && match && pointsHint(contract, match.rules) : S.resolveHint;
 
   return (
-    <Sheet open={open} onClose={onClose} title={title}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle={subtitle}
+      aside={points && contract && <StepPill contract={contract} onClick={onChangeContract} />}
+    >
       {open && step === 'decls' && (
         <ResolveStep onCancel={onClose} onNext={() => setChosen('points')} />
       )}
+      {open && points && (
+        <PointsStep
+          onBack={start === 'decls' ? () => setChosen('decls') : onClose}
+          onSaved={onSaved}
+        />
+      )}
     </Sheet>
+  );
+}
+
+/** Step 2's contract pill (symbol + label); tapping it changes the contract. */
+function StepPill({ contract, onClick }: { contract: ContractKey; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-10 shrink-0 items-center gap-1.5 rounded-[14px] border border-line bg-s2 px-3 text-sm font-extrabold transition-transform active:scale-95"
+    >
+      <span
+        aria-hidden
+        className={cx(
+          'text-lg font-black leading-none',
+          RED_CONTRACTS.has(contract) && 'text-suit-red',
+        )}
+      >
+        {STRINGS.contracts[contract].sym}
+      </span>
+      {STRINGS.contracts[contract].label}
+    </button>
+  );
+}
+
+/** A whole number (sign allowed, so an out-of-range B can drive A below zero), else null. */
+const parsePoints = (raw: string): number | null => (/^-?\d+$/.test(raw) ? Number(raw) : null);
+
+const VERDICT_BOX: Record<DealScore['verdict'], string> = {
+  inside: 'bg-team-b text-on',
+  hang: 'bg-s3 text-text',
+  ok: 'bg-s2 text-text',
+};
+
+function PointsStep({
+  onBack,
+  onSaved,
+}: {
+  onBack: () => void;
+  onSaved: (ended: boolean) => void;
+}) {
+  const match = useAppStore((s) => s.match);
+  const saveDeal = useAppStore((s) => s.saveDeal);
+  const [cardA, setCardA] = useState('');
+  const [capo, setCapo] = useState<Team | null>(null);
+
+  if (!match || match.contract === null || match.caller === null) return null;
+
+  const parsed = parsePoints(cardA);
+  const score = scoreDeal(
+    {
+      contract: match.contract,
+      caller: match.caller,
+      decls: match.current,
+      hang: match.hang,
+      cardPointsA: parsed,
+      capo,
+    },
+    match.rules,
+  );
+  const { max } = score;
+  const teamName = teamNameOf(match);
+  const error =
+    score.error === 'points-missing'
+      ? S.errMissing
+      : score.error === 'points-range'
+        ? S.errRange(max)
+        : null;
+
+  let shownA = cardA;
+  let shownB = parsed === null ? '' : String(max - parsed);
+  if (capo) {
+    shownA = String(capo === 'A' ? max : 0);
+    shownB = String(capo === 'B' ? max : 0);
+  }
+
+  const onInputA = (value: string) => {
+    setCardA(value);
+    setCapo(null);
+  };
+  const onInputB = (value: string) => {
+    const b = parsePoints(value);
+    setCardA(b === null ? '' : String(max - b));
+    setCapo(null);
+  };
+
+  const save = () => {
+    if (error) return;
+    const result = saveDeal({ cardPointsA: parsed, capo });
+    if (result.ok) onSaved(result.ended);
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+        <PointsInput team="A" label={match.teamA} value={shownA} onChange={onInputA} />
+        <PointsInput team="B" label={match.teamB} value={shownB} onChange={onInputB} />
+        {(['A', 'B'] as const).map((team) => (
+          <button
+            key={team}
+            type="button"
+            aria-pressed={capo === team}
+            onClick={() => setCapo((current) => (current === team ? null : team))}
+            className={cx(
+              'h-11 rounded-[14px] border-2 bg-s2 text-sm font-extrabold transition-transform active:scale-[0.97]',
+              capo !== team && 'border-transparent',
+              capo === team && (team === 'A' ? 'border-team-a' : 'border-team-b'),
+            )}
+          >
+            {S.capo}
+          </button>
+        ))}
+      </div>
+
+      {/* A collapsed-border table ignores padding and radius, so the box wraps it. */}
+      <div className="rounded-[18px] bg-s2 px-3.5 py-2">
+        <table className="w-full table-fixed tabular-nums">
+          <colgroup>
+            <col className="w-[39%]" />
+            <col />
+            <col />
+          </colgroup>
+          <tbody>
+            {calcRows(score, capo).map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className="py-1 text-left text-sm font-bold text-muted">
+                  {row.label}
+                </th>
+                <td className="py-1 text-center text-[15px] font-extrabold">{row.a}</td>
+                <td className="py-1 text-center text-[15px] font-extrabold">{row.b}</td>
+              </tr>
+            ))}
+            <tr>
+              <th
+                scope="row"
+                className="border-t border-line pt-2 text-left text-[15px] font-black"
+              >
+                {S.rows.match}
+              </th>
+              <td className="border-t border-line pt-1 text-center text-[26px] font-black text-team-a">
+                {score.match.A}
+              </td>
+              <td className="border-t border-line pt-1 text-center text-[26px] font-black text-team-b">
+                {score.match.B}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {error === null && (
+        <p
+          data-verdict={score.verdict}
+          className={cx(
+            'rounded-2xl px-3.5 py-3 text-[15px] font-black text-pretty',
+            VERDICT_BOX[score.verdict],
+          )}
+        >
+          {dealVerdict(score, match.caller, capo, match.hang, teamName, match.rules)}
+        </p>
+      )}
+      {error && <p className="text-sm font-extrabold text-team-b">{error}</p>}
+
+      <div className="grid grid-cols-[1fr_1.6fr] gap-2.5">
+        <Button onClick={onBack}>{S.back}</Button>
+        <Button variant="primary" aria-disabled={error !== null} onClick={save}>
+          {S.save}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+function PointsInput({
+  team,
+  label,
+  value,
+  onChange,
+}: {
+  team: Team;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex min-w-0 flex-col gap-1.5">
+      <span className={cx('text-sm font-extrabold', team === 'A' ? 'text-team-a' : 'text-team-b')}>
+        {label}
+      </span>
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder="0"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={cx(
+          'h-16 w-full min-w-0 rounded-[18px] border-2 bg-bg text-center text-[30px] font-black text-text outline-none',
+          team === 'A' ? 'border-team-a' : 'border-team-b',
+        )}
+      />
+    </label>
   );
 }
 
@@ -70,8 +304,6 @@ function ResolveStep({ onCancel, onNext }: { onCancel: () => void; onNext: () =>
 
   return (
     <>
-      <p className="-mt-3.5 text-sm font-semibold text-pretty text-muted">{S.resolveHint}</p>
-
       <ul className="m-0 flex list-none flex-col gap-3 p-0">
         {match.current.map((d, i) =>
           needsResolving(d) ? (

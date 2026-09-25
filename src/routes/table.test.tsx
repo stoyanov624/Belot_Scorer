@@ -352,4 +352,73 @@ describe('Deal-end sheet', () => {
 
     expect(screen.queryByRole('dialog', { name: DS.resolveTitle })).toBeNull();
   });
+
+  it('changes the contract from step 2: contract sheet in toPoints mode, then back to step 2', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    const points = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
+    await userEvent.click(within(points).getByRole('button', { name: 'Купа' }));
+
+    expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
+    const sheet = screen.getByRole('dialog', { name: CS.title });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Без коз' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
+
+    expect(appStore.getState().match?.contract).toBe('nt');
+    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    const again = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
+    expect(within(again).getByText(DS.hintNt(13))).toBeTruthy();
+  });
+
+  it('leaves no sheet open when the contract change is cancelled', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    await userEvent.click(screen.getByRole('button', { name: 'Купа' }));
+    // An overlay tap dismisses the contract sheet (happy-dom has no native Esc handling).
+    await userEvent.click(screen.getByRole('dialog', { name: CS.title }));
+
+    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
+    expect(appStore.getState().match?.contract).toBe('hearts');
+  });
+
+  it('saves the deal, closes the sheet and shows the next deal with the new totals', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.click(screen.getByRole('button', { name: DS.save }));
+
+    expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
+    expect(screen.getByText('Раздаване 2')).toBeTruthy();
+    expect(screen.getByText('10')).toBeTruthy();
+    expect(screen.getByText('6')).toBeTruthy();
+  });
+
+  it('navigates to the match end after a winning save', async () => {
+    appStore
+      .getState()
+      .updateSettings({ rules: { ...appStore.getState().settings.rules, targetScore: 10 } });
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    const { router } = renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.click(screen.getByRole('button', { name: DS.save }));
+
+    expect(
+      await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 }),
+    ).toBeTruthy();
+    expect(router.state.location.pathname).toBe('/end');
+    expect(appStore.getState().match?.status).toBe('ended');
+  });
 });

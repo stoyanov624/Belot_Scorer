@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { allowedDeclarations } from '../core/declarations';
 import { dealer } from '../core/match';
 import type { Seat as SeatIndex } from '../core/model';
@@ -33,6 +33,7 @@ export function Table() {
   const felt = useAppStore((s) => s.settings.felt);
   const removeDeclaration = useAppStore((s) => s.removeDeclaration);
   const addDeclaration = useAppStore((s) => s.addDeclaration);
+  const navigate = useNavigate();
   const [themeOpen, setThemeOpen] = useState(false);
   const [openSeat, setOpenSeat] = useState<SeatIndex | null>(null);
   const [contractSheet, setContractSheet] = useState<'set' | 'toPoints' | null>(null);
@@ -134,9 +135,15 @@ export function Table() {
       <DealEndSheet
         open={dealEndOpen}
         onClose={() => setDealEndOpen(false)}
-        onChangeContract={() => setContractSheet('set')}
-        // Task 8 saves the deal; the match-end navigation for `ended` comes with it.
-        onSaved={() => setDealEndOpen(false)}
+        // Sequenced, not stacked: confirming the contract sheet reopens this one.
+        onChangeContract={() => {
+          setDealEndOpen(false);
+          setContractSheet('toPoints');
+        }}
+        onSaved={(ended) => {
+          setDealEndOpen(false);
+          if (ended) navigate('/end');
+        }}
       />
     </div>
   );

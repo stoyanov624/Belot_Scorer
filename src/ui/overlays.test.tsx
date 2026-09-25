@@ -24,9 +24,43 @@ describe('Sheet', () => {
       </Sheet>,
     );
     const heading = screen.getByRole('heading', { name: 'T' });
-    expect(heading.parentElement?.contains(screen.getByRole('button', { name: 'pill' }))).toBe(
-      true,
+    const row = heading.closest('[data-sheet-head]');
+    expect(row?.contains(screen.getByRole('button', { name: 'pill' }))).toBe(true);
+  });
+
+  it('renders a subtitle under the title and describes the dialog with it', () => {
+    render(
+      <Sheet
+        open
+        onClose={() => {}}
+        title="T"
+        subtitle="hint text"
+        aside={<button type="button">pill</button>}
+      >
+        <p>body</p>
+      </Sheet>,
     );
+    const heading = screen.getByRole('heading', { name: 'T' });
+    const subtitle = screen.getByText('hint text');
+    // Title and subtitle share a column; the aside sits beside that column, not inside it.
+    expect(heading.parentElement).toBe(subtitle.parentElement);
+    expect(heading.parentElement?.contains(screen.getByRole('button', { name: 'pill' }))).toBe(
+      false,
+    );
+    expect(
+      heading.compareDocumentPosition(subtitle) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    const dialog = screen.getByRole('dialog', { name: 'T' });
+    expect(dialog.getAttribute('aria-describedby')).toBe(subtitle.id);
+  });
+
+  it('has no description without a subtitle', () => {
+    render(
+      <Sheet open onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    expect(screen.getByRole('dialog', { name: 'T' }).getAttribute('aria-describedby')).toBe(null);
   });
 
   it('closes when the open prop turns false', () => {
