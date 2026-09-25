@@ -34,4 +34,4 @@ Scorekeeping web app (React, later React Native) for the Bulgarian card game Bel
 
 - `pnpm check` (lint + both typechecks + tests) is the done gate for every task. Core changes are written test-first with Vitest.
 - Conventional Commits, one commit per plan task.
-- Before using a library API you're unsure of (Tailwind v4, Zod v4, Biome, React Router, vaul), check current docs via context7.
+- Before using a library API you're unsure of (Tailwind v4, Zod v4, Biome, React Router), check current docs via context7.
