@@ -58,12 +58,11 @@ export function Component() {
   const [series, setSeries] = useState<(typeof SERIES_OPTIONS)[number]['value']>(1);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [openPlacement, setOpenPlacement] = useState<Placement | null>(null);
-  const anchors = {
-    below: useRef<HTMLButtonElement>(null),
-    above: useRef<HTMLButtonElement>(null),
-    right: useRef<HTMLButtonElement>(null),
-    left: useRef<HTMLButtonElement>(null),
-  } as const;
+  const belowRef = useRef<HTMLButtonElement>(null);
+  const aboveRef = useRef<HTMLButtonElement>(null);
+  const rightRef = useRef<HTMLButtonElement>(null);
+  const leftRef = useRef<HTMLButtonElement>(null);
+  const anchors = { below: belowRef, above: aboveRef, right: rightRef, left: leftRef } as const;
 
   return (
     <div className="mx-auto flex max-w-[780px] flex-col gap-8 p-5">
