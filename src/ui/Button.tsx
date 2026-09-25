@@ -13,6 +13,12 @@ type Size = 'sm' | 'md' | 'lg' | 'bar';
 
 const BASE =
   'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap transition-transform active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 aria-disabled:active:scale-100';
+/**
+ * `aria-disabled` (a blocked button that stays focusable and explains itself) dims like
+ * `disabled`. Not on `muted`: that variant already is the spec's inactive look, and fading it
+ * again would make it unreadable.
+ */
+const ARIA_DIM = 'aria-disabled:opacity-50';
 const VARIANT: Record<Variant, string> = {
   primary: 'bg-team-a text-on',
   secondary: 'bg-s1 text-text border border-line',
@@ -37,7 +43,7 @@ const SIZE: Record<Size, string> = {
  * conflicting utility wins unpredictably. Add a variant or size instead.
  */
 export function buttonClass(variant: Variant = 'secondary', size: Size = 'md'): string {
-  return cx(BASE, VARIANT[variant], SIZE[size]);
+  return cx(BASE, VARIANT[variant], variant !== 'muted' && ARIA_DIM, SIZE[size]);
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

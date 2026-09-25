@@ -43,6 +43,21 @@ describe('buttonClass', () => {
     expect(buttonClass('secondary', 'sm')).toContain('h-11');
     expect(buttonClass('muted', 'md')).toContain('bg-s3');
   });
+
+  it('dims an aria-disabled button like a disabled one, except muted (already the inactive look)', () => {
+    render(
+      <Button variant="primary" aria-disabled>
+        Напред
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Напред' });
+    expect(button.className.split(' ')).toContain('aria-disabled:opacity-50');
+    expect(button.className.split(' ')).toContain('aria-disabled:active:scale-100');
+    for (const variant of ['secondary', 'danger', 'dangerText', 'dangerFilled', 'ghost'] as const) {
+      expect(buttonClass(variant).split(' ')).toContain('aria-disabled:opacity-50');
+    }
+    expect(buttonClass('muted').split(' ')).not.toContain('aria-disabled:opacity-50');
+  });
 });
 
 describe('Chip', () => {
