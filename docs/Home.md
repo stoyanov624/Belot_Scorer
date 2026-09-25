@@ -33,6 +33,7 @@ Read in this order:
 - [0005 Share payload v2, no compatibility with the HTML prototype](adr/0005-share-format-v2-no-prototype-compat.md)
 - [0006 Block persistence writes until the stored document has loaded](adr/0006-gate-persistence-writes-until-load.md)
 - [0007 Pin pnpm 10 via packageManager](adr/0007-pin-pnpm-10.md)
+- [0008 Sheets and popovers on the native dialog and popover APIs, not vaul](adr/0008-native-dialog-and-popover-over-vaul.md)
 
 ## Product spec
 
@@ -48,6 +49,7 @@ The design handoff is final: its Bulgarian copy is used verbatim. Where the spec
 - [Roadmap](superpowers/plans/2026-09-25-roadmap.md)
 - [Phase 1–2: scaffold and core](superpowers/plans/2026-09-25-phase-1-2-scaffold-and-core.md)
 - [Phase 3: store and persistence](superpowers/plans/2026-09-25-phase-3-store-and-persistence.md)
+- [Phase 4: UI foundation](superpowers/plans/2026-09-25-phase-4-ui-foundation.md)
 - [Vault and handoff: spec](superpowers/specs/2026-09-25-obsidian-vault-design.md) · [plan](superpowers/plans/2026-09-25-obsidian-vault.md)
 
 ## Testing references

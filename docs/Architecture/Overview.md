@@ -6,7 +6,10 @@ How the code is layered, what may depend on what, and how the boundaries are enf
 
 ```mermaid
 flowchart LR
-  UI["UI: src/App.tsx, main.tsx<br/>(screens from Phase 4+)"] --> Store
+  Routes["src/routes<br/>screens"] --> UI
+  Routes --> Store
+  App["src/app<br/>router shell"] --> Routes
+  UI["src/ui<br/>Button, Chip, Segmented, Avatar,<br/>Sheet, Popover, theme"] --> Store
   Store["src/store<br/>Zustand store + actions"] --> Core
   Store --> Storage
   Storage["src/storage<br/>Kv adapters, document storage, photo store"] --> Core
@@ -16,20 +19,28 @@ flowchart LR
 
 | Folder | Responsibility | May import |
 |---|---|---|
-| `src/core` | Domain model (Zod schemas), rules, declarations, resolution, scoring, match and series lifecycle, roster, leaderboard, settings, persisted-document format | `zod` and other core modules only |
+| `src/core` | Domain model (Zod schemas), rules, declarations, resolution, scoring, match and series lifecycle, roster, leaderboard, settings, persisted-document format, `tokens.ts` (theme/felt data), `strings.ts` (Bulgarian copy) | `zod` and other core modules only |
 | `src/storage` | `Kv` interface (IndexedDB via `idb-keyval`, in-memory for tests), versioned document storage with write gate, photo Blob store | core, `idb-keyval`, zustand types |
 | `src/store` | One vanilla Zustand store with `persist`: thin actions over core functions, match recording, hydration status. `instance.ts` is the only production wiring | core, storage, `zustand` |
 | `src/lib` | Small platform helpers (`newId` = `nanoid(10)`) | anything |
-| UI | React components (Phase 4+). Reads the store through narrow selectors (`useAppStore`) | everything above |
+| `src/ui` | Presentational primitives: `Button`, `Chip`, `Segmented`, `Avatar` (+ `usePhotoUrl` for photo Blobs), `Sheet` and `Popover` on the native `<dialog>`/popover APIs (ADR 0008), `theme.ts` (`applyTheme`/`syncTheme`, writes `tokens.ts` as CSS custom properties), `popover-position.ts` | core, `react`, `zustand` types |
+| `src/app` | Router shell: `routes.tsx` (`react-router` `RouteObject[]`, eager `home`/`table`, lazy `setup`/`history`/`end`/`stats`, DEV-only `/dev/ui`), `RootLayout.tsx` (centred 780px column), `RouteError.tsx` (per-route `ErrorBoundary`), `PreloadLink.tsx` (preloads a lazy route's code on hover/focus) | core, ui, routes, `react-router` |
+| `src/routes` | Screen components, one per route (`home.tsx`, `table.tsx`, `setup.tsx`, `history.tsx`, `end.tsx`, `stats.tsx`), plus the DEV-only `dev-ui.tsx` gallery | core, ui, store |
 
 ## Boundaries and how they are enforced
 
 - **Core is platform-free** ([ADR 0001](../adr/0001-single-vite-app-with-isolated-core.md)). `tsconfig.core.json` typechecks `src/core` without the `dom` lib. Biome `noRestrictedImports` bans `react`, `react-dom`, `react-router`, `zustand` and `idb-keyval` there, and `noRestrictedGlobals` bans `Date`. `Math.random` has no lint rule, so avoiding it is a review convention. Ids and dates are passed in by callers.
 - **Game behaviour lives in core** ([ADR 0002](../adr/0002-pure-core-transitions-thin-zustand-store.md)). The store only calls core functions and persists the result. Totals, dealer, allowed declarations and verdict are derived, never stored.
-- **Core returns codes, not text.** Bulgarian copy for codes will live in `src/core/strings.ts` (not created yet, see [Status](../Status.md)).
+- **Core returns codes, not text.** Bulgarian copy lives in `src/core/strings.ts` — so far screen names, theme/felt names and the (placeholder) route-error text; per-code copy for declarations and errors is due Phase 5 (see [Status](../Status.md)).
 - **No barrel `index.ts` files.** Import from the defining module.
-- **Heavy features load lazily** with `import()`: share/import, QR, camera, photo crop, secondary routes (Phase 4+).
-- **Theme tokens live in TypeScript** and reach Tailwind v4 as CSS variables ([ADR 0004](../adr/0004-theme-tokens-in-typescript.md), Phase 4).
+- **Heavy features load lazily** with `import()`: secondary routes (`src/app/routes.tsx`'s `LAZY_ROUTES`, preloaded on hover/focus via `PreloadLink`), and share/import, QR, camera, photo crop still to come.
+- **Theme tokens live in TypeScript** and reach Tailwind v4 as CSS variables ([ADR 0004](../adr/0004-theme-tokens-in-typescript.md)), written to `<html>` by `src/ui/theme.ts`'s `syncTheme`.
+- **Sheets and popovers use the native `<dialog>` and popover APIs, not a dependency** ([ADR 0008](../adr/0008-native-dialog-and-popover-over-vaul.md)).
+
+## Gotchas
+
+- **The React Compiler memoizes expressions, not just components.** Every hook call must be a plain top-level statement of the component — never inside an object literal, array, or other expression. `src/routes/dev-ui.tsx` originally built its popover anchors as `{ below: useRef(null), above: useRef(null), … }`; the compiler memoized that object, and on the next render React saw fewer hook calls than before and crashed with "Rendered fewer hooks than expected". The fix (commit `5d4574b`) hoists each `useRef` to its own top-level `const` and assembles the object afterwards.
+- **Biome suppressions in JSX** use `{/* biome-ignore lint/<group>/<rule>: reason */}` directly before the element (see `src/ui/Segmented.tsx`); a plain `// biome-ignore …` line works before a non-JSX-attribute node such as `<dialog>` in `src/ui/Sheet.tsx`. Never disable a rule in `biome.json`.
 
 ## Tooling
 

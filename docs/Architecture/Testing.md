@@ -20,9 +20,15 @@ Every change to `src/core` starts with a failing Vitest test in the `*.test.ts` 
 - Store tests build a store with `createAppStore` and an in-memory `Kv` (`memoryKv`), a counter for `newId` and a fixed `now`. They never import `src/store/instance.ts`.
 - Failure paths use a `Kv` whose `get` or `set` rejects: write gate, backup, `saveError`, `resetData`.
 
+## UI: component tests
+
+- `src/test-setup.ts` (wired via `vite.config.ts`'s `test.setupFiles`) registers React Testing Library's `afterEach(cleanup)` — Vitest's own globals are off, so RTL can't self-register it. It checks `typeof document !== 'undefined'` first, since core's Node-environment tests have no DOM.
+- A component test needs a DOM, which the shared Node environment doesn't give it. Add happy-dom per file with a first-line docblock (`// @vitest-environment happy-dom`) above the imports, and write the test with React Testing Library.
+- **happy-dom has no Popover API** (`showPopover`/`hidePopover`/`:popover-open`), so `src/ui/Popover.tsx` guards those calls (`canTogglePopover`) and its component tests can only assert the card renders open, not its light-dismiss or Esc behaviour. That's verified by hand in a real browser via `/dev/ui` (DEV-only route, see below).
+
 ## Manual check
 
-`pnpm start` runs the dev server and opens the app. For store behaviour in a real browser, the dev server can `import('/src/store/instance.ts')` from the console.
+`pnpm start` runs the dev server and opens the app. For store behaviour in a real browser, the dev server can `import('/src/store/instance.ts')` from the console. `/dev/ui` (DEV-only, registered in `src/app/routes.tsx`'s `LAZY_ROUTES`) renders every `src/ui` primitive in the current theme — the place to check things happy-dom can't cover, like popover light-dismiss, Esc-to-close and the actual sheet/popover motion, against the mockups.
 
 ## Planned
 

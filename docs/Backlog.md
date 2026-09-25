@@ -4,9 +4,10 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 4: UI foundation
 
-- `src/core/tokens.ts` → CSS variables → Tailwind `@theme`; theme and felt switching; Nunito font ([ADR 0004](adr/0004-theme-tokens-in-typescript.md))
-- `ui/` primitives: Sheet (vaul), Popover/Dialog, Button, Avatar, Segmented, Chip
-- Router shell with lazy routes and an ErrorBoundary per route
+- `src/core/tokens.ts` test covers only the `casino` theme's `themeVars` output
+- `src/ui/Popover.tsx` doesn't reposition on resize/scroll
+- `src/routes/home.tsx` duplicates `Button` secondary classes for its links instead of reusing `Button`
+- `src/routes/dev-ui.tsx` (the `/dev/ui` gallery): doesn't demo the `Avatar` photo variant (`photoStore` unused); its labels are Bulgarian literals outside `src/core/strings.ts` (accepted as a dev-tool carve-out)
 
 ## Phase 5: Screens
 
@@ -15,6 +16,8 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - Save-error banner for `saveError`; decide whether a later successful write clears it
 - `src/core/strings.ts`: Bulgarian copy for every core code, including `in-match`, the `NameError`s and the `SaveDealError`s
 - Avatar component that loads photo Blobs from `photoStore` (object URLs)
+- `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px and 4px at 100px (the spec only names 3px) — add a width option once real screens wire those sizes
+- `src/ui/usePhotoUrl.ts` has no `.catch` on `photos.get`, and its effect re-runs if a caller passes a new `photos` object each render — add the catch and document/memoize `photos` at wiring time
 
 ## Phase 6: Share & import
 
