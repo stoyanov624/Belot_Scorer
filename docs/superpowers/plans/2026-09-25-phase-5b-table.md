@@ -102,7 +102,7 @@ src/ui/Sheet.tsx                              + optional `aside` next to the tit
 
 **Files:** Create `docs/adr/0011-resume-and-replace-matches.md`. Modify `docs/Status.md`, `docs/Backlog.md`, `docs/Home.md`.
 
-- [ ] **Step 1: Write ADR 0011**
+- [x] **Step 1: Write ADR 0011**
 
 ```markdown
 # Resume a stored match, continue it from Home, confirm before replacing it
@@ -119,11 +119,11 @@ The handoff's prototype restores the last screen on reload but offers no way bac
 "Продължи мача" and the confirmation copy are not in the handoff; they are listed in `docs/Status.md` for the product owner.
 ```
 
-- [ ] **Step 2: Update the vault**
+- [x] **Step 2: Update the vault**
   - **Status:** remove the "Resuming and leaving a match" open question, since it's decided. Add to Open product questions: "Copy not in the handoff: «Продължи мача», the replace-match confirmation (title, body, buttons), and the screen-reader label «Премахни …» on declaration chips — confirm in `src/core/strings.ts`." Next: "Phase 5b (table) in progress".
   - **Backlog:** in "Phase 5b", remove the resume/leave line and the "replaced without warning" line (ADR 0011 now covers them). Keep the RootLayout padding line and the DEFAULT_RULES line.
   - **Home:** list ADR 0011 under Decisions and this plan under Plans.
-- [ ] **Step 3: Verify and commit.** Run `pnpm docs:check`.
+- [x] **Step 3: Verify and commit.** Run `pnpm docs:check`.
 
 ```bash
 git add docs/adr/0011-resume-and-replace-matches.md docs/Status.md docs/Backlog.md docs/Home.md
@@ -154,7 +154,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `calcRows(score: DealScore, capo: Team | null): { label: string; a: number; b: number }[]`
   - `teamNameOf(m: Pick<Match,'teamA'|'teamB'>): (t: Team) => string`
 
-- [ ] **Step 1: Write the failing tests** in `src/features/table/copy.test.ts` (node environment). Cover each function with values from the prototype templates:
+- [x] **Step 1: Write the failing tests** in `src/features/table/copy.test.ts` (node environment). Cover each function with values from the prototype templates:
   - **`declLabel`:** `{key:'terca',top:'K'}` → "Терца до K", `{key:'kare',rank:'J'}` → "Каре J", `{key:'belot'}` → "Белот", `{key:'kvinta',top:null}` → "Квинта".
   - **`declOptionPoints`:**
     - With `DEFAULT_RULES`: belot → "2", kvinta → "10", kare → "10+". Kare is `${min(karePoints)}+`.
@@ -181,7 +181,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - Hanging points carried into a made deal append " +N висящи за Ние."
     - Capot wraps the text: "Капо за Ние (+9). <text> С капо мачът не може да приключи — играе се още едно раздаване."
   - **`calcRows`:** color without capot → labels Карти/Обяви/Общо. Capot → "Карти + капо". nt → "Общо ×2". The values are `score.cards`, `score.decl` and `score.raw`.
-- [ ] **Step 2: Add the copy to `strings.ts`.** Add it verbatim from README §4–8 and the prototype templates quoted above:
+- [x] **Step 2: Add the copy to `strings.ts`.** Add it verbatim from README §4–8 and the prototype templates quoted above:
 
 ```ts
   contracts: {
@@ -281,8 +281,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
   `capoNote` takes the bonus from `rules.capoBonus` (default 9), so the text follows the match's rules.
   The clear sheet's title is not in the README. The sheet is opened by the "Изчисти" button, so reuse "Изчисти" as the dialog title.
-- [ ] **Step 3: Implement `copy.ts`.** Every function is pure and composes `STRINGS` with core values. It must not score: it uses the `Resolution`/`DealScore` passed in.
-- [ ] **Step 4: Run the tests and the gate, then commit.**
+- [x] **Step 3: Implement `copy.ts`.** Every function is pure and composes `STRINGS` with core values. It must not score: it uses the `Resolution`/`DealScore` passed in.
+- [x] **Step 4: Run the tests and the gate, then commit.**
 
 ```bash
 git add src/core/strings.ts src/features/table/copy.ts src/features/table/copy.test.ts
@@ -300,7 +300,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - `resumePath(match: Match | null): '/table' | '/end' | null`: `/table` when a match is playing, `/end` when it has ended, null otherwise.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - **`resume.test.ts`:**
     - null → null.
     - `createMatch(...)` → `/table`.
@@ -314,7 +314,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - A playing match with no deals is replaced without a dialog.
     - An ended match is replaced without a dialog.
     - Seed deals with `setContract` + `saveDeal({cardPointsA: 10, capo: null})`.
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
   - **`resume.ts`:** a pure function over `match.status`.
   - **`main.tsx`:** after `hydrateAppStore()` resolves and `syncTheme` runs, but before render:
 
@@ -325,7 +325,7 @@ if (path && window.location.pathname === '/') void router.navigate(path, { repla
 
   - **Home:** `const resume = useAppStore((s) => resumePath(s.match));`. `resumePath` returns a primitive string, so the selector is stable. When it's non-null, render `<PreloadLink to={resume} className={buttonClass('primary', 'lg')}>{S.continueMatch}</PreloadLink>` above "Нова игра". Make "Нова игра" `secondary`/`lg` in that case, so only one primary CTA shows.
   - **Setup:** `start()` checks whether `match.status === 'playing' && match.games.length > 0` (read via `appStore.getState()` at click time). If so, open a confirmation `Sheet` (title `S.replaceTitle`, body `S.replaceBody(totals)`, buttons "Отказ" (secondary) and "Започни нов мач" (variant `danger`)). Otherwise start at once. Confirming calls the existing start path. Compute the totals with core `totals(match)`.
-- [ ] **Step 3: Run the tests and the gate, then commit.**
+- [x] **Step 3: Run the tests and the gate, then commit.**
 
 ```bash
 git add src/app/resume.ts src/app/resume.test.ts src/main.tsx src/routes/home.tsx src/routes/home.test.tsx src/routes/setup.tsx src/routes/setup.test.tsx
@@ -345,7 +345,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - `Seat({ seat, player, team, isDealer, decls, onAvatar, onRemoveDecl, anchorRef })`. `decls` is the current match's declarations for this seat.
 - `Sheet` gains `aside?: ReactNode`, rendered right of the title in the same row (Task 8's contract pill).
 
-- [ ] **Step 1: Write the failing tests** (`table.test.tsx`). Seed 4 players and `startMatch` with names Иван/Петър/Мария/Гошо, then `renderRoute('/table')`.
+- [x] **Step 1: Write the failing tests** (`table.test.tsx`). Seed 4 players and `startMatch` with names Иван/Петър/Мария/Гошо, then `renderRoute('/table')`.
   - **Header:** "Белот · до 151" and "Раздаване 1". With bestOf 3, "Мач 1 · серия 0:0 · 2 от 3".
   - **Header buttons:** "Изчисти", "Тема" and "История" are present, and "Сподели" is disabled (Phase 6).
   - **Seats:** the four names are shown.
@@ -355,7 +355,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - **Contract pill:** without a contract it's the button "Избери игра". With hearts/caller 0 it shows "Купа · Иван".
   - **Bottom:** "Край на раздаване" and "Край на мач" buttons are present.
   - **No match:** with no match, `/table` redirects to Home (heading "Белот").
-- [ ] **Step 2: Implement.** Follow the Global Constraints for every size and colour.
+- [x] **Step 2: Implement.** Follow the Global Constraints for every size and colour.
   - **Seat:**
     - The avatar is a `<button>` (accessible name = player name) wrapping a decorative `PlayerAvatar` with ring `a`/`b` and size via `style={{ width: 'clamp(64px,15vw,92px)' }}`. `PlayerAvatar` takes a numeric `size`; if clamp sizing needs it, add a `className`/`style` passthrough to `Avatar`. Keep it minimal and mention it in the report.
     - Chips are `Chip size="sm" tone={team==='A'?'a':'b'}` with the text `declLabel(d)` plus a "×" glyph (aria-hidden) and `aria-label={STRINGS.table.removeDecl(label)}`.
@@ -367,7 +367,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - "Тема" opens `ThemeSheet`. "История" is a `PreloadLink` to `/history` with a count badge (`match.games.length`, hidden at 0).
     - "Изчисти", "Край на раздаване" and "Край на мач" are wired in Tasks 6–9. Render them now with no-op handlers.
   - **Selectors:** `useAppStore((s) => s.match)` returns the match object, which is fine: it only changes on store writes. Plus the settings fields and the roster.
-- [ ] **Step 3: Run the tests and the gate, then commit.**
+- [x] **Step 3: Run the tests and the gate, then commit.**
 
 ```bash
 git add src/features/table src/routes/table.tsx src/routes/table.test.tsx src/ui/Sheet.tsx
@@ -384,19 +384,19 @@ Add `src/ui/Avatar.tsx` and any test file you changed to the `git add` list.
 
 **Files:** Modify `src/features/table/Seat.tsx`, `src/routes/table.tsx`, `src/routes/table.test.tsx`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - With no contract, tapping "Иван" opens the dialog "Иван обявява" with the text "Първо изберете играта в средата на масата." and no declaration buttons.
   - With `nt`: "Без коз — не се обявява.".
   - With hearts, the options are "Белот 2", "Терца 2", "Кварта 5", "Квинта 10" and "Каре 10+". Accessible names are name + points; compose them visually as the mockup shows.
   - Picking "Терца" adds a terca for seat 0, closes the popover, and the chip appears.
   - After a quinte and a quarte (9 of 8 cards used), only Белот remains. After that belot plus one more, "Няма повече възможни обяви с 8 карти.".
   - The popover placement per seat is `below` (N), `above` (S), `right` (W) and `left` (E). Assert the `placement` prop via a data attribute, since happy-dom can't lay it out.
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
   - One `Popover` per seat (or one shared one) anchored to that seat's avatar button.
   - The options come from `allowedDeclarations(match, seat)`. Points come from `declOptionPoints(key, match.rules)`.
   - A pick calls the store's `addDeclaration(seat, key)` and closes.
   - The table owns the popover state `openSeat: Seat | null`.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(table): declarations popover per seat` (add the files by path).
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(table): declarations popover per seat` (add the files by path).
 
 ---
 
@@ -406,14 +406,14 @@ Add `src/ui/Avatar.tsx` and any test file you changed to the `git add` list.
 
 **Interfaces:** `ContractSheet({ open, mode: 'set' | 'toPoints', onClose, onConfirmed })`. It reads the match from the store and calls `setContract(contract, caller)` on confirm. It pre-selects the current contract and caller. `onConfirmed()` fires after `setContract`; the table uses it in `toPoints` mode to open the deal-end sheet.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - It opens from the contract pill with the title "Каква е играта?".
   - It shows the six tiles "♣ Спатия" … "ВК Всичко коз", with ♦ and ♥ in `text-suit-red`, and 4 caller buttons with the players' names.
   - The CTA is "Изберете игра и кой я обяви" and does nothing until both a contract and a caller are picked. Then it reads "Готово" (mode `set`) and saves `match.contract`/`caller`.
   - Picking "Без коз" when declarations exist shows the warning. Confirming clears the declarations (core `setContract` does this).
   - Opened via "Край на раздаване" without a contract, the CTA reads "Напред към точките". Confirming opens the deal-end sheet (tested in Task 7/8, where it's wired).
-- [ ] **Step 2: Implement.** The local form state (`picked`, `caller`) mounts only while the sheet is open. The tiles and caller buttons use `aria-pressed`. Callers use a decorative `PlayerAvatar` at 44px.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(table): contract sheet`.
+- [x] **Step 2: Implement.** The local form state (`picked`, `caller`) mounts only while the sheet is open. The tiles and caller buttons use `aria-pressed`. Callers use a decorative `PlayerAvatar` at 44px.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(table): contract sheet`.
 
 ---
 
@@ -423,20 +423,20 @@ Add `src/ui/Avatar.tsx` and any test file you changed to the `git add` list.
 
 **Interfaces:** `DealEndSheet({ open, onClose, onChangeContract, onSaved })`. It holds `step: 'decls' | 'points'` and starts at `decls` when the current deal has any sequence or four of a kind, otherwise at `points`. `onSaved(ended: boolean)` fires after a successful save (Task 8).
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - **Entry from the table:** "Край на раздаване" with a contract opens this sheet; without a contract it opens the contract sheet in `toPoints` mode first.
   - **Step 1 layout:** with a terca for North and one for East, the title is "Уточнете обявите" with the hint text. There is one card per sequence or four of a kind, each with the player name, "Терца · 2", the prefix "до" and chips 9 10 J Q K A (tops from core `validTops`). A four of a kind shows "от" + Q K 10 A 9 J.
   - **Blocking error:** with equal-length sequences on both teams and no tops set, the error "Посочете до коя карта са поредиците с еднаква дължина." shows and "Напред" does nothing.
   - **Resolving:** picking K for North and Q for East shows "зачита се" on North, "отпада" on East, and the verdict line "Поредици: зачитат се на Ние, другите отпадат.". "Напред" moves to step 2 (the title "Край на раздаване 1").
   - **Chip toggle:** picking a selected top chip again clears it (`updateDeclaration(id, { top: null })`). Rank chips set the rank.
   - **Cancel:** "Отказ" closes the sheet and keeps the declarations and their tops/ranks.
-- [ ] **Step 2: Implement step 1.**
+- [x] **Step 2: Implement step 1.**
   - Resolve with `resolve(match.current, match.rules)`.
   - Chip taps call the store's `updateDeclaration`.
   - The status shows only when `res.contested.seq` (or `.kare`) is true and the winner is decided (`seqWinner !== null` or `kareWinner !== null`).
   - Copy comes from `resolutionLines` / `resolutionErrors`.
   - Leave step 2 as a heading placeholder until Task 8.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(table): deal end step 1, resolving declarations`.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(table): deal end step 1, resolving declarations`.
 
 ---
 
@@ -444,7 +444,7 @@ Add `src/ui/Avatar.tsx` and any test file you changed to the `git add` list.
 
 **Files:** Modify `src/features/table/DealEndSheet.tsx`, `src/features/table/deal-end-sheet.test.tsx`, `src/routes/table.tsx`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - **Layout:** a hearts deal with no sequences opens straight at step 2. The title is "Край на раздаване 1" with the pill "♥ Купа" beside it (via `Sheet` `aside`). Tapping the pill opens the contract sheet; after confirming it returns to step 2.
   - **Hint:** hearts shows "(общо 16)"; nt shows the "удвояват се" hint.
   - **Inputs:** typing 10 in the "Ние" input shows 6 in the "Вие" input, and typing 4 in "Вие" shows 12 in "Ние". The inputs are labelled by team name.
@@ -456,7 +456,7 @@ Add `src/ui/Avatar.tsx` and any test file you changed to the `git add` list.
   - **Save:** "Запиши раздаването" saves through the store. Afterwards the table shows "Раздаване 2" and the new totals, and the sheet closes.
   - **Auto-end:** set `settings.rules.targetScore` to 10 before `startMatch`. After a winning save, the app navigates to `/end` (heading "Край на мача").
   - **Back:** "Назад" returns to step 1 when step 1 applied, otherwise closes the sheet.
-- [ ] **Step 2: Implement step 2.**
+- [x] **Step 2: Implement step 2.**
   - **Local state:** `cardA: string` (raw input) and `capo: Team | null`.
   - **Inputs:** the B input is derived (`max − A`), and typing in B sets A to `max − B`. Use `inputMode="numeric"`.
   - **Preview:**
@@ -470,7 +470,7 @@ scoreDeal(
 
     `parsed` is `null` for empty or non-integer input, so `scoreDeal` reports `points-missing`. The verdict comes from `dealVerdict`, the rows from `calcRows`, and error copy maps `score.error`.
   - **Save:** call the store's `saveDeal({ cardPointsA: parsed, capo })`. On `ok`, call `onSaved(result.ended)`. The table then closes the sheet and, if `ended`, calls `navigate('/end')`.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(table): deal end step 2, points and save`.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(table): deal end step 2, points and save`.
 
 ---
 
@@ -478,7 +478,7 @@ scoreDeal(
 
 **Files:** Create `src/features/table/ClearSheet.tsx`, `src/features/table/EndMatchSheet.tsx`, `src/features/table/table-sheets.test.tsx`. Modify `src/routes/table.tsx`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - **Clear sheet:**
     - "Изчисти" opens it with the body text and "Изчисти раздаване 1". That button clears the current declarations and contract (`clearCurrentDeal`) and closes the sheet.
     - With no saved deals there is no undo button.
@@ -487,14 +487,14 @@ scoreDeal(
     - "Край на мач" opens "Приключване на мача?" with "Резултат X : Y. Обявите от текущото раздаване няма да се запишат, ако не е приключено.".
     - "Продължи" closes the sheet.
     - "Приключи мача" calls `endMatch` and navigates to `/end`. The match is recorded in stats only if it has deals (existing store behaviour).
-- [ ] **Step 2: Implement.** Use the README copy through `STRINGS.clear` / `STRINGS.endMatch`. The undo button is Button variant `danger`. "Приключи мача" needs a filled team-b look: add a Button variant `dangerFilled` (`bg-team-b text-on`) rather than overriding classes.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(table): clear and end-match sheets`.
+- [x] **Step 2: Implement.** Use the README copy through `STRINGS.clear` / `STRINGS.endMatch`. The undo button is Button variant `danger`. "Приключи мача" needs a filled team-b look: add a Button variant `dangerFilled` (`bg-team-b text-on`) rather than overriding classes.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(table): clear and end-match sheets`.
 
 ---
 
 ### Task 10: Browser check and vault update
 
-- [ ] **Step 1: Browser check** (controller, Playwright at 390×844; screenshots stay out of the repo):
+- [x] **Step 1: Browser check** (controller, Playwright at 390×844; screenshots stay out of the repo):
   1. Resume: reopening `/` with a stored match lands on `/table`. Home shows "Продължи мача".
   2. Compare the table against `04-masa.png`.
   3. Open the popover per seat and compare against `05-obyavi-popover.png`. Check it's placed on the correct side and closes on an outside tap.
@@ -507,7 +507,7 @@ scoreDeal(
   10. Setup asks before replacing a match with deals.
   11. Reload keeps the in-progress deal.
   12. The console shows no errors except the favicon 404.
-- [ ] **Step 2: Vault update.**
+- [x] **Step 2: Vault update.**
   - **Status:** 5b done. Next: the Phase 5c plan (end screen, history, leaderboard, failed-load screen, save-error banner).
   - **Backlog:** add anything deferred. Remove the 5b lines that are done.
   - **Architecture/Overview:** add the `src/features/table/` note and the `copy.ts` pattern (pure copy builders over core results).

@@ -6,8 +6,8 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 - `src/core/tokens.ts` test covers only the `casino` theme's `themeVars` output
 - `src/ui/Popover.tsx` doesn't reposition on resize/scroll
-- `src/ui/Chip.tsx` is always a toggle (`aria-pressed`); there is no non-interactive badge component yet
-- `src/ui/Popover.tsx`: the anchor has no `aria-expanded`/`aria-controls`
+- `src/ui/Chip.tsx`: there is no non-interactive badge component yet (the table's dealer badge is a plain `<p>`)
+- `src/ui/Popover.tsx`: the anchor has no `aria-controls`, and `aria-expanded` is left to each caller (the table's `Seat` sets it)
 - `src/app/PreloadLink.tsx` preloads on hover/focus only; add touch (`pointerdown`) or idle preload
 - `/dev/ui` gallery has double horizontal padding (its own inside `RootLayout`'s)
 - `src/app/RouteError.tsx`: a per-route error inside `RootLayout` gets double side padding (its own `px-4` plus the layout's)
@@ -17,10 +17,10 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5: Screens
 
-- Remaining screens from the handoff (table, history, end, stats), plus RTL tests for the full Deal and Match flow
+- Remaining screens from the handoff (history, end, stats), plus RTL tests for the Match end flow
 - Failed-load screen: explain, offer "start fresh" via `resetData()` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md))
 - Save-error banner for `saveError`; decide whether a later successful write clears it
-- `src/core/strings.ts`: Bulgarian copy for the remaining core codes — declaration resolution/scoring errors and `SaveDealError` (`in-match` and the `NameError`s are covered, added in 5a)
+- `src/core/strings.ts`: no copy for `SaveDealError`'s `no-contract`/`match-ended` (the UI can't reach them today), and a failed save in the deal-end sheet is silent
 - `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px and 4px at 100px (the spec only names 3px) — add a width option once real screens wire those sizes
 
 ## Phase 5a: Home, players and setup
@@ -31,7 +31,14 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 ## Phase 5b: Table & play
 
 - `scoreDeal`, `resolve`, `declPoints` and `leaderboard` still default `rules` to `DEFAULT_RULES`; every match path passes `match.rules` today, but dropping the defaults would stop a future caller silently scoring with the wrong rules (ADR 0009)
-- RootLayout padding: decide per-screen padding with the table — `src/app/RootLayout.tsx`'s `px-4 py-6` (16/24px) doesn't match the handoff's home padding (`48px 20px 32px`)
+- `src/features/table/DealEndSheet.tsx`: no UI tests for card-point parse edge cases (`abc`, `-3`, `017`, B above max)
+- `src/features/table/*`: the sheets repeat the 13/800 uppercase label class string; `src/routes/setup.tsx` repeats the `isDraftComplete` guard in `start` and `beginMatch`
+- The step-2 contract pill wraps below the title for «Без коз»/«Всичко коз» (and «Спатия» from deal 10) at 390px; a shorter pill (symbol only?) would keep it beside the title — product call
+
+## Phase 5c: History and wrap
+
+- History needs helpers over the stored `Deal` (it keeps the inputs, not the `DealScore`): re-score each Deal with `match.rules` to show its rows
+- The end screen's «Към началния екран» must call `leaveMatch()`, or resume-on-start sends the player straight back to `/end`
 
 ## Phase 6: Share & import
 
@@ -42,7 +49,12 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 ## Phase 7: PWA & polish
 
 - `vite-plugin-pwa`, manifest and icons, favicon, a11y pass, Playwright happy path, bundle check
-- a11y: single-choice groups (emoji grid, theme/felt tiles) use `aria-pressed` toggles; consider radio-group semantics
+- a11y: single-choice groups (emoji grid, theme/felt tiles, contract tiles, caller buttons, resolution chips) use `aria-pressed` toggles; consider radio-group semantics
+- a11y: the table's declaration chips (`Chip` size `sm`) have a 26px hit area, below the 44px minimum
+- a11y: the table's seats are `<section>` landmarks; make them `role="group"`
+- a11y: focus return — after picking a declaration or removing a chip, and after the sequenced contract change (deal-end → contract sheet → deal-end)
+- a11y: the table's history link is announced as «История 1» (the count badge joins the name)
+- The deal-end sheet's title reads the next deal's number while it animates closed after a save; snapshot the title on open
 - Playwright smoke script for `/dev/ui`: every theme, avatar ring border widths, switching popovers, Sheet Esc, the dark pre-paint background
 
 ## Unassigned

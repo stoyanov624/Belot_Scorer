@@ -30,6 +30,8 @@ Every change to `src/core` starts with a failing Vitest test in the `*.test.ts` 
 
 - `src/test-setup.ts` also imports `fake-indexeddb/auto` before anything else runs, so `src/routes/*.test.tsx` can exercise the real store (`src/store/instance.ts`) and its IndexedDB-backed persistence without mocking `idb-keyval`.
 - `src/test/app.tsx` gives screen tests two helpers: `resetApp()` calls the store's `resetData()` to reach the state a fresh install has (empty roster, writes unlocked, hydration ready), called in a `beforeEach`; `renderRoute(path)` mounts the real route table (`src/app/routes.tsx`'s `routes`) in a `createMemoryRouter` at `path` and returns `{ router, ...renderResult }`, so a screen test asserts against the actual router shell — lazy routes and all — instead of rendering a route component in isolation. Tests still need `findBy…` queries for anything behind a lazy route.
+- **Seed state through store actions** (`savePlayer`, `startMatch`, `setContract`, `addDeclaration`, `saveDeal`, `endMatch`, `updateSettings`…), never `appStore.setState` or direct IndexedDB/profile writes: actions keep the document valid. A browser profile once held a match with seats `[null×4]` left by such writes during a manual check; hydration refused it and the write gate kept a backup.
+- **Overlays in happy-dom:** there is no Popover API and no layout, so a popover's side is asserted through its `data-placement` attribute and its open state through the anchor's `aria-expanded`; a sheet is dismissed in a test by clicking the `<dialog>` itself (the overlay tap), since happy-dom has no native Esc handling.
 - `src/routes/home.test.tsx` and `src/routes/setup.test.tsx` are the pattern to follow: `beforeEach(() => resetApp())`, then `renderRoute('/')` / `renderRoute('/setup')` per test, driven with `@testing-library/user-event`.
 - **Gotcha: `renderRoute` clones the route tree before handing it to a router.** React Router 8 resolves an object-form `lazy` route definition (`lazy: { Component: fn }`) by mutating that object in place — once resolved it sets `route.lazy.Component = undefined`. `convertRoutesToDataRoutes` only shallow-copies each route, so a route's `.lazy` object is shared by reference with the static `routes` singleton in `src/app/routes.tsx`. Without cloning, the first `renderRoute` call in a test file (or across files sharing the module registry) that resolves a lazy route would leave `routes` unable to ever load it again, breaking every later `renderRoute` call for that path. `cloneRoute` in `src/test/app.tsx` copies the tree and each route's own `.lazy` object so the mutation stays local to that one router.
 
@@ -39,7 +41,7 @@ Every change to `src/core` starts with a failing Vitest test in the `*.test.ts` 
 
 ## Planned
 
-React Testing Library tests for the full Deal and Match flow (Phase 5b). A Playwright happy path and a bundle check (Phase 7). See the [roadmap](../superpowers/plans/2026-09-25-roadmap.md).
+React Testing Library tests for the Match end flow (Phase 5c; the Deal flow is covered by `src/routes/table.test.tsx` and `src/features/table/*.test.tsx`). A Playwright happy path and a bundle check (Phase 7). See the [roadmap](../superpowers/plans/2026-09-25-roadmap.md).
 
 ## See also
 
