@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import { afterEach } from 'vitest';
 
 // Vitest globals are off, so React Testing Library can't register its own auto-cleanup.

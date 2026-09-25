@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { Button } from './Button';
+import { Button, buttonClass } from './Button';
 import { Chip } from './Chip';
 import { Segmented } from './Segmented';
 
@@ -26,6 +26,22 @@ describe('Button', () => {
     );
     await userEvent.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
+  });
+});
+
+describe('buttonClass', () => {
+  it('matches what Button renders for the same variant and size', () => {
+    render(
+      <Button variant="primary" size="lg">
+        X
+      </Button>,
+    );
+    expect(screen.getByRole('button').className).toBe(buttonClass('primary', 'lg'));
+  });
+
+  it('has a 44px small size and a muted variant', () => {
+    expect(buttonClass('secondary', 'sm')).toContain('h-11');
+    expect(buttonClass('muted', 'md')).toContain('bg-s3');
   });
 });
 
