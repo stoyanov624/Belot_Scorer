@@ -47,6 +47,52 @@ describe('Segmented', () => {
     return <Segmented label="Брой мачове" options={OPTIONS} value={value} onChange={setValue} />;
   }
 
+  const THREE = [
+    { value: 'a', label: 'А' },
+    { value: 'b', label: 'Б' },
+    { value: 'c', label: 'В' },
+  ] as const;
+
+  function ThreeHarness() {
+    const [value, setValue] = useState<'a' | 'b' | 'c'>('b');
+    return (
+      <>
+        <button type="button">преди</button>
+        <Segmented label="Тема" options={THREE} value={value} onChange={setValue} />
+        <button type="button">след</button>
+      </>
+    );
+  }
+
+  const checkedLabel = () =>
+    screen.getAllByRole('radio').find((radio) => radio.getAttribute('aria-checked') === 'true')
+      ?.textContent;
+
+  it('is one tab stop: Tab lands on the checked option only', async () => {
+    render(<ThreeHarness />);
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Б' }));
+    await userEvent.tab();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'след' }));
+  });
+
+  it('moves selection and focus with the arrow keys, wrapping at both ends', async () => {
+    render(<ThreeHarness />);
+    await userEvent.click(screen.getByRole('radio', { name: 'Б' }));
+    await userEvent.keyboard('{ArrowRight}');
+    expect(checkedLabel()).toBe('В');
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'В' }));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(checkedLabel()).toBe('А');
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'А' }));
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(checkedLabel()).toBe('В');
+    await userEvent.keyboard('{ArrowUp}');
+    expect(checkedLabel()).toBe('Б');
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Б' }));
+  });
+
   it('is a labelled radio group that moves the checked option on click', async () => {
     render(<Harness />);
     expect(screen.getByRole('radiogroup', { name: 'Брой мачове' })).toBeTruthy();
