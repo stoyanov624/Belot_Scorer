@@ -25,9 +25,8 @@ function ThemeForm({ onDone }: { onDone: () => void }) {
 
   return (
     <>
-      {/* biome-ignore lint/a11y/useSemanticElements: role="group" distinguishes duplicate names (theme "Сукно" vs felt "Сукно") */}
-      <div role="group" aria-label={S.themes} className="flex flex-col gap-2.5">
-        <span className={LABEL}>{S.themes}</span>
+      <fieldset className="m-0 flex min-w-0 flex-col gap-2.5 border-0 p-0">
+        <legend className={cx(LABEL, 'p-0')}>{S.themes}</legend>
         <div className="grid grid-cols-2 gap-2.5">
           {ThemeKeySchema.options.map((key) => {
             const t = THEMES[key];
@@ -58,11 +57,10 @@ function ThemeForm({ onDone }: { onDone: () => void }) {
             );
           })}
         </div>
-      </div>
+      </fieldset>
 
-      {/* biome-ignore lint/a11y/useSemanticElements: role="group" distinguishes duplicate names (theme "Сукно" vs felt "Сукно") */}
-      <div role="group" aria-label={S.felts} className="flex flex-col gap-2.5">
-        <span className={LABEL}>{S.felts}</span>
+      <fieldset className="m-0 flex min-w-0 flex-col gap-2.5 border-0 p-0">
+        <legend className={cx(LABEL, 'p-0')}>{S.felts}</legend>
         <div className="grid grid-cols-2 gap-2.5">
           {FeltKeySchema.options.map((key) => (
             <button
@@ -80,7 +78,7 @@ function ThemeForm({ onDone }: { onDone: () => void }) {
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       <Button variant="primary" size="lg" onClick={onDone}>
         {S.done}
