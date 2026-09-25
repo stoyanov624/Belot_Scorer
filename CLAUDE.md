@@ -2,6 +2,10 @@
 
 Scorekeeping web app (React, later React Native) for the Bulgarian card game Belot. It records declarations and points at the table. It is not the card game. There's no backend, and data moves between devices through one-off link/QR/file shares.
 
+## Start here
+
+`docs/` is an Obsidian vault and the project's memory. Before starting a task, read `docs/Home.md`, then `docs/Status.md` (where the work stands, the next step, open product questions).
+
 ## Where things are
 
 - **Current work**: `docs/superpowers/plans/`. Read the roadmap first (`*-roadmap.md`), then the latest phase plan. Checked boxes (`- [x]`) mark finished steps.
@@ -17,6 +21,14 @@ Scorekeeping web app (React, later React Native) for the Bulgarian card game Bel
 - Core returns error/verdict **codes**. The Bulgarian text lives in `src/core/strings.ts`.
 - Import from the defining module (no barrel `index.ts`). Heavy features (share/import, QR, camera, photo crop, secondary routes) load with `import()`.
 - When the spec and the prototype (`docs/design-handoff/prototype/`) disagree, stop and ask the product owner. The implementation follows the spec only after they confirm.
+
+## Keep the vault current
+
+- When a task ends, bring `docs/Status.md` up to date: done, next, open questions, known gaps. It holds the current state only.
+- Record every non-obvious decision (library, data shape, trade-off a reviewer questioned) as the next numbered ADR in `docs/adr/`, and list it in `docs/Home.md`. A choice waiting on the product owner goes under Open product questions in Status instead.
+- Deferred work goes in `docs/Backlog.md`. Delete lines when they're done.
+- Links inside `docs/` are relative Markdown links, with `%20` for spaces. `pnpm docs:check` must pass.
+- The user ends a session with `/handoff`, which refreshes all of the above from git.
 
 ## Workflow
 

@@ -57,7 +57,4 @@ The design handoff is final: its Bulgarian copy is used verbatim. Where the spec
 
 ## How to keep this current
 
-- When a task ends, update [Status](Status.md).
-- Record every non-obvious decision as a new ADR in `adr/` and list it above.
-- Put deferred work in the [Backlog](Backlog.md).
-- At the end of a session, run `/handoff` in Claude Code. `pnpm docs:check` verifies every link.
+The rules are in the "Keep the vault current" section of `CLAUDE.md` at the repo root. At the end of a session, run `/handoff` in Claude Code.
