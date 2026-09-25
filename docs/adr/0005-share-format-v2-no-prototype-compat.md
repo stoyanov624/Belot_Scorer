@@ -1,0 +1,3 @@
+# Share payload v2, no compatibility with the HTML prototype
+
+The new app does not read links, QR codes, files or localStorage produced by the HTML prototype. Its share payload is `{ app: 'belot', v: 2, … }` and the importer rejects anything else. Version 2 differs from v1 in two ways: ids are `nanoid(10)` instead of `'p' + base36 timestamp`, which could collide when merging data created on different phones, and `Player.photo` is a photo id (see ADR 0003). The encoding pipeline is unchanged from `DATA_MODEL.md` §4 (deflate-raw → base64url, `z`/`j` prefix, `#belot=` links, 1100-character multi-part QR chunks). A v1 → v2 migration can be added later if real prototype users turn up.

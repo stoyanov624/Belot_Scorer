@@ -1,0 +1,3 @@
+# Single Vite app with an isolated `src/core`
+
+A React Native app will come later and must reuse the game logic, which is what a pnpm monorepo (`apps/web` + `packages/core`) would normally be for. We chose a single Vite SPA with the logic in `src/core/` instead, to keep the demo simple. A Biome import restriction forbids React, DOM and browser APIs inside `src/core`, so pulling it out into a workspace package when mobile work starts is a mechanical move, not a refactor. Do not add React or `window` imports to `core` to "save time". That is the one thing that makes the later extraction expensive.

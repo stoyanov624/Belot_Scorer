@@ -1,0 +1,3 @@
+# Theme tokens live in TypeScript and reach Tailwind as CSS variables
+
+The four themes (10 OKLCH tokens each) and the four felt backgrounds are defined once in `src/core/tokens.ts`. When the theme changes, the app writes the tokens as CSS custom properties on `<html>`, and Tailwind v4's `@theme` maps them to utilities (`bg-a`, `text-muted`, `border-line`, `bg-s1`…). Felts are complex gradients, so they are applied with inline `style` instead of utilities. A pure-CSS `[data-theme]` stylesheet would be simpler for the web, but the future React Native app would then need its own copy of the values. Keeping them in TS makes `tokens.ts` the single source for both platforms.

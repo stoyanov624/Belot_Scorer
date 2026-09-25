@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&amp;display=swap&amp;subset=cyrillic" rel="stylesheet">
+<style>
+html,body{margin:0;background:#1d150f;font-family:'Nunito',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+a{color:#e8b04a}a:hover{color:#f3c96f}
+button{font-family:inherit;color:inherit}
+input{font-family:inherit}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</helmet>
+<div style="min-height:100dvh;display:flex;justify-content:center;background-color:{{ t.bg }};background-image:{{ t.glow }};background-attachment:fixed;color:{{ t.text }}">
+<div style="width:100%;max-width:780px;min-height:100dvh;display:flex;flex-direction:column">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:28px;padding:48px 20px 32px;flex:1">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:14px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.a }}">{{ themeName }}</div>
+    <div style="font-size:64px;font-weight:900;line-height:1">Белот</div>
+    <div style="font-size:16px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">Записва обявите и точките, докато вие играете.</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button onClick="{{ newSetup }}" style="height:64px;border-radius:20px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:20px;font-weight:900;cursor:pointer" style-active="transform:scale(0.98)">Нова игра</button>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <button onClick="{{ openStats }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Класация</button>
+      <button onClick="{{ openSettings }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Тема</button>
+      <button onClick="{{ openRegister }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Нов играч</button>
+      <button onClick="{{ openShare }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Сподели / Внос</button>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Играчи</div><div style="font-size:13px;font-weight:800;color:{{ t.muted }}">{{ rosterCount }}</div></div>
+    <sc-if value="{{ noRoster }}"><div style="padding:24px 16px;border-radius:20px;border:1px dashed {{ t.line }};text-align:center;color:{{ t.muted }};font-size:15px;font-weight:600">Още няма регистрирани играчи.</div></sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:14px 10px">
+      <sc-for list="{{ rosterList }}" as="r">
+        <button onClick="{{ r.onEdit }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;min-width:0">
+          <div style="width:68px;height:68px;border-radius:50%;flex:none;background:{{ t.s2 }};border:3px solid {{ t.line }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ r.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ r.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ r.hasEmoji }}"><span style="font-size:40px;line-height:1">{{ r.emoji }}</span></sc-if>
+            <sc-if value="{{ r.hasInitials }}"><span style="font-size:22px;font-weight:900">{{ r.initials }}</span></sc-if>
+          </div>
+          <span style="font-size:14px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isStats }}">
+<div style="display:flex;flex-direction:column;gap:16px;padding:16px 16px 32px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button onClick="{{ goHomeOnly }}" style="height:44px;padding:0 16px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">← Начало</button>
+    <div style="font-size:22px;font-weight:900">Класация</div>
+  </div>
+  <div style="font-size:14px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">Зачетени обяви в закръглени точки от {{ matchCount }} завършени мача.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border-radius:18px;background:{{ t.s1 }};border:1px solid {{ t.line }}">
+    <button onClick="{{ tabPlayers }}" style="height:44px;border-radius:14px;border:none;background:{{ tabPBg }};color:{{ tabPFg }};font-size:15px;font-weight:900;cursor:pointer">По играчи</button>
+    <button onClick="{{ tabTeams }}" style="height:44px;border-radius:14px;border:none;background:{{ tabTBg }};color:{{ tabTFg }};font-size:15px;font-weight:900;cursor:pointer">По отбори</button>
+  </div>
+  <sc-if value="{{ noStats }}"><div style="padding:40px 16px;text-align:center;color:{{ t.muted }};font-size:15px;font-weight:600;border-radius:20px;border:1px dashed {{ t.line }}">Още няма завършени мачове. Класацията се попълва след всеки приключен мач.</div></sc-if>
+  <sc-if value="{{ showPlayers }}"><div style="display:flex;flex-direction:column;gap:8px">
+    <sc-for list="{{ lbPlayers }}" as="r" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:{{ r.bg }};border:1px solid {{ t.line }}">
+        <div style="width:28px;text-align:center;font-size:18px;font-weight:900;color:{{ r.rankColor }};flex:none">{{ r.rank }}</div>
+        <div style="display:flex;flex:none;padding-right:10px">
+          <sc-for list="{{ r.avatars }}" as="a"><div style="margin-right:-10px"><div style="width:48px;height:48px;border-radius:50%;flex:none;background:{{ t.s2 }};border:2px solid {{ t.line }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ a.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ a.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ a.hasEmoji }}"><span style="font-size:28px;line-height:1">{{ a.emoji }}</span></sc-if>
+            <sc-if value="{{ a.hasInitials }}"><span style="font-size:16px;font-weight:900">{{ a.initials }}</span></sc-if>
+          </div></div></sc-for>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:16px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</div>
+          <div style="font-size:12px;font-weight:700;color:{{ t.muted }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.sub }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none">
+          <div style="font-size:26px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:{{ r.ptsColor }}">{{ r.pts }}</div>
+          <div style="font-size:11px;font-weight:800;color:{{ t.muted }}">точки</div>
+        </div>
+      </div>
+    </sc-for>
+  </div></sc-if>
+  <sc-if value="{{ showTeams }}"><div style="display:flex;flex-direction:column;gap:8px">
+    <sc-for list="{{ lbTeams }}" as="r" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:{{ r.bg }};border:1px solid {{ t.line }}">
+        <div style="width:28px;text-align:center;font-size:18px;font-weight:900;color:{{ r.rankColor }};flex:none">{{ r.rank }}</div>
+        <div style="display:flex;flex:none;padding-right:10px">
+          <sc-for list="{{ r.avatars }}" as="a"><div style="margin-right:-10px"><div style="width:48px;height:48px;border-radius:50%;flex:none;background:{{ t.s2 }};border:2px solid {{ t.line }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ a.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ a.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ a.hasEmoji }}"><span style="font-size:28px;line-height:1">{{ a.emoji }}</span></sc-if>
+            <sc-if value="{{ a.hasInitials }}"><span style="font-size:16px;font-weight:900">{{ a.initials }}</span></sc-if>
+          </div></div></sc-for>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:16px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</div>
+          <div style="font-size:12px;font-weight:700;color:{{ t.muted }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.sub }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none">
+          <div style="font-size:26px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:{{ r.ptsColor }}">{{ r.pts }}</div>
+          <div style="font-size:11px;font-weight:800;color:{{ t.muted }}">точки</div>
+        </div>
+      </div>
+    </sc-for>
+  </div></sc-if>
+  <sc-if value="{{ hasStats }}"><button onClick="{{ resetStats }}" style="height:44px;border:none;background:none;color:{{ t.b }};font-size:14px;font-weight:800;cursor:pointer;align-self:center">{{ resetLabel }}</button></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSetup }}">
+<div style="display:flex;flex-direction:column;gap:20px;padding:16px 20px 32px;flex:1">
+  <div style="display:flex"><button onClick="{{ goHome }}" style="height:44px;padding:0 16px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">← Начало</button></div>
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <div style="font-size:32px;font-weight:900;line-height:1.1">Нова игра</div>
+    <div style="font-size:15px;color:{{ t.muted }};text-wrap:pretty">Изберете кой къде седи. Партньорите седят един срещу друг.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+    <div style="background:{{ t.s1 }};border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px;border:1px solid {{ t.line }}">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:12px;height:12px;border-radius:50%;background:{{ t.a }};flex:none"></div>
+        <input value="{{ teamA }}" onChange="{{ onTeamA }}" placeholder="Отбор 1" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:{{ t.a }};font-size:20px;font-weight:800;padding:0">
+        <div style="font-size:13px;color:{{ t.muted }};font-weight:600">Север · Юг</div>
+      </div>
+      <sc-for list="{{ setupA }}" as="p" hint-placeholder-count="2">
+        <button onClick="{{ p.onPick }}" style="display:flex;align-items:center;gap:14px;width:100%;padding:8px 14px 8px 8px;border-radius:20px;border:1px solid {{ t.line }};background:{{ t.bg }};cursor:pointer;text-align:left">
+          <div style="width:60px;height:60px;border-radius:50%;flex:none;background:{{ t.s2 }};border:3px solid {{ t.a }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ p.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ p.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ p.hasEmoji }}"><span style="font-size:36px;line-height:1">{{ p.emoji }}</span></sc-if>
+            <sc-if value="{{ p.hasInitials }}"><span style="font-size:22px;font-weight:900">{{ p.initials }}</span></sc-if>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">{{ p.seatLabel }}</div>
+            <div style="font-size:17px;font-weight:800;color:{{ p.nameColor }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.label }}</div>
+          </div>
+          <span style="font-size:22px;font-weight:800;color:{{ t.muted }}">›</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="background:{{ t.s1 }};border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px;border:1px solid {{ t.line }}">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:12px;height:12px;border-radius:50%;background:{{ t.b }};flex:none"></div>
+        <input value="{{ teamB }}" onChange="{{ onTeamB }}" placeholder="Отбор 2" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:{{ t.b }};font-size:20px;font-weight:800;padding:0">
+        <div style="font-size:13px;color:{{ t.muted }};font-weight:600">Изток · Запад</div>
+      </div>
+      <sc-for list="{{ setupB }}" as="p" hint-placeholder-count="2">
+        <button onClick="{{ p.onPick }}" style="display:flex;align-items:center;gap:14px;width:100%;padding:8px 14px 8px 8px;border-radius:20px;border:1px solid {{ t.line }};background:{{ t.bg }};cursor:pointer;text-align:left">
+          <div style="width:60px;height:60px;border-radius:50%;flex:none;background:{{ t.s2 }};border:3px solid {{ t.b }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ p.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ p.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ p.hasEmoji }}"><span style="font-size:36px;line-height:1">{{ p.emoji }}</span></sc-if>
+            <sc-if value="{{ p.hasInitials }}"><span style="font-size:22px;font-weight:900">{{ p.initials }}</span></sc-if>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">{{ p.seatLabel }}</div>
+            <div style="font-size:17px;font-weight:800;color:{{ p.nameColor }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.label }}</div>
+          </div>
+          <span style="font-size:22px;font-weight:800;color:{{ t.muted }}">›</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  <div style="flex:1"></div>
+  <div style="display:flex;flex-direction:column;gap:10px;align-items:stretch">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Брой мачове</div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:5px;border-radius:18px;background:{{ t.s1 }};border:1px solid {{ t.line }}">
+        <sc-for list="{{ formatOptions }}" as="o"><button onClick="{{ o.onPick }}" style="height:48px;border-radius:14px;border:none;background:{{ o.bg }};color:{{ o.fg }};font-size:15px;font-weight:900;cursor:pointer;white-space:nowrap">{{ o.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:14px;color:{{ t.muted }};font-weight:600">{{ setupHint }}</div>
+    <button onClick="{{ startMatch }}" style="height:60px;border-radius:20px;border:none;background:{{ startBg }};color:{{ startFg }};font-size:19px;font-weight:900;cursor:pointer" style-active="transform:scale(0.98)">Раздавай!</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isGame }}">
+<div style="display:flex;flex-direction:column;flex:1;min-height:100dvh;padding:16px 16px 20px;gap:14px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px 12px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;min-width:0;flex:1 1 180px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.a }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ headerLine }}</div>
+      <div style="font-size:22px;font-weight:900;white-space:nowrap">Раздаване {{ gameNo }}</div>
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;max-width:100%;flex:0 1 auto;scrollbar-width:none">
+      <button onClick="{{ openShare }}" style="height:44px;padding:0 14px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">Сподели</button>
+      <button onClick="{{ openClear }}" style="height:44px;padding:0 14px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">Изчисти</button>
+      <button onClick="{{ openSettings }}" style="height:44px;padding:0 14px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">Тема</button>
+      <button onClick="{{ openHistory }}" style="height:44px;padding:0 14px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none;display:flex;align-items:center;gap:8px">История <span style="min-width:22px;height:22px;border-radius:11px;background:{{ t.s3 }};font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px">{{ historyCount }}</span></button>
+    </div>
+  </div>
+
+  <div style="flex:1;display:grid;grid-template-columns:minmax(76px,1fr) minmax(0,1.6fr) minmax(76px,1fr);grid-template-rows:auto minmax(200px,1fr) auto;grid-template-areas:'. n .' 'w c e' '. s .';gap:12px;align-items:center;justify-items:center">
+
+    <div style="grid-area:c;align-self:stretch;justify-self:stretch;border-radius:32px;background:{{ felt.bg }};border:6px solid {{ felt.rim }};box-shadow:inset 0 0 50px oklch(0.1 0.02 50 / 0.6), 0 20px 40px oklch(0.08 0.02 50 / 0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px">
+      <sc-if value="{{ noContract }}"><button onClick="{{ openContract }}" style="height:40px;padding:0 18px;border-radius:20px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 6px 16px oklch(0.08 0.02 50 / 0.5)">Избери игра</button></sc-if>
+      <sc-if value="{{ hasContract }}"><button onClick="{{ openContract }}" style="height:40px;padding:0 14px;border-radius:20px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;max-width:100%;box-shadow:0 6px 16px oklch(0.08 0.02 50 / 0.5)"><span style="font-size:20px;font-weight:900;line-height:1;color:{{ contract.symColor }}">{{ contract.sym }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ contract.label }} · {{ contract.caller }}</span></button></sc-if>
+      <div style="width:min(100%,230px);aspect-ratio:1;border-radius:50%;background:{{ t.s1 }};border:4px dashed {{ t.line }};box-shadow:0 0 0 6px {{ t.s1 }}, 0 10px 24px oklch(0.08 0.02 50 / 0.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px">
+        <div style="display:flex;align-items:flex-start;justify-content:center;gap:clamp(6px,2vw,18px);width:100%">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;flex:1">
+            <div style="font-size:12px;font-weight:800;color:{{ t.a }};max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ teamAName }}</div>
+            <div style="font-size:clamp(24px,6.4vw,54px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums">{{ totalA }}</div>
+          </div>
+          <div style="font-size:clamp(18px,4.5vw,34px);font-weight:900;color:{{ t.muted }};padding-top:20px;flex:none">:</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;flex:1">
+            <div style="font-size:12px;font-weight:800;color:{{ t.b }};max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ teamBName }}</div>
+            <div style="font-size:clamp(24px,6.4vw,54px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums">{{ totalB }}</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:{{ t.muted }};text-align:center">обяви {{ curA }} · {{ curB }}</div>
+        <sc-if value="{{ hasHang }}"><div style="font-size:11px;font-weight:900;color:{{ t.b }}">висят {{ hang }}</div></sc-if>
+      </div>
+    </div>
+
+    <div style="grid-area:n;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%">
+      <div style="position:relative">
+        <button onClick="{{ n.toggle }}" style="width:clamp(64px,15vw,92px);height:clamp(64px,15vw,92px);border-radius:50%;border:3px solid {{ t.a }};background:{{ t.s2 }};padding:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px oklch(0.08 0.02 50 / 0.6)" style-active="transform:scale(0.95)">
+          <sc-if value="{{ n.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ n.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+          <sc-if value="{{ n.hasEmoji }}"><span style="font-size:clamp(34px,8.5vw,54px);line-height:1">{{ n.emoji }}</span></sc-if>
+          <sc-if value="{{ n.hasInitials }}"><span style="font-size:clamp(22px,5vw,30px);font-weight:900">{{ n.initials }}</span></sc-if>
+        </button>
+        <sc-if value="{{ n.open }}">
+          <div style="position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);width:224px;z-index:40;background:{{ t.s2 }};border:1px solid {{ t.line }};border-radius:20px;padding:12px;box-shadow:0 18px 40px oklch(0.06 0.02 50 / 0.7);display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:800;color:{{ t.muted }};padding:0 4px">{{ n.name }} обявява</div>
+            <sc-if value="{{ n.hasMsg }}"><div style="font-size:14px;font-weight:700;padding:4px">{{ n.msg }}</div></sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <sc-for list="{{ n.options }}" as="o"><button onClick="{{ o.onPick }}" style="height:48px;border-radius:14px;border:none;background:{{ t.s3 }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:15px;font-weight:800">{{ o.label }}</span><span style="font-size:11px;font-weight:800;color:{{ t.a }}">{{ o.pts }}</span></button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="font-size:15px;font-weight:800;text-align:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.name }}</div>
+      <sc-if value="{{ n.isDealer }}"><div style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;background:{{ t.s3 }};color:{{ t.muted }}">раздава</div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:200px">
+        <sc-for list="{{ n.decls }}" as="d"><button onClick="{{ d.onRemove }}" style="display:flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:12px;font-weight:800;cursor:pointer">{{ d.label }} <span style="opacity:0.7">×</span></button></sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:w;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%">
+      <div style="position:relative">
+        <button onClick="{{ w.toggle }}" style="width:clamp(64px,15vw,92px);height:clamp(64px,15vw,92px);border-radius:50%;border:3px solid {{ t.b }};background:{{ t.s2 }};padding:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px oklch(0.08 0.02 50 / 0.6)" style-active="transform:scale(0.95)">
+          <sc-if value="{{ w.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ w.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+          <sc-if value="{{ w.hasEmoji }}"><span style="font-size:clamp(34px,8.5vw,54px);line-height:1">{{ w.emoji }}</span></sc-if>
+          <sc-if value="{{ w.hasInitials }}"><span style="font-size:clamp(22px,5vw,30px);font-weight:900">{{ w.initials }}</span></sc-if>
+        </button>
+        <sc-if value="{{ w.open }}">
+          <div style="position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);width:224px;z-index:40;background:{{ t.s2 }};border:1px solid {{ t.line }};border-radius:20px;padding:12px;box-shadow:0 18px 40px oklch(0.06 0.02 50 / 0.7);display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:800;color:{{ t.muted }};padding:0 4px">{{ w.name }} обявява</div>
+            <sc-if value="{{ w.hasMsg }}"><div style="font-size:14px;font-weight:700;padding:4px">{{ w.msg }}</div></sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <sc-for list="{{ w.options }}" as="o"><button onClick="{{ o.onPick }}" style="height:48px;border-radius:14px;border:none;background:{{ t.s3 }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:15px;font-weight:800">{{ o.label }}</span><span style="font-size:11px;font-weight:800;color:{{ t.b }}">{{ o.pts }}</span></button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="font-size:15px;font-weight:800;text-align:center;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.name }}</div>
+      <sc-if value="{{ w.isDealer }}"><div style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;background:{{ t.s3 }};color:{{ t.muted }}">раздава</div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:120px">
+        <sc-for list="{{ w.decls }}" as="d"><button onClick="{{ d.onRemove }}" style="display:flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;border:none;background:{{ t.b }};color:{{ t.on }};font-size:12px;font-weight:800;cursor:pointer">{{ d.label }} <span style="opacity:0.7">×</span></button></sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:e;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%">
+      <div style="position:relative">
+        <button onClick="{{ e.toggle }}" style="width:clamp(64px,15vw,92px);height:clamp(64px,15vw,92px);border-radius:50%;border:3px solid {{ t.b }};background:{{ t.s2 }};padding:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px oklch(0.08 0.02 50 / 0.6)" style-active="transform:scale(0.95)">
+          <sc-if value="{{ e.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ e.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+          <sc-if value="{{ e.hasEmoji }}"><span style="font-size:clamp(34px,8.5vw,54px);line-height:1">{{ e.emoji }}</span></sc-if>
+          <sc-if value="{{ e.hasInitials }}"><span style="font-size:clamp(22px,5vw,30px);font-weight:900">{{ e.initials }}</span></sc-if>
+        </button>
+        <sc-if value="{{ e.open }}">
+          <div style="position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);width:224px;z-index:40;background:{{ t.s2 }};border:1px solid {{ t.line }};border-radius:20px;padding:12px;box-shadow:0 18px 40px oklch(0.06 0.02 50 / 0.7);display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:800;color:{{ t.muted }};padding:0 4px">{{ e.name }} обявява</div>
+            <sc-if value="{{ e.hasMsg }}"><div style="font-size:14px;font-weight:700;padding:4px">{{ e.msg }}</div></sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <sc-for list="{{ e.options }}" as="o"><button onClick="{{ o.onPick }}" style="height:48px;border-radius:14px;border:none;background:{{ t.s3 }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:15px;font-weight:800">{{ o.label }}</span><span style="font-size:11px;font-weight:800;color:{{ t.b }}">{{ o.pts }}</span></button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="font-size:15px;font-weight:800;text-align:center;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.name }}</div>
+      <sc-if value="{{ e.isDealer }}"><div style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;background:{{ t.s3 }};color:{{ t.muted }}">раздава</div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:120px">
+        <sc-for list="{{ e.decls }}" as="d"><button onClick="{{ d.onRemove }}" style="display:flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;border:none;background:{{ t.b }};color:{{ t.on }};font-size:12px;font-weight:800;cursor:pointer">{{ d.label }} <span style="opacity:0.7">×</span></button></sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:s;display:flex;flex-direction:column-reverse;align-items:center;gap:6px;max-width:100%">
+      <div style="position:relative">
+        <button onClick="{{ s.toggle }}" style="width:clamp(64px,15vw,92px);height:clamp(64px,15vw,92px);border-radius:50%;border:3px solid {{ t.a }};background:{{ t.s2 }};padding:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px oklch(0.08 0.02 50 / 0.6)" style-active="transform:scale(0.95)">
+          <sc-if value="{{ s.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ s.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+          <sc-if value="{{ s.hasEmoji }}"><span style="font-size:clamp(34px,8.5vw,54px);line-height:1">{{ s.emoji }}</span></sc-if>
+          <sc-if value="{{ s.hasInitials }}"><span style="font-size:clamp(22px,5vw,30px);font-weight:900">{{ s.initials }}</span></sc-if>
+        </button>
+        <sc-if value="{{ s.open }}">
+          <div style="position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);width:224px;z-index:40;background:{{ t.s2 }};border:1px solid {{ t.line }};border-radius:20px;padding:12px;box-shadow:0 18px 40px oklch(0.06 0.02 50 / 0.7);display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:800;color:{{ t.muted }};padding:0 4px">{{ s.name }} обявява</div>
+            <sc-if value="{{ s.hasMsg }}"><div style="font-size:14px;font-weight:700;padding:4px">{{ s.msg }}</div></sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <sc-for list="{{ s.options }}" as="o"><button onClick="{{ o.onPick }}" style="height:48px;border-radius:14px;border:none;background:{{ t.s3 }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:15px;font-weight:800">{{ o.label }}</span><span style="font-size:11px;font-weight:800;color:{{ t.a }}">{{ o.pts }}</span></button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="font-size:15px;font-weight:800;text-align:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.name }}</div>
+      <sc-if value="{{ s.isDealer }}"><div style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;background:{{ t.s3 }};color:{{ t.muted }}">раздава</div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:200px">
+        <sc-for list="{{ s.decls }}" as="d"><button onClick="{{ d.onRemove }}" style="display:flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:12px;font-weight:800;cursor:pointer">{{ d.label }} <span style="opacity:0.7">×</span></button></sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px">
+    <button onClick="{{ openEndGame }}" style="height:58px;border-radius:20px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer" style-active="transform:scale(0.98)">Край на раздаване</button>
+    <button onClick="{{ openEndMatch }}" style="height:58px;border-radius:20px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:17px;font-weight:800;cursor:pointer" style-active="transform:scale(0.98)">Край на мач</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHistory }}">
+<div style="display:flex;flex-direction:column;gap:16px;padding:16px 16px 32px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button onClick="{{ closeHistory }}" style="height:44px;padding:0 16px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:15px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none">← Назад</button>
+    <div style="font-size:22px;font-weight:900">История на мача</div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:{{ t.s1 }};border:1px solid {{ t.line }};border-radius:20px;padding:14px 18px">
+    <div style="font-size:16px;font-weight:800;color:{{ t.a }}">{{ teamAName }} <span style="color:{{ t.text }};font-size:22px;font-weight:900;margin-left:6px">{{ totalA }}</span></div>
+    <div style="font-size:13px;font-weight:700;color:{{ t.muted }}">до {{ target }}</div>
+    <div style="font-size:16px;font-weight:800;color:{{ t.b }}"><span style="color:{{ t.text }};font-size:22px;font-weight:900;margin-right:6px">{{ totalB }}</span> {{ teamBName }}</div>
+  </div>
+  <sc-if value="{{ hasCurrent }}">
+    <div style="border:1px dashed {{ t.line }};border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:15px;font-weight:800;color:{{ t.muted }}">Раздаване {{ gameNo }} · в ход</div>
+      <sc-for list="{{ currentList }}" as="d">
+        <div style="display:flex;align-items:center;gap:10px;font-size:15px">
+          <sc-if value="{{ d.isA }}"><div style="width:8px;height:8px;border-radius:50%;background:{{ t.a }};flex:none"></div></sc-if>
+          <sc-if value="{{ d.isB }}"><div style="width:8px;height:8px;border-radius:50%;background:{{ t.b }};flex:none"></div></sc-if>
+          <div style="font-weight:700;flex:1">{{ d.who }}</div>
+          <div style="font-weight:800;text-decoration:{{ d.deco }};opacity:{{ d.op }}">{{ d.label }}</div>
+          <div style="width:40px;text-align:right;color:{{ t.muted }};font-weight:700;text-decoration:{{ d.deco }};opacity:{{ d.op }}">{{ d.pts }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ noGames }}">
+    <div style="padding:40px 16px;text-align:center;color:{{ t.muted }};font-size:15px;font-weight:600">Още няма приключени раздавания.</div>
+  </sc-if>
+  <sc-for list="{{ historyGames }}" as="g" hint-placeholder-count="2">
+    <div style="background:{{ t.s1 }};border:1px solid {{ t.line }};border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0"><div style="font-size:16px;font-weight:900;flex:none">Раздаване {{ g.no }}</div><div style="font-size:13px;font-weight:800;color:{{ t.muted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.contract }}</div></div>
+        <div style="font-size:15px;font-weight:800;font-variant-numeric:tabular-nums"><span style="color:{{ t.a }}">{{ g.a }}</span> : <span style="color:{{ t.b }}">{{ g.b }}</span></div>
+      </div>
+      <sc-for list="{{ g.decls }}" as="d">
+        <div style="display:flex;align-items:center;gap:10px;font-size:15px">
+          <sc-if value="{{ d.isA }}"><div style="width:8px;height:8px;border-radius:50%;background:{{ t.a }};flex:none"></div></sc-if>
+          <sc-if value="{{ d.isB }}"><div style="width:8px;height:8px;border-radius:50%;background:{{ t.b }};flex:none"></div></sc-if>
+          <div style="font-weight:700;flex:1">{{ d.who }}</div>
+          <div style="font-weight:800;text-decoration:{{ d.deco }};opacity:{{ d.op }}">{{ d.label }}</div>
+          <div style="width:40px;text-align:right;color:{{ t.muted }};font-weight:700;text-decoration:{{ d.deco }};opacity:{{ d.op }}">{{ d.pts }}</div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ g.noDecls }}"><div style="font-size:14px;color:{{ t.muted }};font-weight:600">Без обяви</div></sc-if>
+      <sc-if value="{{ g.hasNote }}"><div style="font-size:13px;font-weight:900;color:{{ t.b }}">{{ g.note }}</div></sc-if>
+      <div style="font-size:12px;font-weight:700;color:{{ t.muted }}">Общо след раздаването: {{ g.runA }} : {{ g.runB }}</div>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEnd }}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 20px 32px;flex:1;text-align:center">
+  <div style="font-size:14px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ endLine }}</div>
+  <sc-if value="{{ hasWinner }}">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div style="display:flex">
+        <sc-for list="{{ winners }}" as="p"><div style="width:100px;height:100px;border-radius:50%;border:4px solid {{ winColor }};background:{{ t.s2 }};overflow:hidden;display:flex;align-items:center;justify-content:center;margin:0 -6px"><sc-if value="{{ p.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ p.photoBg }};background-size:cover;background-position:center"></div></sc-if><sc-if value="{{ p.hasEmoji }}"><span style="font-size:58px;line-height:1">{{ p.emoji }}</span></sc-if><sc-if value="{{ p.hasInitials }}"><span style="font-size:32px;font-weight:900">{{ p.initials }}</span></sc-if></div></sc-for>
+      </div>
+      <div style="font-size:40px;font-weight:900;color:{{ winColor }};line-height:1.1">{{ winTitle }}</div>
+      <div style="font-size:17px;font-weight:700;color:{{ t.muted }}">{{ winnerNames }}</div>
+      <div style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:14px;background:{{ t.s1 }};border:1px solid {{ t.line }}">🍻 {{ loserTeam }} черпят следващия рунд</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isTie }}"><div style="font-size:40px;font-weight:900">Равенство</div></sc-if>
+  <sc-if value="{{ isSeries }}">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 22px;border-radius:20px;background:{{ t.s1 }};border:1px solid {{ t.line }}">
+      <div style="font-size:12px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Серия · {{ formatLabel }}</div>
+      <div style="display:flex;align-items:center;gap:14px;font-variant-numeric:tabular-nums">
+        <span style="font-size:15px;font-weight:800;color:{{ t.a }}">{{ teamAName }}</span>
+        <span style="font-size:34px;font-weight:900;line-height:1">{{ seriesA }} : {{ seriesB }}</span>
+        <span style="font-size:15px;font-weight:800;color:{{ t.b }}">{{ teamBName }}</span>
+      </div>
+    </div>
+  </sc-if>
+  <div style="display:flex;align-items:center;gap:20px;font-variant-numeric:tabular-nums">
+    <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;font-weight:800;color:{{ t.a }}">{{ teamAName }}</div><div style="font-size:56px;font-weight:900;line-height:1">{{ totalA }}</div></div>
+    <div style="font-size:36px;font-weight:900;color:{{ t.muted }}">:</div>
+    <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ teamBName }}</div><div style="font-size:56px;font-weight:900;line-height:1">{{ totalB }}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:440px">
+    <div style="background:{{ t.s1 }};border-radius:18px;padding:12px"><div style="font-size:12px;font-weight:700;color:{{ t.muted }}">Обяви {{ teamAName }}</div><div style="font-size:22px;font-weight:900">{{ declTotalA }}</div></div>
+    <div style="background:{{ t.s1 }};border-radius:18px;padding:12px"><div style="font-size:12px;font-weight:700;color:{{ t.muted }}">Обяви {{ teamBName }}</div><div style="font-size:22px;font-weight:900">{{ declTotalB }}</div></div>
+  </div>
+  <div style="flex:1"></div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:440px">
+    <sc-if value="{{ seriesOngoing }}">
+      <button onClick="{{ nextMatch }}" style="height:58px;border-radius:20px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:18px;font-weight:900;cursor:pointer">Мач {{ nextMatchNo }} →</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onClick="{{ openHistory }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">История</button>
+        <button onClick="{{ goHome }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Прекрати</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ seriesOver }}">
+      <button onClick="{{ goHome }}" style="height:58px;border-radius:20px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:18px;font-weight:900;cursor:pointer">Към началния екран</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onClick="{{ openHistory }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">История</button>
+        <button onClick="{{ rematch }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s1 }};font-size:16px;font-weight:800;cursor:pointer">Реванш</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+<sc-if value="{{ popoverOpen }}"><div onClick="{{ closePopover }}" style="position:fixed;inset:0;z-index:30;background:oklch(0.08 0.02 50 / 0.35)"></div></sc-if>
+
+<sc-if value="{{ anySheet }}">
+<div onClick="{{ closeSheet }}" style="position:fixed;inset:0;z-index:50;background:oklch(0.06 0.02 50 / 0.6)"></div>
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:center;pointer-events:none;color:{{ t.text }}">
+  <div style="width:100%;max-width:560px;max-height:88dvh;overflow-y:auto;background:{{ t.s1 }};border-radius:28px 28px 0 0;padding:14px 20px 26px;display:flex;flex-direction:column;gap:16px;pointer-events:auto;border-top:1px solid {{ t.line }}">
+    <div style="width:40px;height:5px;border-radius:3px;background:{{ t.line }};align-self:center;flex:none"></div>
+
+    <sc-if value="{{ sheetGame }}">
+      <sc-if value="{{ stepDecls }}">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:24px;font-weight:900">Уточнете обявите</div>
+          <div style="font-size:14px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">До коя карта е всяка поредица и от какво е карето. По-слабите отпадат.</div>
+        </div>
+        <sc-for list="{{ seqRows }}" as="r">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:18px;background:{{ t.s2 }}">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:10px;height:10px;border-radius:50%;background:{{ r.color }};flex:none"></div>
+              <div style="font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.who }}</div>
+              <div style="font-weight:900">{{ r.label }}</div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+              <span style="font-size:13px;font-weight:700;color:{{ t.muted }};min-width:24px">{{ r.prefix }}</span>
+              <sc-for list="{{ r.chips }}" as="c"><button onClick="{{ c.onPick }}" style="min-width:42px;height:42px;padding:0 10px;border-radius:12px;border:2px solid {{ c.ring }};background:{{ c.bg }};color:{{ c.fg }};font-size:16px;font-weight:900;cursor:pointer">{{ c.label }}</button></sc-for>
+            </div>
+            <sc-if value="{{ r.hasStatus }}"><div style="font-size:12px;font-weight:900;color:{{ r.statusColor }}">{{ r.status }}</div></sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ hasVerdicts }}"><div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:16px;border:1px dashed {{ t.line }}"><sc-for list="{{ verdicts }}" as="v"><div style="font-size:14px;font-weight:800">{{ v.text }}</div></sc-for></div></sc-if>
+        <sc-if value="{{ hasDeclErrors }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ declError }}</div></sc-if>
+        <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px">
+        <button onClick="{{ closeSheet }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Отказ</button>
+        <button onClick="{{ declsNext }}" style="height:56px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Напред</button>
+      </div>
+      </sc-if>
+      <sc-if value="{{ stepPoints }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="font-size:24px;font-weight:900">Край на раздаване {{ gameNo }}</div>
+            <div style="font-size:14px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">{{ pointsHint }}</div>
+          </div>
+          <button onClick="{{ changeContract }}" style="height:40px;padding:0 12px;border-radius:14px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;flex:none"><span style="font-size:18px;font-weight:900;color:{{ contract.symColor }}">{{ contract.sym }}</span>{{ contract.label }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 12px">
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:800;color:{{ t.a }}">{{ teamAName }}</span>
+            <input type="number" inputMode="numeric" value="{{ inA }}" onChange="{{ onInA }}" placeholder="0" style="height:64px;border-radius:18px;border:2px solid {{ t.a }};background:{{ t.bg }};color:{{ t.text }};font-size:30px;font-weight:900;text-align:center;outline:none;width:100%">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ teamBName }}</span>
+            <input type="number" inputMode="numeric" value="{{ inB }}" onChange="{{ onInB }}" placeholder="0" style="height:64px;border-radius:18px;border:2px solid {{ t.b }};background:{{ t.bg }};color:{{ t.text }};font-size:30px;font-weight:900;text-align:center;outline:none;width:100%">
+          </label>
+          <button onClick="{{ capoA }}" style="height:40px;border-radius:14px;border:2px solid {{ capoRingA }};background:{{ t.s2 }};font-size:14px;font-weight:800;cursor:pointer">Капо</button>
+          <button onClick="{{ capoB }}" style="height:40px;border-radius:14px;border:2px solid {{ capoRingB }};background:{{ t.s2 }};font-size:14px;font-weight:800;cursor:pointer">Капо</button>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 1fr;gap:6px 10px;padding:12px 14px;border-radius:18px;background:{{ t.s2 }};font-variant-numeric:tabular-nums">
+          <sc-for list="{{ calcRows }}" as="r">
+            <div style="font-size:14px;font-weight:700;color:{{ t.muted }}">{{ r.label }}</div>
+            <div style="font-size:15px;font-weight:800;text-align:center">{{ r.a }}</div>
+            <div style="font-size:15px;font-weight:800;text-align:center">{{ r.b }}</div>
+          </sc-for>
+          <div style="font-size:15px;font-weight:900;border-top:1px solid {{ t.line }};padding-top:8px">В мача</div>
+          <div style="font-size:26px;font-weight:900;text-align:center;color:{{ t.a }};border-top:1px solid {{ t.line }};padding-top:4px">{{ calc.mA }}</div>
+          <div style="font-size:26px;font-weight:900;text-align:center;color:{{ t.b }};border-top:1px solid {{ t.line }};padding-top:4px">{{ calc.mB }}</div>
+        </div>
+        <sc-if value="{{ hasVerdict }}"><div style="padding:12px 14px;border-radius:16px;background:{{ calc.vbg }};color:{{ calc.vfg }};font-size:15px;font-weight:900;text-wrap:pretty">{{ calc.text }}</div></sc-if>
+        <sc-if value="{{ hasPointsError }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ calc.err }}</div></sc-if>
+        <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px">
+        <button onClick="{{ pointsBack }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Назад</button>
+        <button onClick="{{ saveGame }}" style="height:56px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Запиши раздаването</button>
+      </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ sheetContract }}">
+      <div style="font-size:24px;font-weight:900">Каква е играта?</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ contractOptions }}" as="o"><button onClick="{{ o.onPick }}" style="height:78px;border-radius:18px;border:2px solid {{ o.ring }};background:{{ t.s2 }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="font-size:28px;font-weight:900;line-height:1;color:{{ o.symColor }}">{{ o.sym }}</span><span style="font-size:13px;font-weight:800">{{ o.label }}</span></button></sc-for>
+      </div>
+      <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Кой обяви играта?</div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ callerOptions }}" as="o"><button onClick="{{ o.onPick }}" style="border-radius:18px;border:2px solid {{ o.ring }};background:{{ t.s2 }};padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0">
+          <div style="width:44px;height:44px;border-radius:50%;border:2px solid {{ o.color }};background:{{ t.s1 }};overflow:hidden;display:flex;align-items:center;justify-content:center">
+            <sc-if value="{{ o.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ o.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ o.hasEmoji }}"><span style="font-size:26px;line-height:1">{{ o.emoji }}</span></sc-if>
+            <sc-if value="{{ o.hasInitials }}"><span style="font-size:15px;font-weight:900">{{ o.initials }}</span></sc-if>
+          </div>
+          <span style="font-size:12px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.name }}</span>
+        </button></sc-for>
+      </div>
+      <sc-if value="{{ contractWarn }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">При без коз няма обяви — записаните в това раздаване ще се изтрият.</div></sc-if>
+      <button onClick="{{ confirmContract }}" style="height:54px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">{{ contractCta }}</button>
+    </sc-if>
+
+    <sc-if value="{{ sheetClear }}">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:24px;font-weight:900">Изчистване</div>
+        <div style="font-size:15px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">Текущото раздаване започва наново: обявите и избраната игра се изтриват.</div>
+      </div>
+      <button onClick="{{ clearCurrent }}" style="height:56px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Изчисти раздаване {{ gameNo }}</button>
+      <sc-if value="{{ hasLastGame }}"><button onClick="{{ undoLast }}" style="height:56px;border-radius:18px;border:1px solid {{ t.b }};background:transparent;color:{{ t.b }};font-size:16px;font-weight:900;cursor:pointer">Изтрий последното записано раздаване ({{ gamesPlayed }})</button></sc-if>
+      <button onClick="{{ closeSheet }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Отказ</button>
+    </sc-if>
+
+    <sc-if value="{{ sheetMatch }}">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:24px;font-weight:900">Приключване на мача?</div>
+        <div style="font-size:15px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">Резултат {{ totalA }} : {{ totalB }}. Обявите от текущото раздаване няма да се запишат, ако не е приключено.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px">
+        <button onClick="{{ closeSheet }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Продължи</button>
+        <button onClick="{{ endMatch }}" style="height:56px;border-radius:18px;border:none;background:{{ t.b }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Приключи мача</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ sheetSettings }}">
+      <div style="font-size:24px;font-weight:900">Атмосфера</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Тема</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
+          <sc-for list="{{ themeOptions }}" as="o">
+            <button onClick="{{ o.onPick }}" style="position:relative;border-radius:18px;border:2px solid {{ o.ring }};background:{{ o.bg }};background-image:{{ o.glow }};padding:12px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;color:{{ o.text }}">
+              <div style="display:flex;gap:6px"><div style="width:18px;height:18px;border-radius:50%;background:{{ o.a }}"></div><div style="width:18px;height:18px;border-radius:50%;background:{{ o.b }}"></div></div>
+              <div style="display:flex;flex-direction:column;gap:0"><span style="font-size:15px;font-weight:900">{{ o.name }}</span><span style="font-size:12px;font-weight:600;opacity:0.75">{{ o.sub }}</span></div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Маса</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
+          <sc-for list="{{ feltOptions }}" as="o">
+            <button onClick="{{ o.onPick }}" style="border-radius:18px;border:2px solid {{ o.ring }};background:{{ t.s2 }};padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:8px;align-items:stretch">
+              <div style="height:64px;border-radius:12px;background:{{ o.bg }};border:4px solid {{ o.rim }}"></div>
+              <span style="font-size:14px;font-weight:800">{{ o.name }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <button onClick="{{ closeSheet }}" style="height:54px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Готово</button>
+    </sc-if>
+
+    <sc-if value="{{ sheetShare }}">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:24px;font-weight:900">Сподели</div>
+        <div style="font-size:14px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">{{ sh.summary }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:5px;border-radius:18px;background:{{ t.bg }};border:1px solid {{ t.line }};flex:none">
+        <sc-for list="{{ sh.scopes }}" as="o"><button onClick="{{ o.onPick }}" style="height:42px;border-radius:14px;border:none;background:{{ o.bg }};color:{{ o.fg }};font-size:14px;font-weight:900;cursor:pointer">{{ o.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ sh.hasQr }}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:none">
+          <div style="width:220px;height:220px;border-radius:20px;background:#fff;padding:12px;display:flex;align-items:center;justify-content:center"><div style="width:196px;height:196px;background-image:{{ sh.qrBg }};background-size:100% 100%;image-rendering:pixelated"></div></div>
+          <sc-if value="{{ sh.multi }}"><div style="font-size:15px;font-weight:900;color:{{ t.a }}">Част {{ sh.part }} от {{ sh.parts }}</div></sc-if>
+          <div style="font-size:13px;font-weight:700;color:{{ t.muted }};text-align:center;text-wrap:pretty">{{ sh.qrHint }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ sh.noQr }}"><div style="padding:14px;border-radius:16px;border:1px dashed {{ t.line }};font-size:14px;font-weight:700;color:{{ t.muted }};text-align:center;text-wrap:pretty">{{ sh.qrMsg }}</div></sc-if>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none">
+        <button onClick="{{ sh.onCopy }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none">Копирай линк</button>
+        <button onClick="{{ sh.onFile }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none">Изпрати файл</button>
+      </div>
+      <button onClick="{{ sh.onTogglePhotos }}" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:4px 0;font-size:14px;font-weight:700;color:{{ t.text }};text-align:left;flex:none"><span style="width:24px;height:24px;border-radius:8px;border:2px solid {{ t.a }};background:{{ sh.photoBox }};color:{{ t.on }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:none">{{ sh.photoTick }}</span>Включи снимките във файла (линкът и QR са без снимки)</button>
+      <sc-if value="{{ sh.hasStatus }}"><div style="font-size:14px;font-weight:800;color:{{ t.a }}">{{ sh.status }}</div></sc-if>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px;flex:none">
+        <button onClick="{{ closeSheet }}" style="height:54px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Затвори</button>
+        <button onClick="{{ openImport }}" style="height:54px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:16px;font-weight:900;cursor:pointer">Внос от друг телефон</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ sheetImport }}">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:24px;font-weight:900">Внос</div>
+        <div style="font-size:14px;color:{{ t.muted }};font-weight:600;text-wrap:pretty">Сканирайте QR кода от другия телефон, поставете линк или изберете файл. Работи и в браузър на компютър с камера.</div>
+      </div>
+      <sc-if value="{{ scanOn }}">
+        <div style="position:relative;width:100%;aspect-ratio:1;max-width:320px;align-self:center;border-radius:24px;overflow:hidden;background:#000;flex:none">
+          <video ref="{{ videoRef }}" playsInline="{{ true }}" muted="{{ true }}" style="width:100%;height:100%;object-fit:cover;display:block"></video>
+          <div style="position:absolute;inset:18%;border:3px solid {{ t.a }};border-radius:20px"></div>
+          <sc-if value="{{ scanMulti }}"><div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:14px;font-weight:900;color:#fff">Прочетени {{ scanGot }} от {{ scanTotal }} части</div></sc-if>
+        </div>
+        <button onClick="{{ stopScan }}" style="height:48px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none">Спри камерата</button>
+      </sc-if>
+      <sc-if value="{{ scanOff }}"><button onClick="{{ startScan }}" style="height:56px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer;flex:none">📷 Сканирай QR код</button></sc-if>
+      <sc-if value="{{ scanHasError }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ scanError }}</div></sc-if>
+      <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }};flex:none">или</div>
+      <textarea value="{{ im.text }}" onChange="{{ im.onText }}" placeholder="https://…#belot=…" rows="3" style="width:100%;resize:none;background:{{ t.bg }};border:1px solid {{ t.line }};border-radius:16px;padding:12px 14px;font-family:inherit;font-size:14px;font-weight:600;color:{{ t.text }};outline:none;flex:none"></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none">
+        <button onClick="{{ im.onRead }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none">Прочети линка</button>
+        <label style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">Избери файл<input type="file" accept=".belot,.json,application/json" onChange="{{ im.onFile }}" style="display:none"></label>
+      </div>
+      <sc-if value="{{ im.hasError }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ im.error }}</div></sc-if>
+      <sc-if value="{{ im.hasData }}">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:18px;background:{{ t.s2 }};flex:none">
+          <div style="font-size:16px;font-weight:900">Намерено</div>
+          <sc-for list="{{ im.lines }}" as="l"><div style="font-size:14px;font-weight:700">{{ l.text }}</div></sc-for>
+        </div>
+        <button onClick="{{ im.onMerge }}" style="height:54px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:16px;font-weight:900;cursor:pointer;flex:none">Добави към моите</button>
+        <sc-if value="{{ im.hasMatch }}"><button onClick="{{ im.onTakeMatch }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;flex:none">Добави и продължи мача тук</button></sc-if>
+        <button onClick="{{ im.onReplace }}" style="height:44px;border:none;background:none;color:{{ t.b }};font-size:14px;font-weight:800;cursor:pointer;flex:none">{{ im.replaceLabel }}</button>
+      </sc-if>
+      <sc-if value="{{ im.hasMsg }}"><div style="font-size:14px;font-weight:800;color:{{ t.a }}">{{ im.msg }}</div></sc-if>
+      <button onClick="{{ closeSheet }}" style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer;flex:none">Затвори</button>
+    </sc-if>
+
+    <sc-if value="{{ sheetSeat }}">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:24px;font-weight:900">{{ seatPick.title }}</div>
+        <div style="font-size:14px;color:{{ t.muted }};font-weight:600">Изберете играч или регистрирайте нов.</div>
+      </div>
+      <button onClick="{{ seatPick.onNew }}" style="height:56px;border-radius:18px;border:2px dashed {{ t.line }};background:transparent;font-size:16px;font-weight:900;cursor:pointer;flex:none">+ Нов играч</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ seatRoster }}" as="r">
+          <button onClick="{{ r.onPick }}" style="display:flex;align-items:center;gap:12px;padding:6px 14px 6px 6px;border-radius:18px;border:2px solid {{ r.ring }};background:{{ t.s2 }};cursor:pointer;text-align:left;flex:none">
+            <div style="width:48px;height:48px;border-radius:50%;flex:none;background:{{ t.s2 }};border:2px solid {{ t.line }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ r.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ r.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ r.hasEmoji }}"><span style="font-size:28px;line-height:1">{{ r.emoji }}</span></sc-if>
+            <sc-if value="{{ r.hasInitials }}"><span style="font-size:16px;font-weight:900">{{ r.initials }}</span></sc-if>
+          </div>
+            <span style="flex:1;min-width:0;font-size:16px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+            <sc-if value="{{ r.hasSeat }}"><span style="font-size:12px;font-weight:800;color:{{ t.muted }}">{{ r.seat }}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{ closeSheet }}" style="height:54px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer;flex:none">Готово</button>
+    </sc-if>
+
+    <sc-if value="{{ sheetRegister }}">
+      <div style="font-size:24px;font-weight:900">{{ reg.title }}</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:76px;height:76px;border-radius:50%;flex:none;background:{{ t.s2 }};border:3px solid {{ t.a }};display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <sc-if value="{{ reg.hasPhoto }}"><div style="width:100%;height:100%;background-image:{{ reg.photoBg }};background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ reg.hasEmoji }}"><span style="font-size:46px;line-height:1">{{ reg.emoji }}</span></sc-if>
+            <sc-if value="{{ reg.hasInitials }}"><span style="font-size:24px;font-weight:900">{{ reg.initials }}</span></sc-if>
+          </div>
+        <input value="{{ reg.name }}" onChange="{{ reg.onName }}" placeholder="Име или прякор" style="flex:1;min-width:0;height:56px;background:{{ t.bg }};border:1px solid {{ t.line }};border-radius:16px;padding:0 16px;font-size:18px;font-weight:800;color:{{ t.text }};outline:none">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">Смешна иконка</div>
+        <button onClick="{{ reg.onRandom }}" style="height:36px;padding:0 12px;border-radius:12px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:14px;font-weight:800;cursor:pointer">🎲 Случайна</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ emojiOptions }}" as="o">
+          <button onClick="{{ o.onPick }}" style="aspect-ratio:1;border-radius:16px;border:2px solid {{ o.ring }};background:{{ t.s2 }};font-size:clamp(24px,6vw,32px);line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0" style-active="transform:scale(0.92)">{{ o.emoji }}</button>
+        </sc-for>
+      </div>
+      <label style="height:52px;border-radius:18px;border:1px solid {{ t.line }};background:{{ t.s2 }};font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none">Или качи снимка<input type="file" accept="image/*" onChange="{{ reg.onPhoto }}" style="display:none"></label>
+      <sc-if value="{{ reg.hasError }}"><div style="font-size:14px;font-weight:800;color:{{ t.b }}">{{ reg.error }}</div></sc-if>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px">
+        <button onClick="{{ closeSheet }}" style="height:56px;border-radius:18px;border:1px solid {{ t.line }};background:transparent;font-size:16px;font-weight:800;cursor:pointer">Отказ</button>
+        <button onClick="{{ reg.onSave }}" style="height:56px;border-radius:18px;border:none;background:{{ t.a }};color:{{ t.on }};font-size:17px;font-weight:900;cursor:pointer">Запази</button>
+      </div>
+      <sc-if value="{{ reg.canDelete }}"><button onClick="{{ reg.onDelete }}" style="height:44px;border:none;background:none;color:{{ t.b }};font-size:15px;font-weight:800;cursor:pointer">Изтрий играча</button></sc-if>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;targetScore&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:151,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:51,&quot;max&quot;:1001,&quot;step&quot;:50},&quot;showDealer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const CARDS = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+const SEQ = { terca: 3, kvarta: 4, kvinta: 5 };
+const KARE_RANKS = ['Q', 'K', '10', 'A', '9', 'J'];
+const KARE_PTS = { Q: 10, K: 10, '10': 10, A: 10, '9': 15, J: 20 };
+const DECL = [
+  { key: 'belot', label: 'Белот', pts: 2 },
+  { key: 'terca', label: 'Терца', pts: 2 },
+  { key: 'kvarta', label: 'Кварта', pts: 5 },
+  { key: 'kvinta', label: 'Квинта', pts: 10 },
+  { key: 'kare', label: 'Каре', pts: '10+' },
+];
+const DMAP = Object.fromEntries(DECL.map(d => [d.key, d]));
+const CONTRACTS = [
+  { key: 'clubs', sym: '♣', label: 'Спатия', kind: 'color', red: false },
+  { key: 'diamonds', sym: '♦', label: 'Каро', kind: 'color', red: true },
+  { key: 'hearts', sym: '♥', label: 'Купа', kind: 'color', red: true },
+  { key: 'spades', sym: '♠', label: 'Пика', kind: 'color', red: false },
+  { key: 'nt', sym: 'БК', label: 'Без коз', kind: 'nt', red: false },
+  { key: 'at', sym: 'ВК', label: 'Всичко коз', kind: 'at', red: false },
+];
+const CMAP = Object.fromEntries(CONTRACTS.map(c => [c.key, c]));
+const MAXIN = { color: 16, at: 26, nt: 13 };
+const SEAT_LABELS = ['Север', 'Изток', 'Юг', 'Запад'];
+const DEAL_ORDER = [0, 3, 2, 1];
+const KEY = 'belot-match-v4';
+const RKEY = 'belot-roster';
+const SKEY = 'belot-stats';
+const EMOJI = ['🍺','🍷','🥃','🍻','🍸','🧉','🤠','🥸','😎','🤓','🧐','😈','🤡','👴','👵','🧔','🐻','🦊','🐷','🐸','🐔','🦉','🐗','🐙','🥒','🌶️','🧀','🎩','🃏','👑'];
+const DEFAULT_EMOJI = ['🍺', '🥸', '🐻', '🤠'];
+const RED = 'oklch(0.68 0.19 25)';
+
+const THEMES = {
+  pub: { name: 'Кръчма', sub: 'бира и дим', bg: 'oklch(0.19 0.03 50)', glow: 'radial-gradient(ellipse 90% 55% at 50% -5%, oklch(0.45 0.11 70 / 0.55), transparent 70%)', s1: 'oklch(0.24 0.035 50)', s2: 'oklch(0.29 0.04 50)', s3: 'oklch(0.34 0.045 52)', line: 'oklch(0.38 0.045 55)', text: 'oklch(0.95 0.02 80)', muted: 'oklch(0.76 0.04 70)', a: 'oklch(0.8 0.14 80)', b: 'oklch(0.72 0.15 32)', on: 'oklch(0.19 0.03 50)' },
+  home: { name: 'Вкъщи', sub: 'ракия и салата', bg: 'oklch(0.2 0.03 350)', glow: 'radial-gradient(ellipse 80% 50% at 30% 0%, oklch(0.42 0.09 40 / 0.45), transparent 70%)', s1: 'oklch(0.25 0.035 350)', s2: 'oklch(0.3 0.04 350)', s3: 'oklch(0.35 0.045 350)', line: 'oklch(0.39 0.045 350)', text: 'oklch(0.96 0.015 60)', muted: 'oklch(0.77 0.035 20)', a: 'oklch(0.8 0.13 150)', b: 'oklch(0.78 0.13 55)', on: 'oklch(0.2 0.03 350)' },
+  casino: { name: 'Сукно', sub: 'класическа маса', bg: 'oklch(0.17 0.012 250)', glow: 'radial-gradient(ellipse 80% 50% at 50% 0%, oklch(0.32 0.05 165 / 0.5), transparent 70%)', s1: 'oklch(0.22 0.014 250)', s2: 'oklch(0.27 0.016 250)', s3: 'oklch(0.32 0.018 250)', line: 'oklch(0.35 0.018 250)', text: 'oklch(0.95 0.008 250)', muted: 'oklch(0.74 0.02 250)', a: 'oklch(0.78 0.12 185)', b: 'oklch(0.78 0.12 55)', on: 'oklch(0.17 0.012 250)' },
+  night: { name: 'Късна нощ', sub: 'последна поръчка', bg: 'oklch(0.14 0.025 285)', glow: 'radial-gradient(ellipse 70% 45% at 80% 0%, oklch(0.4 0.14 320 / 0.45), transparent 70%), radial-gradient(ellipse 60% 40% at 0% 100%, oklch(0.4 0.1 210 / 0.35), transparent 70%)', s1: 'oklch(0.2 0.03 285)', s2: 'oklch(0.25 0.035 285)', s3: 'oklch(0.3 0.04 285)', line: 'oklch(0.34 0.045 285)', text: 'oklch(0.96 0.01 285)', muted: 'oklch(0.76 0.04 285)', a: 'oklch(0.78 0.15 330)', b: 'oklch(0.8 0.13 205)', on: 'oklch(0.14 0.025 285)' },
+};
+const FELTS = {
+  wood: { name: 'Дърво', rim: 'oklch(0.26 0.05 45)', bg: 'repeating-linear-gradient(92deg, oklch(0.36 0.07 52) 0 18px, oklch(0.32 0.06 48) 18px 20px, oklch(0.38 0.075 55) 20px 46px, oklch(0.31 0.055 46) 46px 49px)' },
+  cloth: { name: 'Сукно', rim: 'oklch(0.28 0.05 50)', bg: 'radial-gradient(ellipse at center, oklch(0.42 0.08 158), oklch(0.27 0.06 162))' },
+  check: { name: 'Покривка', rim: 'oklch(0.3 0.04 40)', bg: 'repeating-conic-gradient(oklch(0.5 0.14 25) 0 25%, oklch(0.84 0.03 80) 0 50%) 0 0 / 34px 34px' },
+  stone: { name: 'Камък', rim: 'oklch(0.22 0.01 250)', bg: 'radial-gradient(circle at 30% 30%, oklch(0.38 0.01 250), transparent 50%), radial-gradient(circle at 75% 70%, oklch(0.34 0.012 250), transparent 45%), oklch(0.28 0.01 250)' },
+};
+
+const teamOf = seat => (seat % 2 === 0 ? 'A' : 'B');
+const declPts = d => (d.key === 'kare' ? (d.rank ? KARE_PTS[d.rank] : 10) : DMAP[d.key].pts);
+const declLabel = d => {
+  if (SEQ[d.key] && d.top) return `${DMAP[d.key].label} до ${d.top}`;
+  if (d.key === 'kare' && d.rank) return `Каре ${d.rank}`;
+  return DMAP[d.key].label;
+};
+// Rounding to match points (belot.bg unified rules)
+function roundPts(v, kind, smaller) {
+  const base = Math.floor(v / 10), d = v % 10;
+  if (kind === 'color') return d >= 7 || (d === 6 && smaller) ? base + 1 : base;
+  if (kind === 'at') return d >= 5 || (d === 4 && smaller) ? base + 1 : base;
+  return d >= 6 ? base + 1 : base;
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home', prevScreen: 'game', bestOf: 1, series: { A: 0, B: 0 }, stats: [], lbTab: 'players', resetArm: false, roster: [], seats: [null, null, null, null], reg: null, regFor: null,
+    teamA: 'Ние', teamB: 'Вие', theme: 'pub', felt: 'wood',
+    games: [], current: [], contract: null, caller: null, hang: 0,
+    open: null, sheet: null, pickSeat: null, step: 'points', inA: '', capo: null,
+    cSel: null, cCaller: null, cNext: null,
+  };
+
+  componentDidMount() {
+    this._qrTimer = setInterval(() => {
+      const s = this.state.share;
+      if (this.state.sheet === 'share' && s && s.qrs && s.qrs.length > 1) this.setState({ share: { ...s, frame: ((s.frame || 0) + 1) % s.qrs.length } });
+    }, 900);
+    const m = (location.hash || '').match(/belot=([A-Za-z0-9_-]+)/);
+    if (m) setTimeout(() => { this.setState({ sheet: 'import', im: { text: location.href } }); this.readCode(m[1]); history.replaceState(null, '', location.pathname + location.search); }, 50);
+    let s = {}; try { s = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+    let roster = []; try { roster = JSON.parse(localStorage.getItem(RKEY)) || []; } catch (e) {}
+    let stats = []; try { stats = JSON.parse(localStorage.getItem(SKEY)) || []; } catch (e) {}
+    this.setState({ ...s, roster, stats, open: null, sheet: null });
+  }
+  componentDidUpdate() {
+    const { bestOf, series } = this.state;
+    const { screen, prevScreen, seats, roster, teamA, teamB, games, current, theme, felt, contract, caller, hang } = this.state;
+    try { localStorage.setItem(RKEY, JSON.stringify(roster)); } catch (e) {}
+    try { localStorage.setItem(SKEY, JSON.stringify(this.state.stats || [])); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ bestOf, series, screen, prevScreen, seats, teamA, teamB, games, current, theme, felt, contract, caller, hang })); } catch (e) {}
+  }
+
+  target() { return this.props.targetScore ?? 151; }
+  players() { const { roster, seats } = this.state; return seats.map(id => roster.find(r => r.id === id) || { name: '', photo: null, emoji: null }); }
+  pname(i) { return (this.players()[i].name || '').trim() || `Играч ${i + 1}`; }
+  tname(team) { return team === 'A' ? (this.state.teamA.trim() || 'Отбор 1') : (this.state.teamB.trim() || 'Отбор 2'); }
+  initials(n) { return n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?'; }
+  setReg(patch) { this.setState(s => ({ reg: { ...s.reg, ...patch } })); }
+  blobUrl(d) {
+    this._blob = this._blob || {};
+    if (!this._blob[d]) {
+      try {
+        const [head, b64] = d.split(','), mime = (head.match(/data:([^;]+)/) || [])[1] || 'image/png';
+        const bin = atob(b64), arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        this._blob[d] = URL.createObjectURL(new Blob([arr], { type: mime }));
+      } catch (e) { return ''; }
+    }
+    return this._blob[d];
+  }
+  av(i) { return this.avOf(this.players()[i], this.pname(i)); }
+  avOf(p, name) {
+    return { initials: this.initials(name), photoBg: p.photo ? `url(${this.blobUrl(p.photo)})` : 'none', emoji: p.emoji,
+      hasPhoto: !!p.photo, hasEmoji: !p.photo && !!p.emoji, hasInitials: !p.photo && !p.emoji };
+  }
+  onPhoto(e) {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas'), S = 192; c.width = S; c.height = S;
+        const m = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+        this.setReg({ photo: c.toDataURL('image/jpeg', 0.8), emoji: null });
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  }
+
+  kind() { const c = CMAP[this.state.contract]; return c ? c.kind : null; }
+
+  // Which declarations a seat can still make
+  seatOptions(i) {
+    const kind = this.kind(), cur = this.state.current;
+    if (!kind) return { msg: 'Първо изберете играта в средата на масата.', opts: [] };
+    if (kind === 'nt') return { msg: 'Без коз — не се обявява.', opts: [] };
+    const mine = cur.filter(d => d.seat === i);
+    const used = mine.reduce((a, d) => a + (SEQ[d.key] || (d.key === 'kare' ? 4 : 0)), 0);
+    const belots = cur.filter(d => d.key === 'belot').length;
+    const kares = cur.filter(d => d.key === 'kare').length;
+    const opts = DECL.filter(o => {
+      if (o.key === 'belot') return belots < (kind === 'color' ? 1 : 4);
+      if (SEQ[o.key]) return used + SEQ[o.key] <= 8;
+      if (o.key === 'kare') return used + 4 <= 8 && kares < 6;
+      return true;
+    });
+    return { msg: opts.length ? '' : 'Няма повече възможни обяви с 8 карти.', opts };
+  }
+
+  addDecl(seat, key) { this.setState(s => ({ current: [...s.current, { seat, key, id: Date.now() + Math.random() }], open: null })); }
+  removeDecl(id) { this.setState(s => ({ current: s.current.filter(d => d.id !== id) })); }
+  patchDecl(id, patch) { this.setState(s => ({ current: s.current.map(d => d.id === id ? { ...d, ...patch } : d) })); }
+
+  // Resolve which declarations count
+  resolve(list) {
+    const errors = [], verdicts = [];
+    const seqs = list.filter(d => SEQ[d.key]);
+    const sA = seqs.filter(d => teamOf(d.seat) === 'A'), sB = seqs.filter(d => teamOf(d.seat) === 'B');
+    const maxLen = arr => Math.max(0, ...arr.map(d => SEQ[d.key]));
+    const required = new Set();
+    let seqWin = null;
+    if (sA.length && sB.length) {
+      const lA = maxLen(sA), lB = maxLen(sB);
+      if (lA !== lB) seqWin = lA > lB ? 'A' : 'B';
+      else {
+        seqs.filter(d => SEQ[d.key] === lA).forEach(d => required.add(d.id));
+        const missing = seqs.filter(d => required.has(d.id) && !d.top);
+        if (missing.length) errors.push('Посочете до коя карта са поредиците с еднаква дължина.');
+        else {
+          const top = arr => Math.max(...arr.filter(d => SEQ[d.key] === lA).map(d => CARDS.indexOf(d.top)));
+          const tA = top(sA), tB = top(sB);
+          seqWin = tA === tB ? 'none' : tA > tB ? 'A' : 'B';
+        }
+      }
+      if (seqWin === 'none') verdicts.push('Поредици: равни — всички отпадат.');
+      else if (seqWin) verdicts.push(`Поредици: зачитат се на ${this.tname(seqWin)}, другите отпадат.`);
+    } else if (seqs.length) seqWin = sA.length ? 'A' : 'B';
+
+    const kares = list.filter(d => d.key === 'kare');
+    let kareWin = null;
+    if (kares.some(d => !d.rank)) errors.push('Посочете от какви карти е всяко каре.');
+    const ranks = kares.filter(d => d.rank).map(d => d.rank);
+    if (new Set(ranks).size !== ranks.length) errors.push('Две карета от едни и същи карти не са възможни.');
+    const kA = kares.filter(d => teamOf(d.seat) === 'A'), kB = kares.filter(d => teamOf(d.seat) === 'B');
+    if (kA.length && kB.length) {
+      if (!kares.some(d => !d.rank)) {
+        const best = arr => Math.max(...arr.map(d => KARE_RANKS.indexOf(d.rank)));
+        kareWin = best(kA) > best(kB) ? 'A' : 'B';
+        verdicts.push(`Карета: зачитат се на ${this.tname(kareWin)}, другите отпадат.`);
+      }
+    } else if (kares.length) kareWin = kA.length ? 'A' : 'B';
+
+    const valid = d => d.key === 'belot' || (SEQ[d.key] ? teamOf(d.seat) === seqWin : teamOf(d.seat) === kareWin);
+    const sum = team => list.filter(d => teamOf(d.seat) === team && valid(d)).reduce((a, d) => a + declPts(d), 0);
+    return { errors, verdicts, required, valid, seqWin, kareWin, dA: sum('A'), dB: sum('B'),
+      contested: { seq: !!(sA.length && sB.length), kare: !!(kA.length && kB.length) } };
+  }
+
+  calc() {
+    const st = this.state, kind = this.kind();
+    if (!kind) return { err: 'Изберете играта.', mA: 0, mB: 0, rows: [] };
+    const max = MAXIN[kind], mult = kind === 'nt' ? 2 : 1;
+    const res = this.resolve(st.current);
+    let cA, cB, err = '';
+    if (st.capo) { cA = st.capo === 'A' ? max + 9 : 0; cB = st.capo === 'B' ? max + 9 : 0; }
+    else {
+      const a = parseInt(st.inA, 10);
+      if (st.inA === '' || isNaN(a)) { err = 'Въведете точките от картите.'; cA = 0; cB = 0; }
+      else if (a < 0 || a > max) { err = `Точките от картите трябва да са между 0 и ${max}.`; cA = a; cB = max - a; }
+      else { cA = a; cB = max - a; }
+    }
+    const rawA = (cA + res.dA) * mult, rawB = (cB + res.dB) * mult;
+    const T = teamOf(st.caller ?? 0), O = T === 'A' ? 'B' : 'A';
+    const raw = { A: rawA, B: rawB };
+    let m = { A: 0, B: 0 }, verdict = 'ok', hangPts = 0, text;
+    if (raw[T] < raw[O]) {
+      verdict = 'inside'; m[O] = rawA + rawB;
+      text = `Вътре! ${this.tname(O)} взимат всички ${rawA + rawB} точки.`;
+    } else if (raw[T] === raw[O]) {
+      verdict = 'hang'; m[O] = raw[O]; hangPts = raw[T];
+      text = `Висяща: ${this.tname(T)} не записват, ${hangPts} т. висят за следващото раздаване.`;
+    } else {
+      m.A = rawA; m.B = rawB;
+      text = `${this.tname(T)} изкараха играта.`;
+    }
+    let hangTo = null;
+    if (st.hang > 0 && verdict !== 'hang') {
+      hangTo = m.A > m.B ? 'A' : m.B > m.A ? 'B' : null;
+      if (hangTo) { m[hangTo] += st.hang; text += ` +${st.hang} висящи за ${this.tname(hangTo)}.`; }
+    }
+    if (st.capo) text = `Капо за ${this.tname(st.capo)} (+9). ` + text + ' С капо мачът не може да приключи — играе се още едно раздаване.';
+    const rows = [
+      { label: st.capo ? 'Карти + капо' : 'Карти', a: cA, b: cB },
+      { label: 'Обяви', a: res.dA, b: res.dB },
+    ];
+    if (mult === 2) rows.push({ label: 'Общо ×2', a: rawA, b: rawB });
+    else rows.push({ label: 'Общо', a: rawA, b: rawB });
+    return { err, mA: m.A, mB: m.B, rawA, rawB, verdict, hangPts, hangTo, text, rows, res, cA, cB };
+  }
+
+  startEnd() {
+    const rows = this.state.current.filter(d => SEQ[d.key] || d.key === 'kare');
+    this.setState({ sheet: 'game', step: rows.length ? 'decls' : 'points', open: null });
+  }
+
+  saveGame() {
+    const st = this.state, c = this.calc();
+    if (c.err) return;
+    const game = {
+      prevHang: st.hang, a: c.mA, b: c.mB, contract: st.contract, caller: st.caller, verdict: c.verdict, capo: st.capo,
+      raw: [c.rawA, c.rawB], hangTo: c.hangTo,
+      decls: st.current.map(d => ({ seat: d.seat, key: d.key, top: d.top || null, rank: d.rank || null, valid: c.res.valid(d) })),
+    };
+    const games = [...st.games, game];
+    const hang = c.verdict === 'hang' ? st.hang + c.hangPts : (c.hangTo ? 0 : st.hang);
+    const tA = games.reduce((x, g) => x + g.a, 0), tB = games.reduce((x, g) => x + g.b, 0);
+    const done = Math.max(tA, tB) >= this.target() && tA !== tB && !st.capo;
+    this.setState({ games, hang, current: [], contract: null, caller: null, capo: null, inA: '', sheet: null, open: null, screen: done ? 'end' : 'game' });
+    if (done) this.recordMatch(games);
+  }
+
+  // ---- sharing ----
+  static async pack(obj) {
+    const bytes = new TextEncoder().encode(JSON.stringify(obj));
+    let out = bytes;
+    if (window.CompressionStream) out = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
+    let s = ''; out.forEach(b => (s += String.fromCharCode(b)));
+    return (window.CompressionStream ? 'z' : 'j') + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  static async unpack(code) {
+    const kind = code[0], b64 = code.slice(1).replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b64 + '==='.slice((b64.length + 3) % 4)), bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    let raw = bytes;
+    if (kind === 'z') raw = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    return JSON.parse(new TextDecoder().decode(raw));
+  }
+  payload(scope, photos) {
+    const st = this.state;
+    const roster = st.roster.map(r => ({ ...r, photo: photos ? r.photo : null }));
+    const inMatch = st.screen === 'game' || st.screen === 'end' || st.screen === 'history';
+    const match = scope === 'match' && inMatch ? { seats: st.seats, teamA: st.teamA, teamB: st.teamB, games: st.games, current: st.current,
+      contract: st.contract, caller: st.caller, hang: st.hang, bestOf: st.bestOf, series: st.series, screen: st.screen === 'history' ? st.prevScreen : st.screen } : null;
+    const usedIds = match ? new Set(match.seats) : null;
+    return { app: 'belot', v: 1, at: Date.now(),
+      roster: match ? roster.filter(r => usedIds.has(r.id)) : roster,
+      stats: match ? [] : (st.stats || []), match };
+  }
+  async buildShare(scope, photos) {
+    const data = this.payload(scope, false);
+    const code = await Component.pack(data);
+    const link = location.href.split('#')[0] + '#belot=' + code;
+    const mk = txt => { try { const q = window.qrcode(0, 'L'); q.addData(txt); q.make(); return q.createDataURL(6, 0); } catch (e) { return null; } };
+    let qrs = [];
+    if (window.qrcode) {
+      if (link.length <= 1400) qrs = [mk(link)];
+      else {
+        const size = 1100, n = Math.ceil(code.length / size), sid = Date.now().toString(36).slice(-4);
+        for (let i = 0; i < n; i++) qrs.push(mk(`BELOT|${sid}|${i + 1}|${n}|${code.slice(i * size, (i + 1) * size)}`));
+      }
+    }
+    qrs = qrs.filter(Boolean);
+    this.setState(s => ({ share: { ...s.share, scope, photos, link, qrs, qr: qrs[0] || null, frame: 0, status: '' } }));
+  }
+  async readCode(code) {
+    try {
+      const data = await Component.unpack(code);
+      if (!data || data.app !== 'belot') throw new Error();
+      this.setState(s => ({ im: { ...(s.im || {}), data, error: '', msg: '' } }));
+    } catch (e) { this.setState(s => ({ im: { ...(s.im || {}), data: null, error: 'Линкът не може да се прочете.', msg: '' } })); }
+  }
+  startScan() {
+    this.stopScan();
+    this.setState({ scan: { on: true, parts: {}, n: 0, sid: null, error: '' } }, async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        this._stream = stream;
+        const v = this._video; if (!v) return this.stopScan();
+        v.srcObject = stream; await v.play();
+        const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently: true });
+        const tick = () => {
+          if (!this._stream) return;
+          if (v.readyState >= 2 && window.jsQR) {
+            const w = Math.min(640, v.videoWidth), hh = Math.round(v.videoHeight * (w / v.videoWidth));
+            cv.width = w; cv.height = hh; ctx.drawImage(v, 0, 0, w, hh);
+            const r = window.jsQR(ctx.getImageData(0, 0, w, hh).data, w, hh, { inversionAttempts: 'dontInvert' });
+            if (r && r.data) this.onScanText(r.data);
+          }
+          this._raf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) { this.stopScan('Няма достъп до камерата. Разрешете го или поставете линка ръчно.'); }
+    });
+  }
+  stopScan(error) {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._stream) this._stream.getTracks().forEach(tr => tr.stop());
+    this._stream = null; this._raf = null;
+    this.setState(s => ({ scan: { ...(s.scan || {}), on: false, error: error || '' } }));
+  }
+  onScanText(txt) {
+    const m = txt.match(/belot=([A-Za-z0-9_-]+)/);
+    if (m) { this.stopScan(); this.setState(s => ({ im: { ...(s.im || {}), text: txt } })); return this.readCode(m[1]); }
+    const p = txt.match(/^BELOT\|(\w+)\|(\d+)\|(\d+)\|([A-Za-z0-9_-]+)$/);
+    if (!p) return;
+    const sc = this.state.scan || {};
+    const parts = sc.sid === p[1] ? { ...sc.parts } : {};
+    if (parts[p[2]]) return;
+    parts[p[2]] = p[4];
+    const n = +p[3];
+    this.setState({ scan: { ...sc, sid: p[1], parts, n } });
+    if (Object.keys(parts).length === n) {
+      const code = Array.from({ length: n }, (_, i) => parts[i + 1]).join('');
+      this.stopScan(); this.readCode(code);
+    }
+  }
+  componentWillUnmount() { this.stopScan && this._stream && this.stopScan(); clearInterval(this._qrTimer); }
+
+  applyImport(mode, takeMatch) {
+    const d = this.state.im && this.state.im.data; if (!d) return;
+    const replace = mode === 'replace';
+    const roster = replace ? [] : [...this.state.roster];
+    const idMap = {};
+    (d.roster || []).forEach(r => {
+      const byId = roster.findIndex(x => x.id === r.id);
+      const byName = roster.findIndex(x => x.name.trim().toLowerCase() === r.name.trim().toLowerCase());
+      if (byId >= 0) { roster[byId] = { ...r, photo: r.photo || roster[byId].photo }; idMap[r.id] = r.id; }
+      else if (byName >= 0) { idMap[r.id] = roster[byName].id; if (r.photo) roster[byName] = { ...roster[byName], photo: r.photo }; }
+      else { roster.push(r); idMap[r.id] = r.id; }
+    });
+    const remap = ids => ids.map(id => idMap[id] || id);
+    const stats = replace ? [] : [...(this.state.stats || [])];
+    let added = 0;
+    (d.stats || []).forEach(m => { if (!stats.some(x => x.id === m.id)) { stats.push({ ...m, seats: remap(m.seats) }); added++; } });
+    const patch = { roster, stats };
+    if (takeMatch && d.match) Object.assign(patch, { ...d.match, seats: remap(d.match.seats), screen: d.match.screen || 'game', sheet: null, open: null });
+    const msg = `Готово: ${(d.roster || []).length} играчи${added ? `, ${added} мача в класацията` : ''}${takeMatch && d.match ? ', мачът продължава тук' : ''}.`;
+    this.setState({ ...patch, im: { ...this.state.im, data: null, msg } });
+  }
+
+  recordMatch(games) {
+    if (!games.length) return;
+    const st = this.state;
+    const tA0 = games.reduce((x, g) => x + g.a, 0), tB0 = games.reduce((x, g) => x + g.b, 0);
+    const w = tA0 > tB0 ? 'A' : tB0 > tA0 ? 'B' : null;
+    if (w) this.setState(s => ({ series: { ...(s.series || { A: 0, B: 0 }), [w]: ((s.series || {})[w] || 0) + 1 } }));
+    const rec = { id: 'm' + Date.now().toString(36), date: Date.now(), seats: [...st.seats],
+      names: [0, 1, 2, 3].map(i => this.pname(i)), teamA: this.tname('A'), teamB: this.tname('B'),
+      totalA: games.reduce((x, g) => x + g.a, 0), totalB: games.reduce((x, g) => x + g.b, 0),
+      games: games.map(g => ({ decls: g.decls })) };
+    this.setState(s => ({ stats: [...(s.stats || []), rec] }));
+  }
+
+  leaderboard() {
+    const stats = this.state.stats || [], roster = this.state.roster;
+    const P = {}, T = {};
+    const bump = (map, key, init) => (map[key] = map[key] || { ...init, pts: 0, count: 0, belots: 0, deals: 0, matches: 0, wins: 0 });
+    stats.forEach(m => {
+      const winner = m.totalA > m.totalB ? 'A' : m.totalB > m.totalA ? 'B' : null;
+      const teamIds = { A: [m.seats[0], m.seats[2]], B: [m.seats[1], m.seats[3]] };
+      m.seats.forEach((id, i) => {
+        const p = bump(P, id, { id, name: m.names[i] });
+        p.name = m.names[i]; p.matches++; p.deals += m.games.length; if (winner === teamOf(i)) p.wins++;
+      });
+      ['A', 'B'].forEach(tm => {
+        const ids = [...teamIds[tm]].sort(), key = ids.join('|');
+        const tr = bump(T, key, { ids });
+        tr.name = tm === 'A' ? m.teamA : m.teamB; tr.matches++; tr.deals += m.games.length; if (winner === tm) tr.wins++;
+      });
+      m.games.forEach(g => g.decls.forEach(d => {
+        if (!d.valid) return;
+        const pts = declPts(d), id = m.seats[d.seat], tm = teamOf(d.seat);
+        const tr = T[[...teamIds[tm]].sort().join('|')];
+        [P[id], tr].forEach(x => { x.pts += pts; x.count++; if (d.key === 'belot') x.belots++; });
+      }));
+    });
+    const live = id => roster.find(r => r.id === id);
+    const sortFn = (a, b) => b.pts - a.pts || b.count - a.count || b.wins - a.wins;
+    const players = Object.values(P).map(p => ({ ...p, name: (live(p.id) || p).name, people: [live(p.id) || { name: p.name }] })).sort(sortFn);
+    const teams = Object.values(T).map(x => {
+      const people = x.ids.map(id => live(id) || { name: (P[id] || {}).name || '?' });
+      return { ...x, people, members: people.map(p => p.name).join(' и ') };
+    }).sort(sortFn);
+    return { players, teams };
+  }
+
+  histRow(d, valid) {
+    return { who: this.pname(d.seat), label: declLabel(d), pts: declPts(d), isA: d.seat % 2 === 0, isB: d.seat % 2 === 1,
+      deco: valid ? 'none' : 'line-through', op: valid ? 1 : 0.5 };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const { games, current, roster, seats } = st;
+    const players = this.players();
+    const t = THEMES[st.theme] || THEMES.pub;
+    const felt = FELTS[st.felt] || FELTS.wood;
+    const teamAName = this.tname('A'), teamBName = this.tname('B');
+    const totalA = games.reduce((x, g) => x + g.a, 0), totalB = games.reduce((x, g) => x + g.b, 0);
+    const dealer = DEAL_ORDER[games.length % 4];
+    const showDealer = this.props.showDealer ?? true;
+    const symColor = c => (c.red ? RED : t.text);
+    const con = CMAP[st.contract];
+    const kind = con ? con.kind : null;
+
+    const seat = i => {
+      const so = this.seatOptions(i);
+      return {
+        ...this.av(i), name: this.pname(i),
+        open: st.open === i, isDealer: showDealer && dealer === i,
+        toggle: () => this.setState(s => ({ open: s.open === i ? null : i })),
+        decls: current.filter(d => d.seat === i).map(d => ({ label: declLabel(d), onRemove: () => this.removeDecl(d.id) })),
+        options: so.opts.map(o => ({ label: o.label, pts: o.pts, onPick: () => this.addDecl(i, o.key) })),
+        hasMsg: !!so.msg, msg: so.msg,
+      };
+    };
+    const setupP = i => {
+      const filled = !!roster.find(r => r.id === seats[i]);
+      return { ...(filled ? this.av(i) : { initials: '+', hasInitials: true, hasPhoto: false, hasEmoji: false, photoBg: 'none' }),
+        seatLabel: SEAT_LABELS[i], label: filled ? this.pname(i) : 'Избери играч', nameColor: filled ? t.text : t.muted,
+        onPick: () => this.setState({ sheet: 'seat', pickSeat: i }) };
+    };
+
+    // end-of-game: declarations step
+    const res = this.resolve(current);
+    const chip = (label, on, onPick) => ({ label, onPick, ring: on ? t.a : 'transparent', bg: on ? t.a : t.s1, fg: on ? t.on : t.text });
+    const seqRows = current.filter(d => SEQ[d.key] || d.key === 'kare').map(d => {
+      const isSeq = !!SEQ[d.key], team = teamOf(d.seat);
+      const chips = isSeq
+        ? CARDS.slice(SEQ[d.key] - 1).map(c => chip(c, d.top === c, () => this.patchDecl(d.id, { top: d.top === c ? null : c })))
+        : KARE_RANKS.map(r => chip(r, d.rank === r, () => this.patchDecl(d.id, { rank: r })));
+      const contested = isSeq ? res.contested.seq : res.contested.kare;
+      const decided = isSeq ? (res.seqWin !== null) : (res.kareWin !== null);
+      const ok = res.valid(d);
+      return {
+        who: this.pname(d.seat), label: isSeq ? `${DMAP[d.key].label} · ${DMAP[d.key].pts}` : (d.rank ? `Каре · ${KARE_PTS[d.rank]}` : 'Каре'),
+        color: team === 'A' ? t.a : t.b, prefix: isSeq ? 'до' : 'от', chips,
+        hasStatus: contested && decided, status: ok ? 'зачита се' : 'отпада', statusColor: ok ? t.a : t.muted,
+      };
+    });
+
+    const c = this.calc();
+    const maxIn = kind ? MAXIN[kind] : 0;
+    const inBVal = st.inA === '' || isNaN(parseInt(st.inA, 10)) ? '' : String(maxIn - parseInt(st.inA, 10));
+
+    let runA = 0, runB = 0;
+    const historyGames = games.map((g, idx) => {
+      runA += g.a; runB += g.b;
+      const gc = CMAP[g.contract];
+      const notes = [];
+      if (g.capo) notes.push(`Капо за ${this.tname(g.capo)}`);
+      if (g.verdict === 'inside') notes.push(`Вътре — ${this.tname(teamOf(g.caller))} не записват`);
+      if (g.verdict === 'hang') notes.push('Висяща');
+      if (g.hangTo) notes.push(`Висящите отиват при ${this.tname(g.hangTo)}`);
+      return { no: idx + 1, a: g.a, b: g.b, runA, runB,
+        contract: gc ? `${gc.sym} ${gc.label} · ${this.pname(g.caller)}` : '',
+        hasNote: notes.length > 0, note: notes.join(' · '),
+        decls: g.decls.map(d => this.histRow(d, d.valid)), noDecls: g.decls.length === 0 };
+    }).reverse();
+
+    const sumValid = team => games.flatMap(g => g.decls).filter(d => d.valid && teamOf(d.seat) === team).reduce((a, d) => a + declPts(d), 0);
+    const winTeam = totalA > totalB ? 'A' : totalB > totalA ? 'B' : null;
+    const winSeats = winTeam === 'A' ? [0, 2] : winTeam === 'B' ? [1, 3] : [];
+    const goHistory = () => this.setState(s => ({ screen: 'history', prevScreen: s.screen === 'history' ? s.prevScreen : s.screen, open: null }));
+    const sumCur = team => current.filter(d => teamOf(d.seat) === team).reduce((a, d) => a + declPts(d), 0);
+
+    const ps = st.pickSeat ?? 0;
+    const assign = (seat, id) => this.setState(s => {
+      const next = [...s.seats], j = next.indexOf(id);
+      if (j >= 0 && j !== seat) next[j] = next[seat];
+      next[seat] = id; return { seats: next };
+    });
+    const openReg = (p, forSeat) => this.setState({ sheet: 'register', regFor: forSeat ?? null,
+      reg: p ? { ...p, error: '' } : { id: null, name: '', photo: null, emoji: EMOJI[Math.floor(Math.random() * EMOJI.length)], error: '' } });
+    const rg = st.reg || { name: '', photo: null, emoji: null, error: '' };
+    const reg = { ...this.avOf(rg, rg.name || '?'), name: rg.name, title: rg.id ? 'Редакция на играч' : 'Нов играч',
+      hasError: !!rg.error, error: rg.error, canDelete: !!rg.id,
+      onName: e => this.setReg({ name: e.target.value, error: '' }),
+      onRandom: () => this.setReg({ emoji: EMOJI[Math.floor(Math.random() * EMOJI.length)], photo: null }),
+      onPhoto: e => this.onPhoto(e),
+      onSave: () => {
+        const r = this.state.reg, name = (r.name || '').trim();
+        if (!name) return this.setReg({ error: 'Въведете име.' });
+        if (this.state.roster.some(x => x.id !== r.id && x.name.trim().toLowerCase() === name.toLowerCase())) return this.setReg({ error: 'Вече има играч с това име.' });
+        const id = r.id || 'p' + Date.now().toString(36);
+        const item = { id, name, photo: r.photo || null, emoji: r.photo ? null : r.emoji };
+        const forSeat = this.state.regFor;
+        this.setState(s => ({ roster: r.id ? s.roster.map(x => x.id === id ? item : x) : [...s.roster, item], sheet: forSeat !== null ? 'seat' : null, reg: null }),
+          () => { if (forSeat !== null) assign(forSeat, id); });
+      },
+      onDelete: () => { const id = this.state.reg.id; this.setState(s => ({ roster: s.roster.filter(x => x.id !== id), seats: s.seats.map(x => x === id ? null : x), sheet: null, reg: null })); },
+    };
+    const seatsReady = seats.every(id => roster.some(r => r.id === id));
+    const openContract = next => this.setState({ sheet: 'contract', cSel: st.contract, cCaller: st.caller, cNext: next || null, open: null });
+    const cReady = st.cSel && st.cCaller !== null && st.cCaller !== undefined;
+
+    return {
+      t, felt, themeName: t.name,
+      isHome: st.screen === 'home', isStats: st.screen === 'stats', isSetup: st.screen === 'setup', isGame: st.screen === 'game', isHistory: st.screen === 'history', isEnd: st.screen === 'end',
+      target: this.target(),
+      teamA: st.teamA, teamB: st.teamB, teamAName, teamBName,
+      onTeamA: e => this.setState({ teamA: e.target.value }),
+      onTeamB: e => this.setState({ teamB: e.target.value }),
+      setupA: [0, 2].map(setupP), setupB: [1, 3].map(setupP),
+      startMatch: () => seatsReady && this.setState({ screen: 'game', games: [], current: [], contract: null, caller: null, hang: 0, open: null, series: { A: 0, B: 0 } }),
+      gameNo: games.length + 1, totalA, totalB,
+      curA: sumCur('A'), curB: sumCur('B'),
+      hasHang: st.hang > 0, hang: st.hang,
+      n: seat(0), e: seat(1), s: seat(2), w: seat(3),
+      noContract: !con, hasContract: !!con,
+      contract: con ? { sym: con.sym, label: con.label, symColor: symColor(con), caller: this.pname(st.caller ?? 0) } : { sym: '', label: '', symColor: t.text, caller: '' },
+      openContract: () => openContract(null),
+      changeContract: () => openContract('game'),
+      popoverOpen: st.open !== null && st.screen === 'game',
+      closePopover: () => this.setState({ open: null }),
+      historyCount: games.length,
+      openHistory: goHistory,
+      closeHistory: () => this.setState(s => ({ screen: s.prevScreen || 'game' })),
+      openEndGame: () => (con ? this.startEnd() : openContract('game')),
+      openEndMatch: () => this.setState({ sheet: 'match', open: null }),
+      openSettings: () => this.setState({ sheet: 'settings', open: null }),
+      openClear: () => this.setState({ sheet: 'clear', open: null }),
+      sheetClear: st.sheet === 'clear',
+      clearCurrent: () => this.setState({ current: [], contract: null, caller: null, capo: null, inA: '', sheet: null }),
+      hasLastGame: games.length > 0,
+      undoLast: () => this.setState(s => {
+        const last = s.games[s.games.length - 1]; if (!last) return {};
+        return { games: s.games.slice(0, -1), hang: last.prevHang ?? s.hang, sheet: null };
+      }),
+      anySheet: !!st.sheet,
+      sheetGame: st.sheet === 'game', sheetMatch: st.sheet === 'match', sheetSettings: st.sheet === 'settings', sheetAvatar: st.sheet === 'avatar', sheetContract: st.sheet === 'contract',
+      closeSheet: () => { if (this._stream) this.stopScan(); this.setState({ sheet: null }); },
+      stepDecls: st.step === 'decls', stepPoints: st.step === 'points',
+      seqRows, verdicts: res.verdicts.map(text => ({ text })), hasVerdicts: res.verdicts.length > 0,
+      hasDeclErrors: res.errors.length > 0, declError: res.errors.join(' '),
+      declsNext: () => { if (!this.resolve(this.state.current).errors.length) this.setState({ step: 'points' }); },
+      pointsBack: () => (seqRows.length ? this.setState({ step: 'decls' }) : this.setState({ sheet: null })),
+      pointsHint: kind === 'nt' ? `Закръглени точки от картите (общо 13), удвояват се.` : `Закръглени точки от картите с последните 10 (общо ${maxIn}).`,
+      inA: st.capo ? String(st.capo === 'A' ? maxIn : 0) : st.inA,
+      inB: st.capo ? String(st.capo === 'B' ? maxIn : 0) : inBVal,
+      onInA: e => this.setState({ inA: e.target.value, capo: null }),
+      onInB: e => { const v = e.target.value, n = parseInt(v, 10); this.setState({ inA: v === '' || isNaN(n) ? '' : String(maxIn - n), capo: null }); },
+      capoA: () => this.setState(s => ({ capo: s.capo === 'A' ? null : 'A' })),
+      capoB: () => this.setState(s => ({ capo: s.capo === 'B' ? null : 'B' })),
+      capoRingA: st.capo === 'A' ? t.a : 'transparent', capoRingB: st.capo === 'B' ? t.b : 'transparent',
+      calcRows: c.rows,
+      calc: { mA: c.mA, mB: c.mB, text: c.text || '', err: c.err,
+        vbg: c.verdict === 'inside' ? t.b : c.verdict === 'hang' ? t.s3 : t.s2, vfg: c.verdict === 'inside' ? t.on : t.text },
+      hasVerdict: !c.err && !!c.text, hasPointsError: !!c.err,
+      saveGame: () => this.saveGame(),
+      contractOptions: CONTRACTS.map(o => ({ sym: o.sym, label: o.label, symColor: symColor(o), ring: st.cSel === o.key ? t.a : 'transparent', onPick: () => this.setState({ cSel: o.key }) })),
+      callerOptions: [0, 1, 2, 3].map(i => ({ ...this.av(i), name: this.pname(i), color: i % 2 === 0 ? t.a : t.b, ring: st.cCaller === i ? t.a : 'transparent', onPick: () => this.setState({ cCaller: i }) })),
+      contractWarn: st.cSel === 'nt' && current.length > 0,
+      contractCta: cReady ? (st.cNext === 'game' ? 'Напред към точките' : 'Готово') : 'Изберете игра и кой я обяви',
+      confirmContract: () => {
+        const s = this.state;
+        if (!s.cSel || s.cCaller === null || s.cCaller === undefined) return;
+        const cur = s.cSel === 'nt' ? [] : s.current;
+        this.setState({ contract: s.cSel, caller: s.cCaller, current: cur, sheet: null }, () => { if (s.cNext === 'game') this.startEnd(); });
+      },
+      endMatch: () => { this.setState({ sheet: null, screen: 'end' }); this.recordMatch(this.state.games); },
+      themeOptions: Object.entries(THEMES).map(([k, o]) => ({ ...o, ring: st.theme === k ? o.a : 'transparent', onPick: () => this.setState({ theme: k }) })),
+      feltOptions: Object.entries(FELTS).map(([k, o]) => ({ ...o, ring: st.felt === k ? t.a : 'transparent', onPick: () => this.setState({ felt: k }) })),
+      emojiOptions: EMOJI.map(em => ({ emoji: em, ring: !rg.photo && rg.emoji === em ? t.a : 'transparent', onPick: () => this.setReg({ emoji: em, photo: null }) })),
+      reg, openRegister: () => openReg(null),
+      ...(() => {
+        const sh = st.share || {}, inMatch = ['game', 'end', 'history'].includes(st.screen);
+        const scope = sh.scope || (inMatch ? 'match' : 'all');
+        const scopes = [{ k: 'all', label: 'Играчи + класация' }, { k: 'match', label: 'Текущия мач' }];
+        const im = st.im || {}, d = im.data;
+        const lines = d ? [
+          { text: `${(d.roster || []).length} играчи: ${(d.roster || []).map(r => r.name).join(', ')}` },
+          ...(d.stats && d.stats.length ? [{ text: `${d.stats.length} завършени мача за класацията` }] : []),
+          ...(d.match ? [{ text: `Текущ мач: ${d.match.teamA} ${(d.match.games || []).reduce((x, g) => x + g.a, 0)} : ${(d.match.games || []).reduce((x, g) => x + g.b, 0)} ${d.match.teamB}` }] : []),
+        ] : [];
+        const readText = () => { const m = (this.state.im && this.state.im.text || '').match(/belot=([A-Za-z0-9_-]+)/) || (this.state.im && this.state.im.text || '').trim().match(/^([zj][A-Za-z0-9_-]+)$/); if (m) this.readCode(m[1]); else this.setState(s => ({ im: { ...s.im, error: 'Не открих код в текста.', data: null } })); };
+        return {
+          sheetShare: st.sheet === 'share', sheetImport: st.sheet === 'import',
+          openShare: () => { this.setState({ sheet: 'share', open: null, share: { scope, photos: false, qr: null, link: '', status: '' } }); this.buildShare(scope, false); },
+          videoRef: el => { this._video = el; },
+          scanOn: !!(st.scan && st.scan.on), scanOff: !(st.scan && st.scan.on),
+          scanMulti: !!(st.scan && st.scan.n > 1), scanGot: st.scan ? Object.keys(st.scan.parts || {}).length : 0, scanTotal: st.scan ? st.scan.n : 0,
+          scanHasError: !!(st.scan && st.scan.error), scanError: st.scan ? st.scan.error : '',
+          startScan: () => this.startScan(), stopScan: () => this.stopScan(),
+          openImport: () => this.setState({ sheet: 'import', im: { text: '', data: null, error: '', msg: '', armReplace: false } }),
+          sh: {
+            summary: scope === 'match' ? 'Другият телефон продължава мача от същото място.' : `${roster.length} играчи и ${(st.stats || []).length} мача от класацията.`,
+            scopes: scopes.filter(o => o.k === 'all' || inMatch).map(o => ({ label: o.label, bg: scope === o.k ? t.a : 'transparent', fg: scope === o.k ? t.on : t.text, onPick: () => this.buildShare(o.k, !!sh.photos) })),
+            hasQr: !!(sh.qrs && sh.qrs.length), noQr: !(sh.qrs && sh.qrs.length), qrBg: (sh.qrs && sh.qrs.length) ? `url(${this.blobUrl(sh.qrs[(sh.frame || 0) % sh.qrs.length])})` : 'none',
+            multi: !!(sh.qrs && sh.qrs.length > 1), part: ((sh.frame || 0) % ((sh.qrs && sh.qrs.length) || 1)) + 1, parts: (sh.qrs && sh.qrs.length) || 0,
+            qrHint: sh.qrs && sh.qrs.length > 1 ? 'Дръжте екрана пред камерата — частите се сменят сами, докато се прочетат всички.' : 'Сканирайте с камерата на другия телефон или от „Внос“ в уеб страницата.',
+            qrMsg: sh.link ? 'Данните са твърде много за QR код — използвайте линк или файл.' : 'Подготвям…',
+            photoBox: sh.photos ? t.a : 'transparent', photoTick: sh.photos ? '✓' : '',
+            onTogglePhotos: () => this.setState(s => ({ share: { ...s.share, photos: !s.share.photos } })),
+            hasStatus: !!sh.status, status: sh.status,
+            onCopy: async () => {
+              const link = this.state.share.link;
+              try { if (navigator.share) await navigator.share({ title: 'Белот', url: link }); else { await navigator.clipboard.writeText(link); } this.setState(s => ({ share: { ...s.share, status: 'Линкът е копиран.' } })); }
+              catch (e) { try { await navigator.clipboard.writeText(link); this.setState(s => ({ share: { ...s.share, status: 'Линкът е копиран.' } })); } catch (e2) {} }
+            },
+            onFile: async () => {
+              const s = this.state.share, data = this.payload(s.scope, s.photos);
+              const file = new File([JSON.stringify(data)], `belot-${new Date().toISOString().slice(0, 10)}.belot`, { type: 'application/json' });
+              try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Белот' }); return; } } catch (e) { return; }
+              const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+              this.setState(x => ({ share: { ...x.share, status: 'Файлът е изтеглен.' } }));
+            },
+          },
+          im: {
+            text: im.text || '', onText: e => this.setState({ im: { ...this.state.im, text: e.target.value, error: '' } }),
+            onRead: readText,
+            onFile: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; f.text().then(txt => { try { const data = JSON.parse(txt); if (data.app !== 'belot') throw 0; this.setState(s => ({ im: { ...s.im, data, error: '', msg: '' } })); } catch (er) { this.setState(s => ({ im: { ...s.im, data: null, error: 'Файлът не е от Белот.' } })); } }); },
+            hasError: !!im.error, error: im.error, hasData: !!d, lines, hasMatch: !!(d && d.match),
+            hasMsg: !!im.msg, msg: im.msg,
+            onMerge: () => this.applyImport('merge', false),
+            onTakeMatch: () => this.applyImport('merge', true),
+            replaceLabel: im.armReplace ? 'Натиснете пак — моите данни ще се изтрият' : 'Замени всичките ми данни',
+            onReplace: () => (this.state.im.armReplace ? this.applyImport('replace', !!(d && d.match)) : this.setState(s => ({ im: { ...s.im, armReplace: true } }))),
+          },
+        };
+      })(),
+      ...(() => {
+        const lb = this.leaderboard(), medal = ['1', '2', '3'];
+        const rankColor = i => (i === 0 ? t.a : i < 3 ? t.text : t.muted);
+        const mk = (x, i, name, extra) => ({
+          rank: i + 1, rankColor: rankColor(i), bg: i === 0 ? t.s2 : t.s1, ptsColor: i === 0 ? t.a : t.text,
+          name, pts: x.pts, avatars: x.people.map(p => this.avOf(p, p.name || '?')),
+          sub: `${extra}${x.count} обяви · ${x.belots} белота · ${x.wins}/${x.matches} победи`,
+        });
+        const n = (st.stats || []).length, p = st.lbTab !== 'teams';
+        return {
+          lbPlayers: lb.players.map((x, i) => mk(x, i, x.name, '')),
+          lbTeams: lb.teams.map((x, i) => mk(x, i, x.members, x.name ? x.name + ' · ' : '')),
+          matchCount: n, noStats: n === 0, hasStats: n > 0,
+          showPlayers: n > 0 && p, showTeams: n > 0 && !p,
+          tabPBg: p ? t.a : 'transparent', tabPFg: p ? t.on : t.text,
+          tabTBg: p ? 'transparent' : t.a, tabTFg: p ? t.text : t.on,
+          tabPlayers: () => this.setState({ lbTab: 'players' }), tabTeams: () => this.setState({ lbTab: 'teams' }),
+          openStats: () => this.setState({ screen: 'stats', resetArm: false, sheet: null }),
+          goHomeOnly: () => this.setState({ screen: 'home' }),
+          resetLabel: st.resetArm ? 'Натиснете пак, за да изтриете цялата класация' : 'Нулирай класацията',
+          resetStats: () => this.setState(s => (s.resetArm ? { stats: [], resetArm: false } : { resetArm: true })),
+        };
+      })(),
+      sheetSeat: st.sheet === 'seat', sheetRegister: st.sheet === 'register',
+      rosterList: roster.map(r => ({ ...this.avOf(r, r.name), name: r.name, onEdit: () => openReg(r) })),
+      rosterCount: roster.length || '', noRoster: roster.length === 0,
+      seatPick: { title: `Място: ${SEAT_LABELS[ps]}`, onNew: () => openReg(null, ps) },
+      seatRoster: roster.map(r => { const j = seats.indexOf(r.id); return { ...this.avOf(r, r.name), name: r.name,
+        hasSeat: j >= 0, seat: j >= 0 ? SEAT_LABELS[j] : '', ring: j === ps ? t.a : 'transparent', onPick: () => assign(ps, r.id) }; }),
+      setupHint: seatsReady ? `Всеки мач се играе до ${this.target()} точки` : 'Изберете играч за всяко от 4-те места.',
+      startBg: seatsReady ? t.a : t.s3, startFg: seatsReady ? t.on : t.muted,
+      goHome: () => this.setState({ screen: 'home', games: [], current: [], contract: null, caller: null, hang: 0, sheet: null, series: { A: 0, B: 0 } }),
+      hasCurrent: current.length > 0, currentList: current.map(d => this.histRow(d, true)),
+      historyGames, noGames: games.length === 0,
+      gamesPlayed: games.length,
+      hasWinner: !!winTeam, isTie: !winTeam,
+      winColor: winTeam === 'B' ? t.b : t.a,
+      winnerTeam: winTeam === 'B' ? teamBName : teamAName,
+      loserTeam: winTeam === 'B' ? teamAName : teamBName,
+      winners: winSeats.map(i => this.av(i)),
+      winnerNames: winSeats.map(i => this.pname(i)).join(' и '),
+      declTotalA: sumValid('A'), declTotalB: sumValid('B'),
+      rematch: () => this.setState({ screen: 'game', games: [], current: [], contract: null, caller: null, hang: 0, sheet: null, series: { A: 0, B: 0 } }),
+      nextMatch: () => this.setState({ screen: 'game', games: [], current: [], contract: null, caller: null, hang: 0, sheet: null }),
+      ...(() => {
+        const bo = st.bestOf || 1, need = Math.ceil(bo / 2), sr = st.series || { A: 0, B: 0 };
+        const FMT = [1, 3, 5, 7], lab = n => (n === 1 ? '1 мач' : `${Math.ceil(n / 2)} от ${n}`);
+        const over = bo === 1 || sr.A >= need || sr.B >= need;
+        const played = sr.A + sr.B;
+        const sWin = sr.A > sr.B ? teamAName : teamBName;
+        return {
+          formatOptions: FMT.map(n => ({ label: lab(n), bg: bo === n ? t.a : 'transparent', fg: bo === n ? t.on : t.text, onPick: () => this.setState({ bestOf: n }) })),
+          formatLabel: lab(bo), isSeries: bo > 1, seriesA: sr.A, seriesB: sr.B,
+          seriesOngoing: !over, seriesOver: over, nextMatchNo: played + 1,
+          headerLine: bo > 1 ? `Мач ${played + 1} · серия ${sr.A}:${sr.B} · ${lab(bo)}` : `Белот · до ${this.target()}`,
+          endLine: bo > 1 ? `Край на мач ${Math.max(played, 1)} · ${games.length} раздавания` : `Край на мача · ${games.length} раздавания`,
+          winTitle: bo > 1 && over ? `${sWin} печелят серията` : `${winTeam === 'B' ? teamBName : teamAName} печелят${bo > 1 ? ' мача' : ''}`,
+        };
+      })(),
+      newSetup: () => this.setState({ screen: 'setup', games: [], current: [], contract: null, caller: null, hang: 0, sheet: null }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
