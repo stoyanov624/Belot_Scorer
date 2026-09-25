@@ -64,7 +64,7 @@ Tests sit beside each module (`*.test.ts`). Store tests use `memoryKv`, never In
 **Interfaces:**
 - Produces: `RulesConfigSchema` (`z.ZodType<RulesConfig>`); `ThemeKeySchema`, `ThemeKey = 'pub' | 'home' | 'casino' | 'night'`; `FeltKeySchema`, `FeltKey = 'wood' | 'cloth' | 'check' | 'stone'`; `SettingsSchema`, `Settings = { theme: ThemeKey; felt: FeltKey; showDealer: boolean; rules: RulesConfig }`; `DEFAULT_SETTINGS: Settings`.
 
-- [ ] **Step 1: Add the Phase 3 dependencies**
+- [x] **Step 1: Add the Phase 3 dependencies**
 
 ```bash
 pnpm add zustand idb-keyval nanoid
@@ -72,7 +72,7 @@ pnpm add zustand idb-keyval nanoid
 
 Expected: `package.json` lists `zustand` (^5), `idb-keyval` (^6), `nanoid` (^5) under `dependencies`.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Append to `src/core/rules.test.ts` (add `RulesConfigSchema` to the existing import from `./rules`):
 
@@ -120,12 +120,12 @@ describe('settings', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to see them fail**
+- [x] **Step 3: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/core/rules.test.ts src/core/settings.test.ts`
 Expected: FAIL. `RulesConfigSchema` is not exported, and `./settings` does not exist.
 
-- [ ] **Step 4: Add `RulesConfigSchema` to `src/core/rules.ts`**
+- [x] **Step 4: Add `RulesConfigSchema` to `src/core/rules.ts`**
 
 Add `import { z } from 'zod';` as the first import, and this block directly below the `RulesConfig` interface:
 
@@ -156,7 +156,7 @@ export const RulesConfigSchema = z.object({
 
 Keep the `RulesConfig` interface as the source of truth. The `satisfies` check fails to compile if the schema and the interface drift apart.
 
-- [ ] **Step 5: Create `src/core/settings.ts`**
+- [x] **Step 5: Create `src/core/settings.ts`**
 
 ```ts
 import { z } from 'zod';
@@ -185,12 +185,12 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 ```
 
-- [ ] **Step 6: Run the tests to see them pass**
+- [x] **Step 6: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/core/rules.test.ts src/core/settings.test.ts`
 Expected: PASS.
 
-- [ ] **Step 7: Run the gate and commit**
+- [x] **Step 7: Run the gate and commit**
 
 Run: `pnpm check`
 Expected: lint, both typechecks and all tests pass.
@@ -220,7 +220,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `type LoadError = 'not-a-document' | 'future-version' | 'missing-migration' | 'invalid-state'`
   - `loadPersisted(doc: unknown, migrations?: Readonly<Record<number, Migration>>, target?: number): { ok: true; state: PersistedState } | { ok: false; error: LoadError }`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/core/persisted.test.ts`:
 
@@ -306,12 +306,12 @@ describe('loadPersisted', () => {
 
 The `as object` casts are confined to test fixtures that fake old shapes. Production migrations should parse their input with a frozen copy of the old schema instead.
 
-- [ ] **Step 2: Run the tests to see them fail**
+- [x] **Step 2: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/core/persisted.test.ts`
 Expected: FAIL. `./persisted` does not exist.
 
-- [ ] **Step 3: Create `src/core/persisted.ts`**
+- [x] **Step 3: Create `src/core/persisted.ts`**
 
 ```ts
 import { z } from 'zod';
@@ -378,12 +378,12 @@ export function loadPersisted(
 }
 ```
 
-- [ ] **Step 4: Run the tests to see them pass**
+- [x] **Step 4: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/core/persisted.test.ts`
 Expected: PASS (7 cases plus the 5 `it.each` rows).
 
-- [ ] **Step 5: Run the gate and commit**
+- [x] **Step 5: Run the gate and commit**
 
 Run: `pnpm check`
 Expected: all pass.
@@ -414,7 +414,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `backupKey(name: string): string` → `` `${name}.backup` ``
   - `createDocumentStorage(kv: Kv): PersistStorage<PersistedState>`: `getItem` returns `null` when nothing is stored, `{ state, version: PERSIST_VERSION }` when the stored document loads, and otherwise copies the raw document to `backupKey(name)` and throws `PersistLoadError`. `setItem` writes `{ version: PERSIST_VERSION, state }`.
 
-- [ ] **Step 1: Create `src/storage/kv.ts`**
+- [x] **Step 1: Create `src/storage/kv.ts`**
 
 This file is plain wiring, so it has no test of its own. `memoryKv` is exercised by every test below, and `idbKv` is exercised by the manual check in Task 6.
 
@@ -452,7 +452,7 @@ export function memoryKv(initial: Record<string, unknown> = {}): Kv & { data: Ma
 }
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `src/storage/document.test.ts`:
 
@@ -502,12 +502,12 @@ describe('createDocumentStorage', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to see them fail**
+- [x] **Step 3: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/storage/document.test.ts`
 Expected: FAIL. `./document` does not exist.
 
-- [ ] **Step 4: Create `src/storage/document.ts`**
+- [x] **Step 4: Create `src/storage/document.ts`**
 
 ```ts
 import type { PersistStorage } from 'zustand/middleware';
@@ -554,12 +554,12 @@ export function createDocumentStorage(kv: Kv): PersistStorage<PersistedState> {
 
 Before relying on it, confirm that zustand v5 exports `PersistStorage` from `zustand/middleware` (context7 `/pmndrs/zustand`, "persist custom storage PersistStorage type"). If the type name differs, use the one the docs show and keep the behaviour.
 
-- [ ] **Step 5: Run the tests to see them pass**
+- [x] **Step 5: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/storage/document.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Run the gate and commit**
+- [x] **Step 6: Run the gate and commit**
 
 Run: `pnpm check`
 Expected: all pass.
@@ -587,7 +587,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `interface PhotoStore { put(blob: Blob): Promise<string>; get(id: string): Promise<Blob | undefined>; remove(id: string): Promise<void> }`
   - `createPhotoStore(kv: Kv, newId: () => string): PhotoStore`
 
-- [ ] **Step 1: Create `src/lib/id.ts`**
+- [x] **Step 1: Create `src/lib/id.ts`**
 
 ```ts
 import { nanoid } from 'nanoid';
@@ -596,7 +596,7 @@ import { nanoid } from 'nanoid';
 export const newId = (): string => nanoid(10);
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `src/storage/photos.test.ts`:
 
@@ -640,12 +640,12 @@ describe('newId', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to see them fail**
+- [x] **Step 3: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/storage/photos.test.ts`
 Expected: FAIL. `./photos` does not exist.
 
-- [ ] **Step 4: Create `src/storage/photos.ts`**
+- [x] **Step 4: Create `src/storage/photos.ts`**
 
 ```ts
 import type { Kv } from './kv';
@@ -673,12 +673,12 @@ export function createPhotoStore(kv: Kv, newId: () => string): PhotoStore {
 }
 ```
 
-- [ ] **Step 5: Run the tests to see them pass**
+- [x] **Step 5: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/storage/photos.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Run the gate and commit**
+- [x] **Step 6: Run the gate and commit**
 
 Run: `pnpm check`
 Expected: all pass.
@@ -716,7 +716,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - `removePlayer(id: string): { ok: true } | { ok: false; error: 'in-match' }`
     - `updateSettings(patch: Partial<Settings>): void`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/store/roster-actions.test.ts`:
 
@@ -875,12 +875,12 @@ describe('app store persistence', () => {
 
 The persist middleware writes through async storage, so the test waits for the roster to appear in the stored document instead of assuming the write has landed. (Rehydrating also triggers an earlier write with an empty roster, which is why it waits for the roster rather than for the key to exist.)
 
-- [ ] **Step 2: Run the tests to see them fail**
+- [x] **Step 2: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/store`
 Expected: FAIL. `./app-store` does not exist.
 
-- [ ] **Step 3: Create `src/store/app-store.ts`**
+- [x] **Step 3: Create `src/store/app-store.ts`**
 
 ```ts
 import { persist, type PersistStorage } from 'zustand/middleware';
@@ -939,7 +939,7 @@ export type AppStore = ReturnType<typeof createAppStore>;
 
 `skipHydration: true` means nothing loads until `store.persist.rehydrate()` is called. Task 6 calls it exactly once in `main.tsx`, before the first render. Migrations run inside the storage (`loadPersisted`), so the stored version always equals `PERSIST_VERSION` by the time zustand sees it, and its own `migrate` option is not used.
 
-- [ ] **Step 4: Create `src/store/roster-actions.ts`**
+- [x] **Step 4: Create `src/store/roster-actions.ts`**
 
 ```ts
 import type { Player } from '../core/model';
@@ -1002,7 +1002,7 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
 }
 ```
 
-- [ ] **Step 5: Create the `src/store/match-actions.ts` placeholder**
+- [x] **Step 5: Create the `src/store/match-actions.ts` placeholder**
 
 Task 6 replaces this file completely. It exists now so `AppState` compiles:
 
@@ -1017,12 +1017,12 @@ export function matchActions(_set: SetState, _get: GetState, _deps: AppDeps): Ma
 }
 ```
 
-- [ ] **Step 6: Run the tests to see them pass**
+- [x] **Step 6: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/store`
 Expected: PASS. If the persistence test times out in `vi.waitFor`, the `partialize` or `storage` wiring is wrong. Log `kv.data` to see what was written.
 
-- [ ] **Step 7: Run the gate and commit**
+- [x] **Step 7: Run the gate and commit**
 
 Run: `pnpm check`
 Expected: all pass.
@@ -1062,7 +1062,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - `leaveMatch(): void`: sets `match` to `null` (prototype `goHome`)
   - `src/store/instance.ts`: `appStore: AppStore`, `useAppStore<T>(selector: (s: AppState) => T): T`, `hydrateAppStore(): Promise<void>`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/store/match-actions.test.ts`:
 
@@ -1192,12 +1192,12 @@ describe('match actions', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to see them fail**
+- [x] **Step 2: Run the tests to see them fail**
 
 Run: `pnpm vitest run src/store/match-actions.test.ts`
 Expected: FAIL. `startMatch` is not a function.
 
-- [ ] **Step 3: Replace `src/store/match-actions.ts`**
+- [x] **Step 3: Replace `src/store/match-actions.ts`**
 
 ```ts
 import {
@@ -1310,12 +1310,12 @@ export function matchActions(set: SetState, get: GetState, deps: AppDeps): Match
 
 `addDeclaration` calls `deps.newId()` even when core rejects the declaration. That is harmless: an unused id is simply discarded.
 
-- [ ] **Step 4: Run the tests to see them pass**
+- [x] **Step 4: Run the tests to see them pass**
 
 Run: `pnpm vitest run src/store`
 Expected: PASS (roster, app-store and match-actions suites).
 
-- [ ] **Step 5: Create `src/store/instance.ts`**
+- [x] **Step 5: Create `src/store/instance.ts`**
 
 ```ts
 import { createStore } from 'idb-keyval';
@@ -1347,7 +1347,7 @@ export const hydrateAppStore = (): Promise<void> => appStore.persist.rehydrate()
 
 Only `main.tsx` and UI components import this module. Tests must not import it, because `createStore('belot-photos', …)` opens IndexedDB as soon as the module loads.
 
-- [ ] **Step 6: Hydrate before rendering in `src/main.tsx`**
+- [x] **Step 6: Hydrate before rendering in `src/main.tsx`**
 
 Replace the file with:
 
@@ -1374,11 +1374,11 @@ void hydrateAppStore().then(() => {
 
 `rehydrate()` resolves even when loading fails. The store then reports `hydration: 'failed'`, and Phase 5 shows that state to the user.
 
-- [ ] **Step 7: Link the plan from the roadmap**
+- [x] **Step 7: Link the plan from the roadmap**
 
 In `docs/superpowers/plans/2026-09-25-roadmap.md`, change the Phase 3 row's last cell from `later` to `` `2026-09-25-phase-3-store-and-persistence.md` ``.
 
-- [ ] **Step 8: Run the gate and check the app in a browser**
+- [x] **Step 8: Run the gate and check the app in a browser**
 
 Run: `pnpm check`
 Expected: all pass.
@@ -1391,7 +1391,7 @@ Run: `pnpm start`, then check the page in the browser:
 - The DevTools console has no errors.
 - In DevTools → Application → IndexedDB, the `belot-photos` database exists. `keyval-store` holds no `belot-state` entry yet: nothing writes until a store action runs, and Phase 5 adds those actions.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/store src/main.tsx docs/superpowers/plans/2026-09-25-roadmap.md
