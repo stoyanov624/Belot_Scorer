@@ -24,7 +24,11 @@ export function TableHeader({ line, dealNo, historyCount, onClear, onTheme }: Ta
         </p>
         <h1 className="whitespace-nowrap text-[22px] font-black">{S.deal(dealNo)}</h1>
       </div>
-      <div className="flex max-w-full flex-[0_1_auto] gap-2 overflow-x-auto [scrollbar-width:none]">
+      <div className="flex max-w-full flex-[0_1_auto] gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Not in mockup 04: without it, resume-on-start would leave no way Home (ADR 0011). */}
+        <PreloadLink to="/" className={cx(buttonClass('secondary', 'sm'), 'shrink-0')}>
+          {STRINGS.setup.back}
+        </PreloadLink>
         {/* Sharing arrives in Phase 6. */}
         <Button size="sm" disabled className="shrink-0">
           {S.share}

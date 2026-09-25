@@ -492,4 +492,18 @@ describe('Leaving the table', () => {
     expect(screen.getByText('Раздаване 2')).toBeTruthy();
     expect(router.state.location.pathname).toBe('/table');
   });
+
+  it('links "← Начало" to Home, where «Продължи мача» returns to the table', async () => {
+    startMatch();
+    const { router } = renderRoute('/table');
+
+    const back = screen.getByRole('link', { name: STRINGS.setup.back });
+    expect(back.getAttribute('href')).toBe('/');
+    await userEvent.click(back);
+
+    await userEvent.click(await screen.findByRole('link', { name: STRINGS.home.continueMatch }));
+
+    expect(router.state.location.pathname).toBe('/table');
+    expect(screen.getByText('Раздаване 1')).toBeTruthy();
+  });
 });
