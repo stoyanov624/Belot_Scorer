@@ -59,21 +59,31 @@ function RegisterForm({
   const fileRef = useRef<HTMLInputElement>(null);
   const errorId = useId();
   const seated = existing !== null && (seats?.includes(existing.id) ?? false);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  // The id of a photo this form stored but nobody saved yet; the unmount cleanup deletes it,
+  // so Esc, backdrop, «Отказ» and delete never orphan a blob.
+  const pendingUpload = useRef<string | null>(null);
+  // Bumped whenever the avatar choice changes (and on unmount): an upload that finishes after a
+  // newer choice is stale and is thrown away.
+  const avatarVersion = useRef(0);
+  useEffect(
+    () => () => {
+      avatarVersion.current += 1;
+      const id = pendingUpload.current;
+      pendingUpload.current = null;
+      if (id) photoStore.remove(id).catch(() => {});
+    },
+    [],
+  );
 
-  // A photo uploaded in this form but not saved would otherwise be orphaned.
-  const discardUpload = () => {
-    if (photo && photo !== existing?.photo) photoStore.remove(photo).catch(() => {});
+  const discardPending = () => {
+    const id = pendingUpload.current;
+    pendingUpload.current = null;
+    if (id) photoStore.remove(id).catch(() => {});
   };
 
   const pickEmoji = (value: string) => {
-    discardUpload();
+    discardPending();
+    avatarVersion.current += 1;
     setPhoto(null);
     setEmoji(value);
   };
@@ -82,13 +92,21 @@ function RegisterForm({
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
-    const { cropToJpeg } = await import('./crop-photo');
-    const id = await photoStore.put(await cropToJpeg(file));
-    if (!mounted.current) {
+    avatarVersion.current += 1;
+    const version = avatarVersion.current;
+    let id: string;
+    try {
+      const { cropToJpeg } = await import('./crop-photo');
+      id = await photoStore.put(await cropToJpeg(file));
+    } catch {
+      return; // A failed crop or write leaves the avatar as it was.
+    }
+    if (avatarVersion.current !== version) {
       photoStore.remove(id).catch(() => {});
       return;
     }
-    discardUpload();
+    discardPending();
+    pendingUpload.current = id;
     setPhoto(id);
     setEmoji(null);
   };
@@ -104,21 +122,14 @@ function RegisterForm({
       setError(result.error);
       return;
     }
+    pendingUpload.current = null; // The store owns the saved photo now.
     onSaved?.(result.id);
-    onDone();
-  };
-
-  const cancel = () => {
-    discardUpload();
     onDone();
   };
 
   const remove = () => {
     if (!existing) return;
-    if (removePlayer(existing.id).ok) {
-      discardUpload();
-      onDone();
-    }
+    if (removePlayer(existing.id).ok) onDone();
   };
 
   return (
@@ -187,7 +198,7 @@ function RegisterForm({
       <Button onClick={() => fileRef.current?.click()}>{S.photo}</Button>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <Button onClick={cancel}>{S.cancel}</Button>
+        <Button onClick={onDone}>{S.cancel}</Button>
         <Button variant="primary" onClick={save}>
           {S.save}
         </Button>
