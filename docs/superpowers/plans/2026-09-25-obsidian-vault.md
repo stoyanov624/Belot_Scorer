@@ -53,7 +53,7 @@ CLAUDE.md                                  Start here + Keep the vault current
 **Interfaces:**
 - Produces: `pnpm docs:check`. It exits 0 and prints `docs links ok (<n> files)`, or exits 1 and lists `file: link` for each link that doesn't resolve.
 
-- [ ] **Step 1: Write `scripts/check-doc-links.mjs`**
+- [x] **Step 1: Write `scripts/check-doc-links.mjs`**
 
 ```js
 // Checks that every relative Markdown link in the docs vault, CLAUDE.md and README.md
@@ -98,13 +98,13 @@ if (broken.length > 0) {
 console.log(`docs links ok (${files.length} files)`);
 ```
 
-- [ ] **Step 2: Add the script to `package.json`**, after `"check"`:
+- [x] **Step 2: Add the script to `package.json`**, after `"check"`:
 
 ```json
 "docs:check": "node scripts/check-doc-links.mjs"
 ```
 
-- [ ] **Step 3: Prove the checker catches a broken link.** Create a scratch file, run the check, and delete the file:
+- [x] **Step 3: Prove the checker catches a broken link.** Create a scratch file, run the check, and delete the file:
 
 ```bash
 printf '[x](nope.md)\n' > docs/zz-scratch.md
@@ -115,7 +115,7 @@ pnpm docs:check
 
 Expected: first run prints `Broken links:` / `docs/zz-scratch.md: nope.md` and `exit 1`. Second run prints `docs links ok (…)`.
 
-- [ ] **Step 4: Obsidian config.** Create `docs/.obsidian/app.json`:
+- [x] **Step 4: Obsidian config.** Create `docs/.obsidian/app.json`:
 
 ```json
 {
@@ -133,7 +133,7 @@ docs/.obsidian/*
 !docs/.obsidian/app.json
 ```
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run: `pnpm check && pnpm docs:check && git status --short`
 Expected: both pass. The status shows only the four intended files, plus the untracked `package-lock.json`, which must not be staged.
@@ -156,7 +156,7 @@ Read before writing: `CLAUDE.md`, `CONTEXT.md`, `docs/design-handoff/README.md` 
 
 Each note starts with `# <Title>`, then one sentence saying what the note covers. It ends with a `## See also` list of relative links. Required content per note:
 
-- [ ] **Step 1: `docs/Project/Overview.md`**. Cover:
+- [x] **Step 1: `docs/Project/Overview.md`**. Cover:
   - **What it is:** a scorekeeping notebook for Belot. It records Declarations and points at the table, and is not the card game.
   - **Who uses it:** four players at one table, using one phone.
   - **Scope:** roster with avatars, Deal entry, automatic scoring, Series, History, Leaderboard, themes, and one-off sharing (link, QR, `.belot` file).
@@ -165,20 +165,20 @@ Each note starts with `# <Title>`, then one sentence saying what the note covers
   - **Language:** the UI is in Bulgarian, with final copy in the handoff.
   - **Status:** link to Status (`../Status.md`) and the roadmap.
   - **See also:** the design-handoff README, GAME_RULES and DATA_MODEL; the roadmap.
-- [ ] **Step 2: `docs/Architecture/Overview.md`**. Cover:
+- [x] **Step 2: `docs/Architecture/Overview.md`**. Cover:
   - **Layers:** `src/core` (pure domain) → `src/storage` (key-value adapters, document storage, photo store) → `src/store` (Zustand store, actions, production instance) → UI (`src/App.tsx`, `main.tsx`; screens from Phase 4/5).
   - **Diagram:** a Mermaid `flowchart LR` of those layers plus IndexedDB.
   - **Enforcement:** the core boundary is enforced by `tsconfig.core.json` (no `dom` lib) and Biome `noRestrictedImports`/`noRestrictedGlobals` (bans `Date`). `Math.random` is a review-only convention.
   - **Rules:** no barrel files; heavy features lazy-loaded; codes, not text, from core.
   - **Diagram check:** only layers that exist today, with the UI marked "Phase 4+".
   - **See also:** the three notes below; ADR 0001, 0002 and 0004.
-- [ ] **Step 3: `docs/Architecture/Core domain.md`**. Cover:
+- [x] **Step 3: `docs/Architecture/Core domain.md`**. Cover:
   - **Module table:** one row per `src/core` module (`model`, `rules`, `declarations`, `resolve`, `score`, `match`, `roster`, `leaderboard`, `settings`, `persisted`, `testing/golden-deals`). The columns are its responsibility in one line and its main exports.
   - **Pattern:** `(state, …) => state` functions that return unchanged state for illegal moves, plus result objects with error codes.
   - **Derived, never stored:** totals, dealer, allowed declarations, verdict (ADR 0002).
   - **Snapshot:** `targetScore` is fixed when a match starts; the other rules are read live (open question, see Status).
   - **See also:** CONTEXT.md (plain text), GAME_RULES, golden-deals.
-- [ ] **Step 4: `docs/Architecture/Persistence.md`**. Cover:
+- [x] **Step 4: `docs/Architecture/Persistence.md`**. Cover:
   - **Document:** one IndexedDB document `belot-state` = `{ version, state: { roster, stats, match, settings } }`.
   - **Loading:** `loadPersisted` runs migrations then Zod validation, with error codes `not-a-document`, `future-version`, `missing-migration` and `invalid-state`.
   - **Migrations:** `MIGRATIONS[n]` upgrades n → n+1, and old schemas are never edited (ADR 0003).
@@ -187,7 +187,7 @@ Each note starts with `# <Title>`, then one sentence saying what the note covers
   - **Photos:** Blobs in the IndexedDB database `belot-photos`, keyed by `Player.photo` id. Old blobs are dropped on replace/remove. Orphans are possible, and any cleanup must keep ids referenced by the backup.
   - **Injection:** the store is built from injected `AppDeps`, and only `src/store/instance.ts` touches real IndexedDB.
   - **See also:** ADR 0003, 0005, 0006; DATA_MODEL.
-- [ ] **Step 5: `docs/Architecture/Testing.md`**. Cover:
+- [x] **Step 5: `docs/Architecture/Testing.md`**. Cover:
   - **Gate:** `pnpm check` (Biome, two tsc projects, Vitest) is the gate for every task.
   - **Core:** test-first with Vitest, tests beside modules.
   - **Scoring cases:** golden deal cases in `src/core/testing/golden-deals.ts`, with a review sheet in `docs/golden-deals.md`.
@@ -196,7 +196,7 @@ Each note starts with `# <Title>`, then one sentence saying what the note covers
   - **Browser check:** `pnpm start` for manual checks.
   - **Planned:** RTL flow tests in Phase 5 and a Playwright happy path in Phase 7 (from the roadmap).
   - **See also:** golden-deals, the roadmap.
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 Run: `pnpm docs:check`
 Expected: `docs links ok`. Then re-read each note against the code: every export name and path mentioned must exist (`grep` for it).
@@ -217,7 +217,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Follow the existing ADR style: a `# Title` stating the decision, then prose, then optional `## Considered Options` / `## Consequences` sections. No front matter.
 
-- [ ] **Step 1: Write ADR 0006**
+- [x] **Step 1: Write ADR 0006**
 
 ```markdown
 # Block persistence writes until the stored document has loaded
@@ -231,7 +231,7 @@ Zustand's `persist` middleware writes the whole state on every `setState`, inclu
 - A future photo cleanup must treat photo ids in the backup as live.
 ```
 
-- [ ] **Step 2: Write ADR 0007**
+- [x] **Step 2: Write ADR 0007**
 
 ```markdown
 # Pin pnpm 10 via packageManager
@@ -243,7 +243,7 @@ Zustand's `persist` middleware writes the whole state on every `setState`, inclu
 Upgrading pnpm is a deliberate change: bump `packageManager`, run `pnpm install`, commit the lockfile, and update this ADR.
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/adr/0006-gate-persistence-writes-until-load.md docs/adr/0007-pin-pnpm-10.md
@@ -259,7 +259,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Create: `docs/Status.md`, `docs/Backlog.md`, `docs/Home.md`
 
-- [ ] **Step 1: `docs/Status.md`**, with exactly these sections:
+- [x] **Step 1: `docs/Status.md`**, with exactly these sections:
 
 ```markdown
 # Status
@@ -287,7 +287,7 @@ _Last updated: 2026-09-25 at commit <short HEAD of main when written>._ Current 
 
 Fill `…` with relative links to the plans, and `<short HEAD…>` with `git rev-parse --short HEAD` at the time of writing. `/handoff` later uses this commit as the start of its range.
 
-- [ ] **Step 2: `docs/Backlog.md`**. Group by phase, one line each, taken from the roadmap and the Phase 3 ledger:
+- [x] **Step 2: `docs/Backlog.md`**. Group by phase, one line each, taken from the roadmap and the Phase 3 ledger:
   - Phase 4: tokens → CSS vars; `ui/` primitives; router shell with lazy routes.
   - Phase 5: screens; the failed-load screen with `resetData`; save-error banner; `strings.ts` codes → copy (including `in-match`).
   - Phase 6: sharing, and exporting the backup.
@@ -298,7 +298,7 @@ Fill `…` with relative links to the plans, and `<short HEAD…>` with `git rev
     - the rejecting-`set` test has a loose write-count bound;
     - `removePlayer` returns ok for an unknown id;
     - the store action name shadows core `removePlayer`.
-- [ ] **Step 3: `docs/Home.md`**. Content:
+- [x] **Step 3: `docs/Home.md`**. Content:
   - A one-paragraph description of what the project is.
   - "Start here", in reading order: Status → Project Overview → Architecture Overview → CONTEXT.md (plain text, repo root) → roadmap.
   - Then grouped link lists:
@@ -309,7 +309,7 @@ Fill `…` with relative links to the plans, and `<short HEAD…>` with `git rev
     - Plans and specs (roadmap, phase plans, this spec and plan);
     - Testing references (golden-deals).
   - End with "How to keep this current" (the three CLAUDE.md rules and `/handoff`).
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run: `pnpm docs:check`
 Expected: `docs links ok`. Check that every ADR file in `docs/adr/` appears in Home: `ls docs/adr` against the Home list.
@@ -331,7 +331,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Load the `mattpocock-skills:writing-for-agents` skill before editing these two files.
 
-- [ ] **Step 1: `CLAUDE.md`**. Add this as the first section under the intro paragraph:
+- [x] **Step 1: `CLAUDE.md`**. Add this as the first section under the intro paragraph:
 
 ```markdown
 ## Start here
@@ -351,7 +351,7 @@ Add this section before `## Workflow`:
 - At the end of a session, run `/handoff`.
 ```
 
-- [ ] **Step 2: `.claude/skills/handoff/SKILL.md`**
+- [x] **Step 2: `.claude/skills/handoff/SKILL.md`**
 
 ```markdown
 ---
@@ -375,7 +375,7 @@ Bring `docs/Status.md`, `docs/Backlog.md`, ADRs and plan checkboxes up to date w
 10. Tell the user in 3–5 lines what changed in Status and what the next step is.
 ```
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 Run: `pnpm docs:check && pnpm check`
 Expected: both pass.
