@@ -1,1 +1,76 @@
-export const DEAL_ORDER = [0, 3, 2, 1] as const;
+import {
+  type Card,
+  CardSchema,
+  type ContractKey,
+  type DeclKey,
+  type KareRank,
+  KareRankSchema,
+  type Seat,
+  type Team,
+} from './model';
+
+export type ContractKind = 'color' | 'nt' | 'at';
+
+export interface RulesConfig {
+  targetScore: number;
+  declPoints: Record<Exclude<DeclKey, 'kare'>, number>;
+  karePoints: Record<KareRank, number>;
+  maxCardPoints: Record<ContractKind, number>;
+  capoBonus: number;
+  ntMultiplier: number;
+}
+
+export const DEFAULT_RULES: RulesConfig = {
+  targetScore: 151,
+  declPoints: { belot: 2, terca: 2, kvarta: 5, kvinta: 10 },
+  karePoints: { Q: 10, K: 10, '10': 10, A: 10, '9': 15, J: 20 },
+  maxCardPoints: { color: 16, at: 26, nt: 13 },
+  capoBonus: 9,
+  ntMultiplier: 2,
+};
+
+export const CONTRACT_KIND: Record<ContractKey, ContractKind> = {
+  clubs: 'color',
+  diamonds: 'color',
+  hearts: 'color',
+  spades: 'color',
+  nt: 'nt',
+  at: 'at',
+};
+
+export const RED_CONTRACTS: ReadonlySet<ContractKey> = new Set(['diamonds', 'hearts']);
+
+export const CARDS: readonly Card[] = CardSchema.options;
+export const KARE_RANKS: readonly KareRank[] = KareRankSchema.options;
+
+export const SEQ_LENGTH = { terca: 3, kvarta: 4, kvinta: 5 } as const;
+/** Cards of a player's eight consumed by each declaration. Belot reuses cards. */
+export const CARDS_USED: Record<DeclKey, number> = {
+  belot: 0,
+  terca: 3,
+  kvarta: 4,
+  kvinta: 5,
+  kare: 4,
+};
+export const MAX_BELOTS: Record<Exclude<ContractKind, 'nt'>, number> = { color: 1, at: 4 };
+export const MAX_KARES = 6;
+
+export const DEAL_ORDER = [0, 3, 2, 1] as const satisfies readonly Seat[];
+
+export const teamOf = (seat: Seat): Team => (seat % 2 === 0 ? 'A' : 'B');
+export const otherTeam = (team: Team): Team => (team === 'A' ? 'B' : 'A');
+
+export const isSequence = (key: DeclKey): key is keyof typeof SEQ_LENGTH => key in SEQ_LENGTH;
+export const seqLength = (key: DeclKey): number => (isSequence(key) ? SEQ_LENGTH[key] : 0);
+
+/** Top cards a sequence of this kind can end on: tierce from 9, quarte from 10, quinte from J. */
+export const validTops = (key: DeclKey): Card[] =>
+  isSequence(key) ? CARDS.slice(SEQ_LENGTH[key] - 1) : [];
+
+export function declPoints(
+  decl: { key: DeclKey; rank: KareRank | null },
+  rules: RulesConfig = DEFAULT_RULES,
+): number {
+  if (decl.key === 'kare') return decl.rank ? rules.karePoints[decl.rank] : rules.karePoints.Q;
+  return rules.declPoints[decl.key];
+}
