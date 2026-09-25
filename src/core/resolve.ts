@@ -27,6 +27,10 @@ type Indexed = { d: DeclInput; i: number };
 
 const byTeam = (list: Indexed[], team: Team) => list.filter((x) => teamOf(x.d.seat) === team);
 
+/**
+ * When `errors` is non-empty, `valid` and `points` are provisional (computed as if the
+ * missing/duplicate rank didn't block resolution) and must not be recorded.
+ */
 export function resolve(
   decls: readonly DeclInput[],
   rules: RulesConfig = DEFAULT_RULES,

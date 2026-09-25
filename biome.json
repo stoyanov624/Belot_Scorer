@@ -23,6 +23,14 @@
                   "idb-keyval": "src/core must stay platform-free (ADR 0001)."
                 }
               }
+            },
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "Date": "src/core must be deterministic: pass dates in (ADR 0001)."
+                }
+              }
             }
           }
         }
