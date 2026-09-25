@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import type { BestOf, Player, Seat, Team } from '../core/model';
 import { assignSeat, draftFromSeats, isDraftComplete, type SeatDraft } from '../core/roster';
@@ -37,6 +37,7 @@ export function Component() {
   const [teamB, setTeamB] = useState(initial.teamB);
   const [bestOf, setBestOf] = useState<BestOf>(initial.bestOf);
   const [pickSeat, setPickSeat] = useState<Seat | null>(null);
+  const hintId = useId();
   const [registerSeat, setRegisterSeat] = useState<Seat | null>(null);
 
   const byId = new Map(roster.map((p) => [p.id, p]));
@@ -112,7 +113,7 @@ export function Component() {
           {S.series}
         </span>
         <Segmented label={S.series} options={S.seriesOptions} value={bestOf} onChange={setBestOf} />
-        <p className="text-center text-sm font-bold text-muted">
+        <p id={hintId} className="text-center text-sm font-bold text-muted">
           {complete ? S.hintTarget(targetScore) : S.hintSeats}
         </p>
       </div>
@@ -122,6 +123,7 @@ export function Component() {
         variant={complete ? 'primary' : 'muted'}
         size="lg"
         aria-disabled={!complete}
+        aria-describedby={hintId}
         onClick={start}
       >
         {S.deal}

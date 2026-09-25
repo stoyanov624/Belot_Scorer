@@ -23,15 +23,15 @@ export const EMPTY_STATE: PersistedState = {
 /** Upgrades a stored state by exactly one version. */
 export type Migration = (state: unknown) => unknown;
 
-/**
- * `MIGRATIONS[n]` turns a version-n state into version n + 1. Add one (and bump
- * PERSIST_VERSION) for every change to PersistedStateSchema; never edit an existing step.
- */
 // Version 1 stored only the target score in a match; version 2 stores its full rules (ADR 0009).
 const V1State = z.looseObject({
   match: z.looseObject({ targetScore: z.number() }).nullable(),
 });
 
+/**
+ * `MIGRATIONS[n]` turns a version-n state into version n + 1. Add one (and bump
+ * PERSIST_VERSION) for every change to PersistedStateSchema; never edit an existing step.
+ */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (state) => {
     const v1 = V1State.parse(state);

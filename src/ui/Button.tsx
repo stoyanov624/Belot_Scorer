@@ -5,7 +5,7 @@ type Variant = 'primary' | 'secondary' | 'danger' | 'dangerText' | 'ghost' | 'mu
 type Size = 'sm' | 'md' | 'lg';
 
 const BASE =
-  'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap transition-transform active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100';
+  'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap transition-transform active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 aria-disabled:active:scale-100';
 const VARIANT: Record<Variant, string> = {
   primary: 'bg-team-a text-on',
   secondary: 'bg-s1 text-text border border-line',

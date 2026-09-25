@@ -47,7 +47,8 @@ describe('Setup', () => {
     expect(screen.getAllByText(S.pickPlayer)).toHaveLength(4);
     expect(screen.getByText(S.hintSeats)).toBeTruthy();
 
-    const deal = screen.getByRole('button', { name: S.deal });
+    // The hint explains why the deal button is inactive.
+    const deal = screen.getByRole('button', { name: S.deal, description: S.hintSeats });
     expect(deal.getAttribute('aria-disabled')).toBe('true');
   });
 
@@ -117,7 +118,10 @@ describe('Setup', () => {
     expect(
       screen.getByText(S.hintTarget(appStore.getState().settings.rules.targetScore)),
     ).toBeTruthy();
-    const deal = screen.getByRole('button', { name: S.deal });
+    const deal = screen.getByRole('button', {
+      name: S.deal,
+      description: S.hintTarget(appStore.getState().settings.rules.targetScore),
+    });
     expect(deal.getAttribute('aria-disabled')).toBe('false');
 
     const teamAInput = screen.getByRole('textbox', { name: S.teamAName });
