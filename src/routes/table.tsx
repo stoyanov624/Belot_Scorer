@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Navigate } from 'react-router';
 import { allowedDeclarations } from '../core/declarations';
 import { dealer } from '../core/match';
-import type { Player, Seat as SeatIndex } from '../core/model';
+import type { Seat as SeatIndex } from '../core/model';
 import { teamOf } from '../core/rules';
 import { STRINGS } from '../core/strings';
 import { ThemeSheet } from '../features/settings/ThemeSheet';
@@ -11,6 +11,7 @@ import { ContractPill } from '../features/table/ContractPill';
 import { ContractSheet } from '../features/table/ContractSheet';
 import { contractLine, declOptionPoints, headerLine } from '../features/table/copy';
 import { Seat } from '../features/table/Seat';
+import { playerAt as playerAtSeat } from '../features/table/seat-player';
 import { TableHeader } from '../features/table/TableHeader';
 import { useAppStore } from '../store/instance';
 import { Button } from '../ui/Button';
@@ -43,12 +44,7 @@ export function Table() {
   if (!match) return <Navigate to="/" replace />;
 
   const anchors = [northRef, eastRef, southRef, westRef] as const;
-  const playerAt = (seat: SeatIndex): Pick<Player, 'name' | 'emoji' | 'photo'> =>
-    roster.find((p) => p.id === match.seats[seat]) ?? {
-      name: STRINGS.seats[seat] ?? '',
-      emoji: null,
-      photo: null,
-    };
+  const playerAt = (seat: SeatIndex) => playerAtSeat(match, roster, seat);
   const dealerSeat = dealer(match);
 
   return (

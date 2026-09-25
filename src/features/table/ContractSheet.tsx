@@ -7,6 +7,7 @@ import { Button } from '../../ui/Button';
 import { cx } from '../../ui/cx';
 import { Sheet } from '../../ui/Sheet';
 import { PlayerAvatar } from '../players/PlayerAvatar';
+import { playerAt } from './seat-player';
 
 const S = STRINGS.contract;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly Seat[];
@@ -93,11 +94,7 @@ function ContractForm({
         </legend>
         <div className="grid grid-cols-2 gap-2.5">
           {SEATS.map((seat) => {
-            const player = roster.find((p) => p.id === match.seats[seat]) ?? {
-              name: STRINGS.seats[seat] ?? '',
-              emoji: null,
-              photo: null,
-            };
+            const player = playerAt(match, roster, seat);
             const selected = caller === seat;
             return (
               <button
