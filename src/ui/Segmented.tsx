@@ -33,7 +33,7 @@ export function Segmented<T extends string | number>({
               onClick={() => onChange(option.value)}
               className={cx(
                 'h-12 flex-1 rounded-xl text-[15px] font-extrabold transition-transform active:scale-[0.97]',
-                checked ? 'bg-a text-on' : 'text-muted',
+                checked ? 'bg-team-a text-on' : 'text-muted',
               )}
             >
               {option.label}

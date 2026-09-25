@@ -4,8 +4,8 @@ import { cx } from './cx';
 type Tone = 'a' | 'b' | 'neutral';
 
 const TONE: Record<Tone, string> = {
-  a: 'bg-a text-on',
-  b: 'bg-b text-on',
+  a: 'bg-team-a text-on',
+  b: 'bg-team-b text-on',
   neutral: 'bg-s3 text-text',
 };
 
@@ -33,7 +33,7 @@ export function Chip({
         size === 'sm'
           ? 'h-[26px] rounded-xl px-2.5 text-xs'
           : 'h-[42px] min-w-11 rounded-[14px] px-3 text-base',
-        selected ? 'bg-a text-on' : TONE[tone],
+        selected ? 'bg-team-a text-on' : TONE[tone],
         className,
       )}
       {...rest}

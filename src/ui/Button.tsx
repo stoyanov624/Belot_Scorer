@@ -5,9 +5,9 @@ type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 type Size = 'md' | 'lg';
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-a text-on',
+  primary: 'bg-team-a text-on',
   secondary: 'bg-s1 text-text border border-line',
-  danger: 'bg-transparent text-b border border-b',
+  danger: 'bg-transparent text-team-b border border-team-b',
   ghost: 'bg-transparent text-muted',
 };
 const SIZE: Record<Size, string> = {

@@ -10,7 +10,7 @@ export function RouteError() {
       <h1 className="text-[32px] font-black">{STRINGS.routeError.title}</h1>
       <Link
         to="/"
-        className="inline-flex h-14 items-center rounded-2xl bg-a px-5 text-[17px] font-extrabold text-on"
+        className="inline-flex h-14 items-center rounded-2xl bg-team-a px-5 text-[17px] font-extrabold text-on"
       >
         {STRINGS.routeError.home}
       </Link>

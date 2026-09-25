@@ -24,6 +24,13 @@ describe('Avatar', () => {
     render(<Avatar name="Иво" emoji="🐻" size={68} />);
     expect(screen.getByRole('img').style.width).toBe('68px');
   });
+
+  it('colours the team ring with a team-* utility, never the border-b width utility', () => {
+    render(<Avatar name="Иво" emoji="🐻" size={60} ring="b" />);
+    const classes = screen.getByRole('img').className.split(' ');
+    expect(classes).toContain('border-team-b');
+    expect(classes).not.toContain('border-b');
+  });
 });
 
 describe('usePhotoUrl', () => {

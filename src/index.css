@@ -7,7 +7,10 @@
   --font-sans: "Nunito Variable", system-ui, sans-serif;
 }
 
-/* Colours follow the --t-* variables that src/ui/theme.ts writes on <html> (ADR 0004). */
+/* Colours follow the --t-* variables that src/ui/theme.ts writes on <html> (ADR 0004).
+   The team colours are `team-a`/`team-b`, not `a`/`b`: a colour named `b` makes `border-b`
+   ambiguous with Tailwind's border-bottom-width utility (it compiled to a 1px bottom border).
+   Never name a colour after a Tailwind utility suffix (t, r, b, l, x, y, s, e, …). */
 @theme inline {
   --color-bg: var(--t-bg);
   --color-s1: var(--t-s1);
@@ -16,8 +19,8 @@
   --color-line: var(--t-line);
   --color-text: var(--t-text);
   --color-muted: var(--t-muted);
-  --color-a: var(--t-a);
-  --color-b: var(--t-b);
+  --color-team-a: var(--t-a);
+  --color-team-b: var(--t-b);
   --color-on: var(--t-on);
   --color-suit-red: oklch(0.68 0.19 25);
   --color-white: #fff;

@@ -34,12 +34,13 @@ flowchart LR
 - **Core returns codes, not text.** Bulgarian copy lives in `src/core/strings.ts` — so far screen names, theme/felt names and the (placeholder) route-error text; per-code copy for declarations and errors is due Phase 5 (see [Status](../Status.md)).
 - **No barrel `index.ts` files.** Import from the defining module.
 - **Heavy features load lazily** with `import()`: secondary routes (`src/app/routes.tsx`'s `LAZY_ROUTES`, preloaded on hover/focus via `PreloadLink`), and share/import, QR, camera, photo crop still to come.
-- **Theme tokens live in TypeScript** and reach Tailwind v4 as CSS variables ([ADR 0004](../adr/0004-theme-tokens-in-typescript.md)), written to `<html>` by `src/ui/theme.ts`'s `syncTheme`.
+- **Theme tokens live in TypeScript** and reach Tailwind v4 as CSS variables ([ADR 0004](../adr/0004-theme-tokens-in-typescript.md)), written to `<html>` by `src/ui/theme.ts`'s `syncTheme`. Each token is a Tailwind colour of the same name (`bg-s1`, `text-muted`, `border-line`, `text-on`), except the team colours: tokens `a`/`b` are the utilities `bg-team-a`, `text-team-b`, `border-team-b`….
 - **Sheets and popovers use the native `<dialog>` and popover APIs, not a dependency** ([ADR 0008](../adr/0008-native-dialog-and-popover-over-vaul.md)).
 
 ## Gotchas
 
 - **The React Compiler memoizes expressions, not just components.** Every hook call must be a plain top-level statement of the component — never inside an object literal, array, or other expression. `src/routes/dev-ui.tsx` originally built its popover anchors as `{ below: useRef(null), above: useRef(null), … }`; the compiler memoized that object, and on the next render React saw fewer hook calls than before and crashed with "Rendered fewer hooks than expected". The fix (commit `5d4574b`) hoists each `useRef` to its own top-level `const` and assembles the object afterwards.
+- **Never name a colour token after a Tailwind utility suffix.** The team colours were first the Tailwind colours `a`/`b`; `border-b` then meant border-bottom-width, and an Avatar with `border-[3px] border-b` computed a 1px bottom border. They are now `team-a`/`team-b` (`src/index.css`).
 - **Biome suppressions in JSX** use `{/* biome-ignore lint/<group>/<rule>: reason */}` directly before the element (see `src/ui/Segmented.tsx`); a plain `// biome-ignore …` line works before a non-JSX-attribute node such as `<dialog>` in `src/ui/Sheet.tsx`. Never disable a rule in `biome.json`.
 
 ## Tooling

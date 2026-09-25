@@ -1,6 +1,6 @@
 import { cx } from './cx';
 
-const RING = { a: 'border-a', b: 'border-b', line: 'border-line' } as const;
+const RING = { a: 'border-team-a', b: 'border-team-b', line: 'border-line' } as const;
 
 export interface AvatarProps {
   name: string;
