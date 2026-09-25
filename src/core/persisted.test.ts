@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMatch } from './match';
 import { EMPTY_STATE, loadPersisted, type Migration, PERSIST_VERSION } from './persisted';
+import { DEFAULT_RULES } from './rules';
 import { DEFAULT_SETTINGS } from './settings';
 
 const player = { id: 'p1', name: 'Иво', emoji: '🐻', photo: null };
@@ -9,7 +10,7 @@ const match = createMatch({
   teamA: 'Ние',
   teamB: 'Вие',
   bestOf: 3,
-  targetScore: 151,
+  rules: DEFAULT_RULES,
 });
 
 describe('loadPersisted', () => {
@@ -73,5 +74,24 @@ describe('loadPersisted', () => {
       ok: false,
       error: 'invalid-state',
     });
+  });
+});
+
+describe('MIGRATIONS[1]: v1 match.targetScore -> v2 match.rules', () => {
+  const { rules: _rules, ...matchWithoutRules } = match;
+  const v1Match = { ...matchWithoutRules, targetScore: 101 };
+
+  it('moves a v1 match targetScore into rules, keeping the other rule values default', () => {
+    const v1 = { ...EMPTY_STATE, match: v1Match };
+    const result = loadPersisted({ version: 1, state: v1 });
+    expect(result).toEqual({
+      ok: true,
+      state: { ...EMPTY_STATE, match: { ...match, rules: { ...DEFAULT_RULES, targetScore: 101 } } },
+    });
+  });
+
+  it('leaves a v1 document with match: null unchanged', () => {
+    const v1 = { ...EMPTY_STATE, match: null };
+    expect(loadPersisted({ version: 1, state: v1 })).toEqual({ ok: true, state: v1 });
   });
 });

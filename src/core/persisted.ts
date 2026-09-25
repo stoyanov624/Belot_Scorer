@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { MatchRecordSchema, MatchSchema, PlayerSchema } from './model';
+import { DEFAULT_RULES } from './rules';
 import { DEFAULT_SETTINGS, SettingsSchema } from './settings';
 
-export const PERSIST_VERSION = 1;
+export const PERSIST_VERSION = 2;
 
 export const PersistedStateSchema = z.object({
   roster: z.array(PlayerSchema),
@@ -26,7 +27,19 @@ export type Migration = (state: unknown) => unknown;
  * `MIGRATIONS[n]` turns a version-n state into version n + 1. Add one (and bump
  * PERSIST_VERSION) for every change to PersistedStateSchema; never edit an existing step.
  */
-export const MIGRATIONS: Readonly<Record<number, Migration>> = {};
+// Version 1 stored only the target score in a match; version 2 stores its full rules (ADR 0009).
+const V1State = z.looseObject({
+  match: z.looseObject({ targetScore: z.number() }).nullable(),
+});
+
+export const MIGRATIONS: Readonly<Record<number, Migration>> = {
+  1: (state) => {
+    const v1 = V1State.parse(state);
+    if (!v1.match) return v1;
+    const { targetScore, ...match } = v1.match;
+    return { ...v1, match: { ...match, rules: { ...DEFAULT_RULES, targetScore } } };
+  },
+};
 
 const DocumentSchema = z.object({
   version: z.number().int().positive(),

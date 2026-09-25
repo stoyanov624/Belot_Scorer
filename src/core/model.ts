@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RulesConfigSchema } from './rules';
 
 export const SeatSchema = z.literal([0, 1, 2, 3]);
 export type Seat = z.infer<typeof SeatSchema>;
@@ -91,8 +92,8 @@ export const MatchSchema = z.object({
   caller: SeatSchema.nullable(),
   hang: points,
   bestOf: BestOfSchema,
-  /** Snapshotted from the rules when the match started; changing the device setting mid-match must not move it. */
-  targetScore: z.number().int().positive(),
+  /** Snapshotted from the settings when the match started (ADR 0009). */
+  rules: RulesConfigSchema,
   series: z.object({ A: points, B: points }),
   status: MatchStatusSchema,
 });

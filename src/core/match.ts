@@ -30,7 +30,7 @@ export interface NewMatch {
   teamA: string;
   teamB: string;
   bestOf: BestOf;
-  targetScore: number;
+  rules: RulesConfig;
 }
 
 const EMPTY_DEAL: Pick<Match, 'current' | 'contract' | 'caller'> = {
@@ -107,13 +107,12 @@ export type SaveDealResult =
 export function saveDeal(
   m: Match,
   input: { cardPointsA: number | null; capo: Team | null },
-  rules: RulesConfig = DEFAULT_RULES,
 ): SaveDealResult {
   if (m.status === 'ended') return { ok: false, error: 'match-ended' };
   if (m.contract === null || m.caller === null) return { ok: false, error: 'no-contract' };
   const score = scoreDeal(
     { contract: m.contract, caller: m.caller, decls: m.current, hang: m.hang, ...input },
-    rules,
+    m.rules,
   );
   const resolveError = score.resolution.errors[0];
   if (resolveError) return { ok: false, error: resolveError };
@@ -141,7 +140,7 @@ export function saveDeal(
     hang: score.nextHang,
   };
   const t = totals(next);
-  const ended = Math.max(t.A, t.B) >= m.targetScore && t.A !== t.B && input.capo === null;
+  const ended = Math.max(t.A, t.B) >= m.rules.targetScore && t.A !== t.B && input.capo === null;
   return { ok: true, match: ended ? endMatch(next) : next, ended };
 }
 

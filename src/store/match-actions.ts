@@ -69,7 +69,7 @@ export function matchActions(set: SetState, get: GetState, deps: AppDeps): Match
 
   return {
     startMatch(opts) {
-      set({ match: createMatch({ ...opts, targetScore: get().settings.rules.targetScore }) });
+      set({ match: createMatch({ ...opts, rules: get().settings.rules }) });
     },
     setContract: (contract, caller) => update((m) => setContract(m, contract, caller)),
     addDeclaration: (seat, key) =>
@@ -80,9 +80,9 @@ export function matchActions(set: SetState, get: GetState, deps: AppDeps): Match
     undoLastDeal: () => update(undoLastDeal),
 
     saveDeal(input) {
-      const { match, settings } = get();
+      const { match } = get();
       if (!match) return { ok: false, error: 'no-match' };
-      const result = saveDeal(match, input, settings.rules);
+      const result = saveDeal(match, input);
       if (!result.ok) return result;
       set(
         result.ended

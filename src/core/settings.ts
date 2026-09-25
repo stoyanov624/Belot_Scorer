@@ -8,8 +8,8 @@ export const FeltKeySchema = z.enum(['wood', 'cloth', 'check', 'stone']);
 export type FeltKey = z.infer<typeof FeltKeySchema>;
 
 /**
- * Device preferences. `rules.targetScore` is snapshotted into a match when it starts; the
- * other rule values are read live each time a deal is saved.
+ * Device preferences. `rules` is snapshotted whole into a match when it starts (ADR 0009);
+ * changing it afterwards affects only new matches.
  */
 export const SettingsSchema = z.object({
   theme: ThemeKeySchema,

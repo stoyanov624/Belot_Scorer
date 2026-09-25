@@ -24,7 +24,7 @@ describe('model schemas', () => {
       caller: null,
       hang: 0,
       bestOf: 3,
-      targetScore: DEFAULT_RULES.targetScore,
+      rules: DEFAULT_RULES,
       series: { A: 0, B: 0 },
       status: 'playing',
     };

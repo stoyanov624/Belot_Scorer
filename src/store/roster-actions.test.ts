@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createMatch } from '../core/match';
+import { DEFAULT_RULES } from '../core/rules';
 import { createDocumentStorage } from '../storage/document';
 import { memoryKv } from '../storage/kv';
 import { type AppStore, createAppStore } from './app-store';
@@ -88,7 +89,7 @@ describe('removePlayer', () => {
         teamA: 'Ние',
         teamB: 'Вие',
         bestOf: 1,
-        targetScore: 151,
+        rules: DEFAULT_RULES,
       }),
     });
     expect(store.getState().removePlayer('id1')).toEqual({ ok: false, error: 'in-match' });

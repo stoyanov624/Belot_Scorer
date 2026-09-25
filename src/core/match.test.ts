@@ -20,10 +20,10 @@ import {
 } from './match';
 import type { Deal, Match } from './model';
 import { MatchSchema } from './model';
-import { DEFAULT_RULES } from './rules';
+import { DEFAULT_RULES, type RulesConfig } from './rules';
 
-const fresh = (bestOf: 1 | 3 | 5 | 7 = 1, targetScore = DEFAULT_RULES.targetScore) =>
-  createMatch({ seats: ['p0', 'p1', 'p2', 'p3'], teamA: 'Ние', teamB: 'Вие', bestOf, targetScore });
+const fresh = (bestOf: 1 | 3 | 5 | 7 = 1, rules: RulesConfig = DEFAULT_RULES) =>
+  createMatch({ seats: ['p0', 'p1', 'p2', 'p3'], teamA: 'Ние', teamB: 'Вие', bestOf, rules });
 
 const fakeDeal = (a: number, b: number): Deal => ({
   a,
@@ -48,6 +48,13 @@ const save = (m: Match, cardPointsA: number, capo: 'A' | 'B' | null = null) => {
   if (!r.ok) throw new Error(r.error);
   return r;
 };
+
+describe('createMatch', () => {
+  it('keeps the rules it was given', () => {
+    const rules = { ...DEFAULT_RULES, targetScore: 201 };
+    expect(fresh(1, rules).rules).toEqual(rules);
+  });
+});
 
 describe('current deal', () => {
   it('adds, patches and removes declarations', () => {
@@ -195,21 +202,24 @@ describe('saveDeal', () => {
   });
 
   it('respects the target score snapshotted onto the match', () => {
-    const r = saveDeal(setContract(withGames(fresh(1, 101), [95, 0]), 'hearts', 0), {
+    const rules = { ...DEFAULT_RULES, targetScore: 101 };
+    const r = saveDeal(setContract(withGames(fresh(1, rules), [95, 0]), 'hearts', 0), {
       cardPointsA: 10,
       capo: null,
     });
     expect(r.ok && r.ended).toBe(true);
   });
 
-  it('a different rules.targetScore does not change auto-end (the match snapshot wins)', () => {
-    const rules = { ...DEFAULT_RULES, targetScore: 200 };
-    const r = saveDeal(
-      setContract(withGames(fresh(1, 101), [95, 0]), 'hearts', 0),
-      { cardPointsA: 10, capo: null },
-      rules,
-    );
-    expect(r.ok && r.ended).toBe(true);
+  it('scores with match.rules: a belot is worth the snapshotted declPoints.belot', () => {
+    const rules = { ...DEFAULT_RULES, declPoints: { ...DEFAULT_RULES.declPoints, belot: 3 } };
+    let m = setContract(fresh(1, rules), 'hearts', 0);
+    m = addDeclaration(m, { id: 'b', seat: 0, key: 'belot' });
+    const r = saveDeal(m, { cardPointsA: 10, capo: null });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.match.games[0]?.decls).toEqual([
+      { seat: 0, key: 'belot', top: null, rank: null, valid: true },
+    ]);
+    expect(r.match.games[0]?.a).toBe(13);
   });
 });
 

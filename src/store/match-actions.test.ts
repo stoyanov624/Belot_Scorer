@@ -36,7 +36,19 @@ describe('match actions', () => {
   it('starts a match with the target score from the rules', () => {
     lowTarget(101);
     start();
-    expect(s().match).toMatchObject({ targetScore: 101, status: 'playing', games: [] });
+    expect(s().match?.rules).toEqual(s().settings.rules);
+    expect(s().match).toMatchObject({ status: 'playing', games: [] });
+  });
+
+  it('snapshots settings.rules at start: a later settings change does not touch the match, and the next deal is scored with the snapshot', () => {
+    lowTarget(10);
+    start();
+    const snapshot = s().match?.rules;
+    lowTarget(300);
+    expect(s().match?.rules).toEqual(snapshot);
+    // Scored against the snapshotted target (10), not the live settings' target (300).
+    expect(playDeal()).toMatchObject({ ok: true, ended: true });
+    expect(s().match?.rules).toEqual(snapshot);
   });
 
   it('does nothing without a match', () => {

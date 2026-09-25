@@ -24,7 +24,7 @@ A map of `src/core`: what each module owns and the pattern they all follow. The 
 - **Operations that can fail return result objects with codes**, e.g. `saveDeal` → `{ ok: true, match, ended } | { ok: false, error }`, where `error` is a `SaveDealError` (`no-contract`, `match-ended`, resolve and score codes). The UI maps codes to Bulgarian text.
 - **Derived values are computed, never stored:** totals, dealer (`DEAL_ORDER[games.length % 4]`), allowed declarations, verdict ([ADR 0002](../adr/0002-pure-core-transitions-thin-zustand-store.md)).
 - **Undo** covers only the last Deal. `Deal.prevHang` restores the hanging points.
-- **Rules:** a match snapshots `targetScore` at start (`Match.targetScore`). The other rule values (declaration points, capot bonus, No Trumps multiplier) come from the current settings each time a Deal is saved. Whether to snapshot them too is an open question in [Status](../Status.md).
+- **Rules:** a match snapshots the full `RulesConfig` at start (`Match.rules`, ADR 0009). Settings changes affect only new matches; every deal of a match, its undo and its record are scored by the same snapshotted rules.
 - **`nextMatch` and `rematch` only act on an ended match.** `nextMatch` keeps the Series score; `rematch` resets it.
 
 ## See also
