@@ -14,12 +14,12 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 
 ## Next
 
-- Phase 5b (table & play): see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
+- Phase 5b (table) in progress: see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
 
 ## Open product questions
 
 - **Copy not in the handoff:** the note shown instead of «Изтрий играча» for a seated player (placeholder text is live in `src/core/strings.ts`'s `register.inMatch`), and the accessible labels of the team-name fields — confirm the wording.
-- **Resuming and leaving a match** (see [Backlog](Backlog.md) Phase 5b) — decide at the start of the 5b plan.
+- **Copy not in the handoff:** «Продължи мача», the replace-match confirmation (title, body, buttons), and the screen-reader label «Премахни …» on declaration chips — confirm in `src/core/strings.ts`.
 
 ## Known gaps
 

@@ -36,6 +36,7 @@ Read in this order:
 - [0008 Sheets and popovers on the native dialog and popover APIs, not vaul](adr/0008-native-dialog-and-popover-over-vaul.md)
 - [0009 A match snapshots its scoring rules when it starts](adr/0009-match-snapshots-rules.md)
 - [0010 A player seated in the current match cannot be deleted](adr/0010-seated-player-cannot-be-deleted.md)
+- [0011 Resume a stored match, continue it from Home, confirm before replacing it](adr/0011-resume-and-replace-matches.md)
 
 ## Product spec
 
@@ -53,6 +54,7 @@ The design handoff is final: its Bulgarian copy is used verbatim. Where the spec
 - [Phase 3: store and persistence](superpowers/plans/2026-09-25-phase-3-store-and-persistence.md)
 - [Phase 4: UI foundation](superpowers/plans/2026-09-25-phase-4-ui-foundation.md)
 - [Phase 5a: home, players, setup](superpowers/plans/2026-09-25-phase-5a-players-and-setup.md)
+- [Phase 5b: table and play](superpowers/plans/2026-09-25-phase-5b-table.md)
 - [Vault and handoff: spec](superpowers/specs/2026-09-25-obsidian-vault-design.md) · [plan](superpowers/plans/2026-09-25-obsidian-vault.md)
 
 ## Testing references
