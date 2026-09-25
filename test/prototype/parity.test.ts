@@ -9,6 +9,7 @@ import type {
   KareRank,
   Seat,
 } from '../../src/core/model';
+import { DEFAULT_RULES } from '../../src/core/rules';
 import { maxCardPoints, scoreDeal } from '../../src/core/score';
 import { GOLDEN_DEALS } from '../../src/core/testing/golden-deals';
 // @ts-expect-error untyped verbatim JS port
@@ -148,7 +149,7 @@ describe('parity sweep', () => {
   const cases: SweepCase[] = [];
   for (const contract of CONTRACTS) {
     const layouts = contract === 'nt' ? LAYOUTS.filter((l) => l.decls.length === 0) : LAYOUTS;
-    const max = maxCardPoints(contract);
+    const max = maxCardPoints(contract, DEFAULT_RULES);
     for (const caller of CALLERS) {
       for (const hang of HANGS) {
         for (const layout of layouts) {

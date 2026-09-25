@@ -8,6 +8,7 @@ import {
   endMatch,
   isSeriesOver,
   matchNumber,
+  maxCardPointsFor,
   nextMatch,
   rematch,
   removeDeclaration,
@@ -137,6 +138,22 @@ describe('current deal', () => {
     m = addDeclaration(m, { id: 'a', seat: 0, key: 'belot' });
     m = addDeclaration(m, { id: 'b', seat: 1, key: 'kvarta' });
     expect(currentDeclarationSum(m)).toEqual({ A: 2, B: 5 });
+  });
+
+  it("sums current declarations with the match's own rules", () => {
+    const rules = { ...DEFAULT_RULES, declPoints: { ...DEFAULT_RULES.declPoints, belot: 3 } };
+    let m = setContract(fresh(1, rules), 'at', 0);
+    m = addDeclaration(m, { id: 'a', seat: 0, key: 'belot' });
+    expect(currentDeclarationSum(m)).toEqual({ A: 3, B: 0 });
+  });
+
+  it("maxCardPointsFor reads the match's own rules, null without a contract", () => {
+    const rules = { ...DEFAULT_RULES, maxCardPoints: { color: 17, at: 27, nt: 14 } };
+    const m = fresh(1, rules);
+    expect(maxCardPointsFor(m)).toBeNull();
+    expect(maxCardPointsFor(setContract(m, 'nt', 0))).toBe(14);
+    expect(maxCardPointsFor(setContract(m, 'at', 0))).toBe(27);
+    expect(maxCardPointsFor(setContract(m, 'hearts', 0))).toBe(17);
   });
 });
 

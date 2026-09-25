@@ -30,7 +30,7 @@ export interface DealScore {
   resolution: Resolution;
 }
 
-export const maxCardPoints = (contract: ContractKey, rules: RulesConfig = DEFAULT_RULES) =>
+export const maxCardPoints = (contract: ContractKey, rules: RulesConfig) =>
   rules.maxCardPoints[CONTRACT_KIND[contract]];
 
 export function scoreDeal(input: DealInput, rules: RulesConfig = DEFAULT_RULES): DealScore {

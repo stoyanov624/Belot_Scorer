@@ -14,16 +14,8 @@ import type {
   Team,
 } from './model';
 import type { ResolveError } from './resolve';
-import {
-  DEAL_ORDER,
-  DEFAULT_RULES,
-  declPoints,
-  isSequence,
-  type RulesConfig,
-  teamOf,
-  validTops,
-} from './rules';
-import { type ScoreError, scoreDeal } from './score';
+import { DEAL_ORDER, declPoints, isSequence, type RulesConfig, teamOf, validTops } from './rules';
+import { maxCardPoints, type ScoreError, scoreDeal } from './score';
 
 export interface NewMatch {
   seats: Seats;
@@ -170,13 +162,16 @@ export function dealer(m: Pick<Match, 'games'>): Seat {
   return DEAL_ORDER[m.games.length % DEAL_ORDER.length] ?? 0;
 }
 
-export function currentDeclarationSum(
-  m: Pick<Match, 'current'>,
-  rules: RulesConfig = DEFAULT_RULES,
-): Record<Team, number> {
+/** Naive sum of the current deal's declarations, scored with the match's own rules (ADR 0009). */
+export function currentDeclarationSum(m: Pick<Match, 'current' | 'rules'>): Record<Team, number> {
   const sum: Record<Team, number> = { A: 0, B: 0 };
-  for (const d of m.current) sum[teamOf(d.seat)] += declPoints(d, rules);
+  for (const d of m.current) sum[teamOf(d.seat)] += declPoints(d, m.rules);
   return sum;
+}
+
+/** Card points in the current contract under the match's own rules; null before a contract. */
+export function maxCardPointsFor(m: Pick<Match, 'contract' | 'rules'>): number | null {
+  return m.contract === null ? null : maxCardPoints(m.contract, m.rules);
 }
 
 export function endMatch(m: Match): Match {
