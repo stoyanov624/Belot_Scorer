@@ -61,7 +61,7 @@ describe('router', () => {
     expect(own).toHaveLength(1);
   });
 
-  it('preloads a lazy route module once per call', () => {
+  it('preloads only lazy routes', () => {
     const load = vi.spyOn(LAZY_ROUTES, '/stats');
     preloadRoute('/stats');
     preloadRoute('/table'); // eager: nothing to preload
