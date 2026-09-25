@@ -10,7 +10,7 @@ export interface ClearSheetProps {
   onClose: () => void;
 }
 
-/** The "Изчисти" sheet: restart the current deal, or undo the last saved one. */
+/** The "Изчистване" sheet (opened from "Изчисти"): restart the current deal, or undo the last saved one. */
 export function ClearSheet({ open, onClose }: ClearSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} title={S.title} subtitle={S.body}>

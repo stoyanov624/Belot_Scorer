@@ -36,13 +36,14 @@ function saveHeartsDeal(cardPointsA: number) {
 }
 
 describe('Clear sheet', () => {
-  it('opens from "Изчисти" with the body text and "Изчисти раздаване 1"', async () => {
+  it('opens «Изчистване» from "Изчисти" with the body text and "Изчисти раздаване 1"', async () => {
     startMatch();
     renderRoute('/table');
 
     await userEvent.click(screen.getByRole('button', { name: S.clear }));
 
-    const sheet = screen.getByRole('dialog', { name: CLEAR.title });
+    // README §7 and the prototype title the sheet «Изчистване» (the button reads «Изчисти»).
+    const sheet = screen.getByRole('dialog', { name: 'Изчистване' });
     expect(within(sheet).getByText(CLEAR.body)).toBeTruthy();
     expect(within(sheet).getByRole('button', { name: CLEAR.current(1) })).toBeTruthy();
   });
