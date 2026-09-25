@@ -47,6 +47,7 @@ export function Popover({ open, onClose, anchor, placement, label, children }: P
       popover="auto"
       role="dialog"
       aria-label={label}
+      data-placement={placement}
       onToggle={(event) => {
         // `toggle` fires asynchronously. Opening another auto popover closes this one, and by
         // then the caller has already moved `open` elsewhere: only a dismissal while open counts.

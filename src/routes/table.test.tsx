@@ -180,3 +180,118 @@ describe('Table', () => {
     expect(await screen.findByRole('heading', { name: STRINGS.appName })).toBeTruthy();
   });
 });
+
+describe('Declarations popover', () => {
+  it('opens with a blocking message and no buttons when there is no contract', async () => {
+    startMatch();
+    renderRoute('/table');
+
+    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    expect(within(dialog).getByText(S.blocked['no-contract'])).toBeTruthy();
+    expect(within(dialog).queryAllByRole('button')).toHaveLength(0);
+  });
+
+  it('opens with a blocking message when the contract is no-trumps', async () => {
+    startMatch();
+    appStore.getState().setContract('nt', 0);
+    renderRoute('/table');
+
+    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    expect(within(dialog).getByText(S.blocked['no-trumps'])).toBeTruthy();
+  });
+
+  it('lists the allowed declarations, named by option and points', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    for (const name of ['Белот 2', 'Терца 2', 'Кварта 5', 'Квинта 10', 'Каре 10+']) {
+      expect(within(dialog).getByRole('button', { name })).toBeTruthy();
+    }
+  });
+
+  it('picking a declaration adds it, closes the popover, and shows the chip', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    // happy-dom has no Popover API, so a closed popover can't be asserted by DOM absence;
+    // `aria-expanded` on the avatar (plain React state) is the reliable open/closed signal here.
+    const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
+    await userEvent.click(avatar);
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 2' }));
+
+    expect(avatar.getAttribute('aria-expanded')).toBe('false');
+    expect(appStore.getState().match?.current).toEqual([
+      expect.objectContaining({ seat: 0, key: 'terca' }),
+    ]);
+    expect(within(seat('Север')).getByRole('button', { name: S.removeDecl('Терца') })).toBeTruthy();
+  });
+
+  it('narrows to Белот once 9 of 8 cards are used, then blocks with the 8-card message', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    // Nine of a seat's eight cards used: past what a single declaration could reach through the
+    // guarded action, so seed `current` directly to exercise the popover's own filtering.
+    appStore.setState((s) => ({
+      match: s.match && {
+        ...s.match,
+        current: [
+          { id: 'seed-1', seat: 0, key: 'kvinta', top: null, rank: null },
+          { id: 'seed-2', seat: 0, key: 'kvarta', top: null, rank: null },
+        ],
+      },
+    }));
+    renderRoute('/table');
+
+    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    expect(within(dialog).getByRole('button', { name: 'Белот 2' })).toBeTruthy();
+    expect(within(dialog).queryAllByRole('button')).toHaveLength(1);
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Белот 2' }));
+    await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
+
+    const dialog2 = screen.getByRole('dialog', { name: S.declares('Иван') });
+    expect(within(dialog2).getByText(S.blocked['no-cards'])).toBeTruthy();
+  });
+
+  it('places the popover below N, above S, right of W and left of E', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    const cases: [string, string, string][] = [
+      ['Север', 'Иван', 'below'],
+      ['Юг', 'Мария', 'above'],
+      ['Запад', 'Гошо', 'right'],
+      ['Изток', 'Петър', 'left'],
+    ];
+    for (const [seatName, playerName, placement] of cases) {
+      await userEvent.click(within(seat(seatName)).getByRole('button', { name: playerName }));
+      const dialog = screen.getByRole('dialog', { name: S.declares(playerName) });
+      expect(dialog.getAttribute('data-placement')).toBe(placement);
+    }
+  });
+
+  it('has aria-haspopup and reflects the open state via aria-expanded', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
+    expect(avatar.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(avatar.getAttribute('aria-expanded')).toBe('false');
+
+    await userEvent.click(avatar);
+    expect(avatar.getAttribute('aria-expanded')).toBe('true');
+  });
+});

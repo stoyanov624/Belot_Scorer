@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Navigate } from 'react-router';
+import { allowedDeclarations } from '../core/declarations';
 import { dealer } from '../core/match';
 import type { Player, Seat as SeatIndex } from '../core/model';
 import { teamOf } from '../core/rules';
@@ -7,7 +8,7 @@ import { STRINGS } from '../core/strings';
 import { ThemeSheet } from '../features/settings/ThemeSheet';
 import { Coaster } from '../features/table/Coaster';
 import { ContractPill } from '../features/table/ContractPill';
-import { contractLine, headerLine } from '../features/table/copy';
+import { contractLine, declOptionPoints, headerLine } from '../features/table/copy';
 import { Seat } from '../features/table/Seat';
 import { TableHeader } from '../features/table/TableHeader';
 import { useAppStore } from '../store/instance';
@@ -28,7 +29,9 @@ export function Table() {
   const showDealer = useAppStore((s) => s.settings.showDealer);
   const felt = useAppStore((s) => s.settings.felt);
   const removeDeclaration = useAppStore((s) => s.removeDeclaration);
+  const addDeclaration = useAppStore((s) => s.addDeclaration);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [openSeat, setOpenSeat] = useState<SeatIndex | null>(null);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -73,20 +76,34 @@ export function Table() {
           <Coaster match={match} />
         </div>
 
-        {SEATS.map((seat) => (
-          <Seat
-            key={seat}
-            seat={seat}
-            player={playerAt(seat)}
-            team={teamOf(seat)}
-            isDealer={showDealer && dealerSeat === seat}
-            decls={match.current.filter((d) => d.seat === seat)}
-            // The declarations popover arrives in Task 5.
-            onAvatar={later}
-            onRemoveDecl={removeDeclaration}
-            anchorRef={anchors[seat]}
-          />
-        ))}
+        {SEATS.map((seat) => {
+          const allowed = allowedDeclarations(match, seat);
+          return (
+            <Seat
+              key={seat}
+              seat={seat}
+              player={playerAt(seat)}
+              team={teamOf(seat)}
+              isDealer={showDealer && dealerSeat === seat}
+              decls={match.current.filter((d) => d.seat === seat)}
+              onAvatar={() => setOpenSeat((current) => (current === seat ? null : seat))}
+              onRemoveDecl={removeDeclaration}
+              anchorRef={anchors[seat]}
+              declOpen={openSeat === seat}
+              onCloseDecl={() => setOpenSeat(null)}
+              declOptions={allowed.options.map((key) => ({
+                key,
+                label: STRINGS.decls[key],
+                points: declOptionPoints(key, match.rules),
+              }))}
+              declBlockedMessage={allowed.blocked ? STRINGS.table.blocked[allowed.blocked] : null}
+              onPickDecl={(key) => {
+                addDeclaration(seat, key);
+                setOpenSeat(null);
+              }}
+            />
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-[1.4fr_1fr] gap-2.5">
