@@ -1,0 +1,206 @@
+// @vitest-environment happy-dom
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { createMemoryRouter, type RouteObject } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { routes } from '../app/routes';
+import type { Seats } from '../core/model';
+import { STRINGS } from '../core/strings';
+import { appStore } from '../store/instance';
+import { resetApp } from '../test/app';
+
+const S = STRINGS.setup;
+
+beforeEach(() => {
+  resetApp();
+});
+
+/** Seeds `names.length` players and returns their ids, in the order saved. */
+function seedPlayers(names: string[]): string[] {
+  return names.map((name) => {
+    const result = appStore.getState().savePlayer({ id: null, name, emoji: null, photo: null });
+    if (!result.ok) throw new Error(`setup failed for ${name}`);
+    return result.id;
+  });
+}
+
+/**
+ * React Router mutates a lazy route's shared `.lazy` object in place once it resolves
+ * (it replaces `route.lazy.Component` with `undefined` on the object it was handed), so
+ * reusing the app's singleton `routes` array across more than one router in this file leaves
+ * later renders with no way to load `/setup` again. Cloning each route (and its `.lazy` object)
+ * before handing it to a fresh router keeps that mutation local to that one router.
+ */
+function cloneRoute(route: RouteObject): RouteObject {
+  const { children, lazy, ...rest } = route;
+  return {
+    ...rest,
+    lazy: lazy && typeof lazy === 'object' ? { ...lazy } : lazy,
+    ...(children ? { children: children.map(cloneRoute) } : {}),
+  } as RouteObject;
+}
+
+/** Renders /setup on a fresh router and waits for the lazy screen to mount. */
+async function renderSetup() {
+  const router = createMemoryRouter(routes.map(cloneRoute), { initialEntries: ['/setup'] });
+  const rendered = render(<RouterProvider router={router} />);
+  await screen.findByRole('heading', { name: S.title });
+  return rendered;
+}
+
+/** Opens a seat's sheet and picks a player already listed there, by exact name. */
+async function pickSeat(seatLabel: RegExp, playerName: string) {
+  await userEvent.click(screen.getByRole('button', { name: seatLabel }));
+  const dialog = screen.getByRole('dialog');
+  await userEvent.click(within(dialog).getByText(playerName, { exact: true }));
+}
+
+describe('Setup', () => {
+  it('shows an empty draft: heading, team cards, four empty seats, hint, and a disabled deal button', async () => {
+    await renderSetup();
+
+    expect(screen.getByRole('textbox', { name: S.teamAName })).toBeTruthy();
+    expect(screen.getByRole('textbox', { name: S.teamBName })).toBeTruthy();
+    expect(screen.getByText(S.teamASeats)).toBeTruthy();
+    expect(screen.getByText(S.teamBSeats)).toBeTruthy();
+    expect(screen.getAllByText(S.pickPlayer)).toHaveLength(4);
+    expect(screen.getByText(S.hintSeats)).toBeTruthy();
+
+    const deal = screen.getByRole('button', { name: S.deal });
+    expect(deal.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('does nothing when "Раздавай!" is clicked with an incomplete draft', async () => {
+    await renderSetup();
+
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+
+    expect(appStore.getState().match).toBeNull();
+  });
+
+  it('opens the seat sheet for a tapped seat, titled by its name', async () => {
+    seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    await renderSetup();
+
+    await userEvent.click(screen.getByRole('button', { name: /Север/ }));
+
+    expect(screen.getByRole('dialog', { name: 'Място: Север' })).toBeTruthy();
+  });
+
+  it('seats a chosen player and closes the sheet', async () => {
+    seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    await renderSetup();
+
+    await pickSeat(/Север/, 'Иво');
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: /Север.*Иво/ })).toBeTruthy();
+  });
+
+  it('swaps a player already seated when picked for another seat', async () => {
+    seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    await renderSetup();
+
+    await pickSeat(/Север/, 'Иво');
+    await pickSeat(/Изток/, 'Иво');
+
+    expect(screen.getByRole('button', { name: /Изток.*Иво/ })).toBeTruthy();
+    const north = screen.getByRole('button', { name: /Север/ });
+    expect(within(north).getByText(S.pickPlayer)).toBeTruthy();
+  });
+
+  it('registers a new player from the seat sheet and seats them', async () => {
+    await renderSetup();
+
+    await userEvent.click(screen.getByRole('button', { name: /Юг/ }));
+    await userEvent.click(screen.getByRole('button', { name: S.newPlayer }));
+    expect(screen.getByRole('dialog', { name: 'Нов играч' })).toBeTruthy();
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Име или прякор' }), 'Нина');
+    await userEvent.click(screen.getByRole('button', { name: 'Запази' }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: /Юг.*Нина/ })).toBeTruthy();
+    expect(appStore.getState().roster.some((p) => p.name === 'Нина')).toBe(true);
+  });
+
+  it('starts the match on "Раздавай!" once all four seats are filled', async () => {
+    const [ivo, geri, maria, petar] = seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    await renderSetup();
+
+    await pickSeat(/Север/, 'Иво');
+    await pickSeat(/Изток/, 'Гери');
+    await pickSeat(/Юг/, 'Мария');
+    await pickSeat(/Запад/, 'Петър');
+
+    expect(
+      screen.getByText(S.hintTarget(appStore.getState().settings.rules.targetScore)),
+    ).toBeTruthy();
+    const deal = screen.getByRole('button', { name: S.deal });
+    expect(deal.getAttribute('aria-disabled')).toBe('false');
+
+    const teamAInput = screen.getByRole('textbox', { name: S.teamAName });
+    await userEvent.clear(teamAInput);
+    await userEvent.type(teamAInput, 'Ние2');
+    await userEvent.click(screen.getByRole('radio', { name: '2 от 3' }));
+
+    const rules = appStore.getState().settings.rules;
+    await userEvent.click(deal);
+
+    const match = appStore.getState().match;
+    expect(match).not.toBeNull();
+    expect(match?.seats).toEqual([ivo, geri, maria, petar]);
+    expect(match?.teamA).toBe('Ние2');
+    expect(match?.teamB).toBe(S.teamB);
+    expect(match?.bestOf).toBe(3);
+    expect(match?.rules).toEqual(rules);
+
+    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+  });
+
+  it('starts with the default team name when the field is left blank', async () => {
+    seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    await renderSetup();
+
+    await pickSeat(/Север/, 'Иво');
+    await pickSeat(/Изток/, 'Гери');
+    await pickSeat(/Юг/, 'Мария');
+    await pickSeat(/Запад/, 'Петър');
+
+    const teamAInput = screen.getByRole('textbox', { name: S.teamAName });
+    await userEvent.clear(teamAInput);
+
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+
+    expect(appStore.getState().match?.teamA).toBe(S.teamA);
+  });
+
+  it('prefills seats, team names and series length from an existing match', async () => {
+    const [ivo, geri, maria, petar] = seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    appStore.getState().startMatch({
+      seats: [ivo, geri, maria, petar] as Seats,
+      teamA: 'Стария',
+      teamB: 'Другия',
+      bestOf: 5,
+    });
+
+    await renderSetup();
+
+    expect((screen.getByRole('textbox', { name: S.teamAName }) as HTMLInputElement).value).toBe(
+      'Стария',
+    );
+    expect((screen.getByRole('textbox', { name: S.teamBName }) as HTMLInputElement).value).toBe(
+      'Другия',
+    );
+    expect(screen.getByRole('radio', { name: '3 от 5' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('button', { name: /Север.*Иво/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Изток.*Гери/ })).toBeTruthy();
+  });
+
+  it('links "← Начало" to /', async () => {
+    await renderSetup();
+
+    expect(screen.getByRole('link', { name: S.back }).getAttribute('href')).toBe('/');
+  });
+});
