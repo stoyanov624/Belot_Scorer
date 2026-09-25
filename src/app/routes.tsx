@@ -10,6 +10,7 @@ export const LAZY_ROUTES: Record<string, () => Promise<{ Component: React.Compon
   '/history': () => import('../routes/history'),
   '/end': () => import('../routes/end'),
   '/stats': () => import('../routes/stats'),
+  ...(import.meta.env.DEV ? { '/dev/ui': () => import('../routes/dev-ui') } : {}),
 };
 
 /** Starts downloading a lazy screen's code; no-op for eager or unknown paths. */
