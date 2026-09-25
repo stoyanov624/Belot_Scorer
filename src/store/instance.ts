@@ -6,7 +6,11 @@ import { idbKv } from '../storage/kv';
 import { createPhotoStore } from '../storage/photos';
 import { type AppState, createAppStore } from './app-store';
 
-/** Separate IndexedDB database so photo Blobs never load with the state document. */
+/**
+ * Separate IndexedDB database so photo Blobs never load with the state document.
+ * Orphan blobs can occur (a photo is uploaded, then the edit is cancelled). Any future
+ * cleanup must also treat photo ids referenced from `belot-state.backup` as live.
+ */
 export const photoStore = createPhotoStore(idbKv(createStore('belot-photos', 'photos')), newId);
 
 export const appStore = createAppStore({

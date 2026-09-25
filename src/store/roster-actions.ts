@@ -1,4 +1,5 @@
 import type { Player } from '../core/model';
+import { EMPTY_STATE } from '../core/persisted';
 import { type NameError, removePlayer, upsertPlayer, validatePlayerName } from '../core/roster';
 import type { Settings } from '../core/settings';
 import type { AppDeps, GetState, SetState } from './app-store';
@@ -16,6 +17,11 @@ export interface RosterActions {
   savePlayer(input: PlayerInput): { ok: true; id: string } | { ok: false; error: NameError };
   removePlayer(id: string): { ok: true } | { ok: false; error: 'in-match' };
   updateSettings(patch: Partial<Settings>): void;
+  /**
+   * The "start fresh" choice on the failed-load screen: opens the storage write gate and
+   * replaces everything with empty data. The backup key is left untouched.
+   */
+  resetData(): void;
 }
 
 export function rosterActions(set: SetState, get: GetState, deps: AppDeps): RosterActions {
@@ -53,6 +59,11 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
 
     updateSettings(patch) {
       set((s) => ({ settings: { ...s.settings, ...patch } }));
+    },
+
+    resetData() {
+      deps.storage.unlock();
+      set({ ...EMPTY_STATE, hydration: 'ready', saveError: false });
     },
   };
 }

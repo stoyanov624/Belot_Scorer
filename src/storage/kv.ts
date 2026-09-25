@@ -2,6 +2,7 @@ import { del, get, set, type UseStore } from 'idb-keyval';
 
 /** The storage surface the app needs. IndexedDB on the web, MMKV/files on mobile later. */
 export interface Kv {
+  /** Resolves `undefined` (or `null`) when the key is absent. */
   get(key: string): Promise<unknown>;
   set(key: string, value: unknown): Promise<void>;
   del(key: string): Promise<void>;

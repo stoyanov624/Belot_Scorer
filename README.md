@@ -4,7 +4,7 @@ Scorekeeping web app for the Bulgarian card game Belot. It records declarations 
 
 ## Requirements
 
-- Node.js 20.19+ or 22.12+ (required by Vite 8)
+- Node.js 22+ (nanoid 6 requires `^22 || ^24 || >=26`; Vite 8 also runs there)
 - pnpm 10 (`npm install -g pnpm` or `corepack enable pnpm`)
 
 ## Getting started

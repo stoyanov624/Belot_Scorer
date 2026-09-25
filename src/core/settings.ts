@@ -7,7 +7,10 @@ export type ThemeKey = z.infer<typeof ThemeKeySchema>;
 export const FeltKeySchema = z.enum(['wood', 'cloth', 'check', 'stone']);
 export type FeltKey = z.infer<typeof FeltKeySchema>;
 
-/** Device preferences. The rules apply to new matches; a running match keeps its own `targetScore`. */
+/**
+ * Device preferences. `rules.targetScore` is snapshotted into a match when it starts; the
+ * other rule values are read live each time a deal is saved.
+ */
 export const SettingsSchema = z.object({
   theme: ThemeKeySchema,
   felt: FeltKeySchema,

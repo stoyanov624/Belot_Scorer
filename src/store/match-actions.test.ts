@@ -112,6 +112,9 @@ describe('match actions', () => {
     s().nextMatch();
     expect(s().match).toMatchObject({ series: { A: 1, B: 0 }, status: 'playing', games: [] });
     s().rematch();
+    expect(s().match?.series).toEqual({ A: 1, B: 0 });
+    s().endMatch();
+    s().rematch();
     expect(s().match?.series).toEqual({ A: 0, B: 0 });
   });
 

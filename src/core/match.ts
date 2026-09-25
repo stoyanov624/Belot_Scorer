@@ -205,11 +205,15 @@ export function matchNumber(m: Match): number {
   return m.status === 'ended' && winner(m) !== null ? decided : decided + 1;
 }
 
+/** Starts the next match of the series. A match that hasn't ended is returned unchanged. */
 export function nextMatch(m: Match): Match {
+  if (m.status !== 'ended') return m;
   return { ...m, ...EMPTY_DEAL, games: [], hang: 0, status: 'playing' };
 }
 
+/** Starts over with a fresh series. A match that hasn't ended is returned unchanged. */
 export function rematch(m: Match): Match {
+  if (m.status !== 'ended') return m;
   return { ...nextMatch(m), series: { A: 0, B: 0 } };
 }
 

@@ -55,6 +55,21 @@ describe('savePlayer', () => {
     savePlayer({ ...input, id: 'id1', photo: 'ph2' });
     expect(removed).toEqual(['ph1']);
   });
+
+  it('keeps the photo blob when an edit keeps the same photo', () => {
+    const { savePlayer } = store.getState();
+    savePlayer({ ...input, photo: 'ph1' });
+    savePlayer({ ...input, id: 'id1', name: 'Ивo', photo: 'ph1' });
+    expect(removed).toEqual([]);
+  });
+
+  it('removes the photo blob when the player switches to an emoji', () => {
+    const { savePlayer } = store.getState();
+    savePlayer({ ...input, photo: 'ph1' });
+    savePlayer({ ...input, id: 'id1', photo: null });
+    expect(store.getState().roster[0]).toMatchObject({ emoji: '🐻', photo: null });
+    expect(removed).toEqual(['ph1']);
+  });
 });
 
 describe('removePlayer', () => {

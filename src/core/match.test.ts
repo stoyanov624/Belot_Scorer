@@ -286,6 +286,12 @@ describe('ended match', () => {
     expect(nextMatch(m).status).toBe('playing');
     expect(rematch(m).status).toBe('playing');
   });
+
+  it('nextMatch and rematch leave a match that is still playing unchanged', () => {
+    const m = withGames(fresh(3), [160, 40]);
+    expect(nextMatch(m)).toBe(m);
+    expect(rematch(m)).toBe(m);
+  });
 });
 
 describe('dealer', () => {
