@@ -11,7 +11,10 @@ export interface PopoverProps {
   children: ReactNode;
 }
 
-/** 224px card next to its anchor on the native popover API (ADR 0008). */
+/**
+ * 224px card next to its anchor on the native popover API (ADR 0008). The caller owns `open`;
+ * `onClose` fires only when the user dismisses the card while it is open.
+ */
 export function Popover({ open, onClose, anchor, placement, label, children }: PopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +48,9 @@ export function Popover({ open, onClose, anchor, placement, label, children }: P
       role="dialog"
       aria-label={label}
       onToggle={(event) => {
-        if (event.newState === 'closed') onClose();
+        // `toggle` fires asynchronously. Opening another auto popover closes this one, and by
+        // then the caller has already moved `open` elsewhere: only a dismissal while open counts.
+        if (open && event.newState === 'closed') onClose();
       }}
       className="popover fixed m-0 w-56 rounded-[20px] bg-s2 p-3 text-text shadow-[0_18px_40px_oklch(0.06_0.02_50/0.7)]"
     >

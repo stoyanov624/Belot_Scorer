@@ -7,7 +7,11 @@ export interface SheetProps {
   children: ReactNode;
 }
 
-/** Bottom sheet on the native <dialog>: focus trap, Esc and top layer come from the browser. */
+/**
+ * Bottom sheet on the native <dialog>: focus trap, Esc and top layer come from the browser.
+ * The caller owns `open`; `onClose` fires only for a user dismissal (Esc, overlay tap) while
+ * open. Children stay mounted while closed.
+ */
 export function Sheet({ open, onClose, title, children }: SheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -24,7 +28,10 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
     <dialog
       ref={ref}
       aria-labelledby={titleId}
-      onClose={onClose}
+      onClose={() => {
+        // `close` also fires after the caller set `open` to false; only a user close counts.
+        if (open) onClose();
+      }}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
