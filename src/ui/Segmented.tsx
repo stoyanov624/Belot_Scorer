@@ -23,19 +23,22 @@ export function Segmented<T extends string | number>({
       {options.map((option) => {
         const checked = option.value === value;
         return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={checked}
-            onClick={() => onChange(option.value)}
-            className={cx(
-              'h-12 flex-1 rounded-xl text-[15px] font-extrabold transition-transform active:scale-[0.97]',
-              checked ? 'bg-a text-on' : 'text-muted',
-            )}
-          >
-            {option.label}
-          </button>
+          <>
+            {/* biome-ignore lint/a11y/useSemanticElements: ARIA radio pattern; native radio inputs can't be styled this way without extra markup */}
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              onClick={() => onChange(option.value)}
+              className={cx(
+                'h-12 flex-1 rounded-xl text-[15px] font-extrabold transition-transform active:scale-[0.97]',
+                checked ? 'bg-a text-on' : 'text-muted',
+              )}
+            >
+              {option.label}
+            </button>
+          </>
         );
       })}
     </div>

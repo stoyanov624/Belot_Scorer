@@ -1,15 +1,11 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { Segmented } from './Segmented';
-
-afterEach(() => {
-  cleanup();
-});
 
 describe('Button', () => {
   it('is a type="button" by default and fires onClick', async () => {
