@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { CardSchema, KareRankSchema } from './model';
 import {
+  CARDS,
   DEAL_ORDER,
   DEFAULT_RULES,
   declPoints,
+  KARE_RANKS,
   otherTeam,
   seqLength,
   teamOf,
@@ -54,5 +57,23 @@ describe('sequences', () => {
     expect(validTops('kvarta')).toEqual(['10', 'J', 'Q', 'K', 'A']);
     expect(validTops('kvinta')).toEqual(['J', 'Q', 'K', 'A']);
     expect(validTops('belot')).toEqual([]);
+  });
+});
+
+describe('orders', () => {
+  it('has correct CARDS order', () => {
+    expect(CARDS).toEqual(['7', '8', '9', '10', 'J', 'Q', 'K', 'A']);
+  });
+
+  it('has correct KARE_RANKS order', () => {
+    expect(KARE_RANKS).toEqual(['Q', 'K', '10', 'A', '9', 'J']);
+  });
+
+  it('CARDS contains exactly the schema members', () => {
+    expect([...CARDS].sort()).toEqual([...CardSchema.options].sort());
+  });
+
+  it('KARE_RANKS contains exactly the schema members', () => {
+    expect([...KARE_RANKS].sort()).toEqual([...KareRankSchema.options].sort());
   });
 });

@@ -1,12 +1,4 @@
-import {
-  type Card,
-  CardSchema,
-  type ContractKey,
-  type DeclKey,
-  type KareRank,
-  type Seat,
-  type Team,
-} from './model';
+import type { Card, ContractKey, DeclKey, KareRank, Seat, Team } from './model';
 
 export type ContractKind = 'color' | 'nt' | 'at';
 
@@ -39,7 +31,8 @@ export const CONTRACT_KIND: Record<ContractKey, ContractKind> = {
 
 export const RED_CONTRACTS: ReadonlySet<ContractKey> = new Set(['diamonds', 'hearts']);
 
-export const CARDS: readonly Card[] = CardSchema.options;
+/** Explicit order — z.enum().options depends on JS object key order, not definition order. */
+export const CARDS: readonly Card[] = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 export const KARE_RANKS: readonly KareRank[] = ['Q', 'K', '10', 'A', '9', 'J'];
 
 export const SEQ_LENGTH = { terca: 3, kvarta: 4, kvinta: 5 } as const;
