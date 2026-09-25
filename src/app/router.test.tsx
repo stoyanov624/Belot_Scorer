@@ -43,6 +43,24 @@ describe('router', () => {
     );
   });
 
+  it('lays the root-level error out in the page column and logs the error once', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const boom = new Error('boom');
+    const Boom = () => {
+      throw boom;
+    };
+    render(
+      <RouterProvider
+        router={createMemoryRouter([{ path: '/', Component: Boom, ErrorBoundary: RouteError }])}
+      />,
+    );
+    const alert = await screen.findByRole('alert');
+    expect(alert.className).toContain('max-w-[780px]');
+    expect(alert.className).toContain('mx-auto');
+    const own = log.mock.calls.filter((call) => call.length === 1 && call[0] === boom);
+    expect(own).toHaveLength(1);
+  });
+
   it('preloads a lazy route module once per call', () => {
     const load = vi.spyOn(LAZY_ROUTES, '/stats');
     preloadRoute('/stats');
