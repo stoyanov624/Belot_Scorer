@@ -19,7 +19,7 @@ export function Home() {
   const [themeOpen, setThemeOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-7 pt-6">
+    <div className="flex flex-col gap-7 pt-12 pb-8">
       <header className="flex flex-col gap-2">
         <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-team-a">
           {STRINGS.themes[theme].name}

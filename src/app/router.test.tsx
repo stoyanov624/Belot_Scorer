@@ -16,6 +16,13 @@ describe('router', () => {
     expect(screen.getByRole('heading', { name: STRINGS.screens.home })).toBeTruthy();
   });
 
+  it('pads the page column sideways only; each screen owns its vertical padding', () => {
+    renderAt('/');
+    const main = screen.getByRole('main');
+    expect(main.className.split(' ')).toContain('px-4');
+    expect(main.className).not.toMatch(/\bp[yt]-|\bpb-/);
+  });
+
   it('lazy-loads a secondary screen', async () => {
     renderAt('/stats');
     expect(await screen.findByRole('heading', { name: STRINGS.screens.stats })).toBeTruthy();

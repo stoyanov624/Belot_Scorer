@@ -55,8 +55,8 @@ export function Table() {
   const dealerSeat = dealer(match);
 
   return (
-    // RootLayout pads 24px vertically; §4 wants 16px on top and 20px below.
-    <div className="-mt-2 -mb-1 flex flex-1 flex-col gap-3.5">
+    // §4: page padding 16px on top, 20px below (RootLayout pads sideways only).
+    <div className="flex flex-1 flex-col gap-3.5 pt-4 pb-5">
       <TableHeader
         line={headerLine(match)}
         dealNo={match.games.length + 1}

@@ -111,7 +111,7 @@ export function Component() {
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 py-6">
       <Link to="/" className={cx(buttonClass('secondary', 'sm'), 'self-start')}>
         {S.back}
       </Link>
