@@ -8,6 +8,7 @@ import { appStore } from '../store/instance';
 import { renderRoute, resetApp } from '../test/app';
 
 const S = STRINGS.table;
+const CS = STRINGS.contract;
 const NAMES = ['Иван', 'Петър', 'Мария', 'Гошо'] as const;
 
 beforeEach(() => {
@@ -293,5 +294,38 @@ describe('Declarations popover', () => {
 
     await userEvent.click(avatar);
     expect(avatar.getAttribute('aria-expanded')).toBe('true');
+  });
+});
+
+describe('Contract sheet', () => {
+  it('opens from the contract pill with the "Готово" CTA once ready, and saves the contract', async () => {
+    startMatch();
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.pickContract }));
+    const sheet = screen.getByRole('dialog', { name: CS.title });
+
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Купа' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Иван' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: CS.done }));
+
+    expect(appStore.getState().match?.contract).toBe('hearts');
+    expect(appStore.getState().match?.caller).toBe(0);
+  });
+
+  it('opens the contract sheet from "Край на раздаване" when there is no contract, with the "Напред към точките" CTA', async () => {
+    startMatch();
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+
+    const sheet = screen.getByRole('dialog', { name: CS.title });
+
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Пика' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Гошо' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
+
+    expect(appStore.getState().match?.contract).toBe('spades');
+    expect(appStore.getState().match?.caller).toBe(3);
   });
 });
