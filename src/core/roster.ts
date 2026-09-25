@@ -43,3 +43,10 @@ export function vacatePlayer(draft: SeatDraft, playerId: string): SeatDraft {
 export function isDraftComplete(draft: SeatDraft): draft is Seats {
   return draft.every((id) => id !== null);
 }
+
+/** Setup's starting seats: the last match's players, minus anyone no longer in the roster. */
+export function draftFromSeats(seats: Seats | null, known: (id: string) => boolean): SeatDraft {
+  if (!seats) return EMPTY_DRAFT;
+  const keep = (id: string) => (known(id) ? id : null);
+  return [keep(seats[0]), keep(seats[1]), keep(seats[2]), keep(seats[3])];
+}

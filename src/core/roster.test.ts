@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Player } from './model';
 import {
   assignSeat,
+  draftFromSeats,
   EMPTY_DRAFT,
   isDraftComplete,
   removePlayer,
@@ -56,5 +57,16 @@ describe('seat draft', () => {
   it('is complete only with four players', () => {
     expect(isDraftComplete(['a', 'b', 'c', null])).toBe(false);
     expect(isDraftComplete(['a', 'b', 'c', 'd'])).toBe(true);
+  });
+});
+
+describe('draftFromSeats', () => {
+  it('starts empty without seats', () => {
+    expect(draftFromSeats(null, () => true)).toEqual([null, null, null, null]);
+  });
+
+  it('keeps known players and empties unknown ones', () => {
+    const known = (id: string) => id !== 'gone';
+    expect(draftFromSeats(['a', 'gone', 'c', 'd'], known)).toEqual(['a', null, 'c', 'd']);
   });
 });
