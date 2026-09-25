@@ -22,6 +22,7 @@ describe('router', () => {
   });
 
   it('shows the error boundary for an unknown path', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     renderAt('/nope');
     expect(await screen.findByText(STRINGS.routeError.title)).toBeTruthy();
   });

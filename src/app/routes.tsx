@@ -33,6 +33,8 @@ export const routes: RouteObject[] = [
   {
     Component: RootLayout,
     ErrorBoundary: RouteError,
+    // Renders nothing for the moment a lazy screen's code loads on first visit (no flash of UI).
+    HydrateFallback: () => null,
     children: [
       { index: true, Component: Home, ErrorBoundary: RouteError },
       { path: 'table', Component: Table, ErrorBoundary: RouteError },
