@@ -1,6 +1,6 @@
 import type { FeltKey, ThemeKey } from './settings';
 
-/** Colour tokens every theme defines; each becomes `--t-<name>` and a Tailwind colour. */
+/** Colour tokens every theme defines; each becomes `--t-<name>` and a Tailwind colour (`a`/`b` as `team-a`/`team-b`). */
 export const COLOR_TOKENS = [
   'bg',
   's1',
@@ -98,9 +98,10 @@ export const FELTS: Record<FeltKey, FeltTokens> = {
   },
 };
 
+/** A theme's CSS custom properties: every colour token, the glow, and the suit red. */
 export function themeVars(key: ThemeKey): Record<string, string> {
   const t = THEMES[key];
-  const vars: Record<string, string> = { '--t-glow': t.glow };
+  const vars: Record<string, string> = { '--t-glow': t.glow, '--t-suit-red': SUIT_RED };
   for (const name of COLOR_TOKENS) vars[`--t-${name}`] = t[name];
   return vars;
 }

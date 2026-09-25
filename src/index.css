@@ -22,8 +22,7 @@
   --color-team-a: var(--t-a);
   --color-team-b: var(--t-b);
   --color-on: var(--t-on);
-  --color-suit-red: oklch(0.68 0.19 25);
-  --color-white: #fff;
+  --color-suit-red: var(--t-suit-red);
 }
 
 @layer base {

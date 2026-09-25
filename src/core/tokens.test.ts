@@ -21,8 +21,9 @@ describe('tokens', () => {
 
   it('maps a theme to --t-* custom properties', () => {
     const vars = themeVars('casino');
-    expect(Object.keys(vars)).toHaveLength(COLOR_TOKENS.length + 1);
+    expect(Object.keys(vars)).toHaveLength(COLOR_TOKENS.length + 2);
     expect(vars['--t-s1']).toBe(THEMES.casino.s1);
     expect(vars['--t-glow']).toBe(THEMES.casino.glow);
+    expect(vars['--t-suit-red']).toBe(SUIT_RED);
   });
 });
