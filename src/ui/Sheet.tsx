@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { cx } from './cx';
 
 export interface SheetProps {
   open: boolean;
@@ -46,9 +47,14 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
     >
       <div className="flex max-h-[88dvh] flex-col gap-4 overflow-y-auto px-5 pt-3.5 pb-[26px]">
         <div aria-hidden className="mx-auto h-[5px] w-10 shrink-0 rounded-[3px] bg-line" />
-        <div data-sheet-head className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <h2 id={titleId} className="text-2xl font-black">
+        {/* With an aside, the title stays on one line; when title and aside can't share the
+            row (min-content basis), the aside wraps below rather than breaking the title. */}
+        <div
+          data-sheet-head
+          className="flex flex-wrap items-start justify-between gap-x-2 gap-y-2.5"
+        >
+          <div className="flex min-w-0 grow basis-[min-content] flex-col gap-0.5">
+            <h2 id={titleId} className={cx('text-2xl font-black', aside && 'whitespace-nowrap')}>
               {title}
             </h2>
             {hasSubtitle && (

@@ -28,6 +28,28 @@ describe('Sheet', () => {
     expect(row?.contains(screen.getByRole('button', { name: 'pill' }))).toBe(true);
   });
 
+  it('keeps a title with an aside on one line, and lets the aside wrap below when it cannot fit', () => {
+    render(
+      <Sheet open onClose={() => {}} title="T" aside={<button type="button">pill</button>}>
+        <p>body</p>
+      </Sheet>,
+    );
+    const heading = screen.getByRole('heading', { name: 'T' });
+    expect(heading.className.split(' ')).toContain('whitespace-nowrap');
+    expect(heading.closest('[data-sheet-head]')?.className.split(' ')).toContain('flex-wrap');
+  });
+
+  it('lets a title without an aside wrap', () => {
+    render(
+      <Sheet open onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    expect(screen.getByRole('heading', { name: 'T' }).className.split(' ')).not.toContain(
+      'whitespace-nowrap',
+    );
+  });
+
   it('renders a subtitle under the title and describes the dialog with it', () => {
     render(
       <Sheet

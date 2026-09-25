@@ -232,6 +232,13 @@ describe('DealEndSheet, step 2', () => {
     );
     const pill = within(sheet).getByRole('button', { name: 'Купа' });
     expect(pill.textContent).toBe('♥Купа');
+    // It opens another sheet (the contract sheet), and never wraps the title under it.
+    expect(pill.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(
+      within(sheet)
+        .getByRole('heading', { name: S.pointsTitle(1) })
+        .className.split(' '),
+    ).toContain('whitespace-nowrap');
   });
 
   it('shows the no-trumps hint', () => {

@@ -91,15 +91,18 @@ export function DealEndSheet({ open, onClose, onChangeContract, onSaved }: DealE
 /** Step 2's contract pill (symbol + label); tapping it changes the contract. */
 function StepPill({ contract, onClick }: { contract: ContractKey; onClick: () => void }) {
   return (
+    // Tight (px-2, 13px label) so "Край на раздаване N" fits beside it at 390px; if it still
+    // can't, the Sheet wraps the pill below (ml-auto keeps it right-aligned there).
     <button
       type="button"
+      aria-haspopup="dialog"
       onClick={onClick}
-      className="flex h-10 shrink-0 items-center gap-1.5 rounded-[14px] border border-line bg-s2 px-3 text-sm font-extrabold transition-transform active:scale-95"
+      className="ml-auto flex h-10 shrink-0 items-center gap-1 whitespace-nowrap rounded-[14px] border border-line bg-s2 px-2 text-[13px] font-extrabold transition-transform active:scale-95"
     >
       <span
         aria-hidden
         className={cx(
-          'text-lg font-black leading-none',
+          'text-base font-black leading-none',
           RED_CONTRACTS.has(contract) && 'text-suit-red',
         )}
       >

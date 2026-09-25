@@ -160,7 +160,9 @@ describe('Table', () => {
   it('shows "Избери игра" without a contract, then the contract and caller', async () => {
     startMatch();
     renderRoute('/table');
-    expect(screen.getByRole('button', { name: S.pickContract })).toBeTruthy();
+    const pill = screen.getByRole('button', { name: S.pickContract });
+    // Never wraps: "Избери игра" stays on one line on the felt.
+    expect(pill.className.split(' ')).toContain('whitespace-nowrap');
 
     act(() => appStore.getState().setContract('hearts', 0));
 

@@ -4,7 +4,7 @@ import { STRINGS } from '../../core/strings';
 import { cx } from '../../ui/cx';
 
 const PILL =
-  'inline-flex h-10 max-w-full items-center gap-2 rounded-[20px] shadow-[0_6px_16px_oklch(0.08_0.02_50/0.5)] transition-transform active:scale-95';
+  'inline-flex h-10 max-w-full items-center gap-2 whitespace-nowrap rounded-[20px] shadow-[0_6px_16px_oklch(0.08_0.02_50/0.5)] transition-transform active:scale-95';
 
 /**
  * The 40px contract pill: "Избери игра" before a contract, else the suit symbol and
