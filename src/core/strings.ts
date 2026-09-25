@@ -4,7 +4,6 @@ export const STRINGS = {
   screens: {
     home: 'Белот',
     setup: 'Нова игра',
-    table: 'Маса',
     history: 'История на мача',
     end: 'Край на мача',
     stats: 'Класация',

@@ -96,6 +96,8 @@ export function dealVerdict(
   const defendingTeam = otherTeam(callingTeam);
   let text: string;
   if (score.verdict === 'inside') {
+    // raw.A + raw.B, not score.match: match includes the carried hang, appended below as
+    // " +N висящи" (prototype L911).
     text = STRINGS.deal.inside(teamName(defendingTeam), score.raw.A + score.raw.B);
   } else if (score.verdict === 'hang') {
     text = STRINGS.deal.hang(teamName(callingTeam), score.hangPoints);
