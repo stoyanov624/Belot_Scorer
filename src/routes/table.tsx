@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
+import { resumePath } from '../app/resume';
 import { allowedDeclarations } from '../core/declarations';
 import { dealer } from '../core/match';
 import type { Seat as SeatIndex } from '../core/model';
@@ -45,7 +46,9 @@ export function Table() {
   const southRef = useRef<HTMLButtonElement>(null);
   const westRef = useRef<HTMLButtonElement>(null);
 
-  if (!match) return <Navigate to="/" replace />;
+  // Only a playing match has a table: none goes Home, an ended one to its end screen.
+  const path = resumePath(match);
+  if (!match || path !== '/table') return <Navigate to={path ?? '/'} replace />;
 
   const anchors = [northRef, eastRef, southRef, westRef] as const;
   const playerAt = (seat: SeatIndex) => playerAtSeat(match, roster, seat);
@@ -130,7 +133,8 @@ export function Table() {
         onClose={() => setEndMatchOpen(false)}
         onEnded={() => {
           setEndMatchOpen(false);
-          navigate('/end');
+          // Replace: Back from the end screen must not return to a finished table.
+          navigate('/end', { replace: true });
         }}
       />
       <ContractSheet
@@ -152,7 +156,7 @@ export function Table() {
         }}
         onSaved={(ended) => {
           setDealEndOpen(false);
-          if (ended) navigate('/end');
+          if (ended) navigate('/end', { replace: true });
         }}
       />
     </div>

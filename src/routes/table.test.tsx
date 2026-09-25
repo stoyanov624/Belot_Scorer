@@ -422,3 +422,74 @@ describe('Deal-end sheet', () => {
     expect(appStore.getState().match?.status).toBe('ended');
   });
 });
+
+describe('Leaving the table', () => {
+  it('sends an ended match at /table on to /end', async () => {
+    startMatch();
+    saveHeartsDeal(10);
+    appStore.getState().endMatch();
+    const { router } = renderRoute('/table');
+
+    expect(
+      await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 }),
+    ).toBeTruthy();
+    expect(router.state.location.pathname).toBe('/end');
+  });
+
+  it('replaces the table in history after the manual end, so Back skips it', async () => {
+    startMatch();
+    saveHeartsDeal(10);
+    const { router } = renderRoute('/');
+    await userEvent.click(await screen.findByRole('link', { name: STRINGS.home.continueMatch }));
+    expect(router.state.location.pathname).toBe('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endMatch }));
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.endMatch.end }));
+    await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 });
+
+    await act(() => router.navigate(-1));
+
+    expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('replaces the table in history after a winning save, so Back skips it', async () => {
+    appStore
+      .getState()
+      .updateSettings({ rules: { ...appStore.getState().settings.rules, targetScore: 10 } });
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    const { router } = renderRoute('/');
+    await userEvent.click(await screen.findByRole('link', { name: STRINGS.home.continueMatch }));
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.click(screen.getByRole('button', { name: DS.save }));
+    await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 });
+
+    await act(() => router.navigate(-1));
+
+    expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('saves a capot deal without ending the match, even past the target', async () => {
+    appStore
+      .getState()
+      .updateSettings({ rules: { ...appStore.getState().settings.rules, targetScore: 10 } });
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    const { router } = renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    const [capoA] = screen.getAllByRole('button', { name: DS.capo });
+    if (!capoA) throw new Error('no capo button');
+    await userEvent.click(capoA);
+    await userEvent.click(screen.getByRole('button', { name: DS.save }));
+
+    const match = appStore.getState().match;
+    expect(match?.games).toHaveLength(1);
+    expect(match?.games[0]?.capo).toBe('A');
+    expect(match?.status).toBe('playing');
+    expect(screen.getByText('Раздаване 2')).toBeTruthy();
+    expect(router.state.location.pathname).toBe('/table');
+  });
+});
