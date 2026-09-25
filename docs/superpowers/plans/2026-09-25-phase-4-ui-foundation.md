@@ -60,7 +60,7 @@ Component tests are `*.test.tsx` files beside the component. The first line of e
   - `THEMES: Record<ThemeKey, ThemeTokens>`, `FELTS: Record<FeltKey, FeltTokens>`, `SUIT_RED`, `COLOR_TOKENS`, `themeVars(key: ThemeKey): Record<string, string>`. The keys are `--t-bg … --t-on` plus `--t-glow`.
   - `STRINGS` (a nested `as const` object).
 
-- [ ] **Step 1: Write the failing tests.** Create `src/core/tokens.test.ts`:
+- [x] **Step 1: Write the failing tests.** Create `src/core/tokens.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -93,9 +93,9 @@ describe('tokens', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to see it fail.** Run: `pnpm vitest run src/core/tokens.test.ts`. Expected: FAIL, because `./tokens` does not exist.
+- [x] **Step 2: Run the test to see it fail.** Run: `pnpm vitest run src/core/tokens.test.ts`. Expected: FAIL, because `./tokens` does not exist.
 
-- [ ] **Step 3: Create `src/core/tokens.ts`.** Leave out the prototype's `name`/`sub` fields: those are copy, and belong in `strings.ts`.
+- [x] **Step 3: Create `src/core/tokens.ts`.** Leave out the prototype's `name`/`sub` fields: those are copy, and belong in `strings.ts`.
 
 ```ts
 import type { FeltKey, ThemeKey } from './settings';
@@ -197,7 +197,7 @@ export function themeVars(key: ThemeKey): Record<string, string> {
 
 These values were generated from the prototype's `THEMES`/`FELTS`, which match the handoff table exactly. The `Record<ThemeKey, …>` type makes a missing theme a compile error.
 
-- [ ] **Step 4: Create `src/core/strings.ts`.** The screen titles below are taken from the handoff. `routeError.title` is the one string without handoff copy.
+- [x] **Step 4: Create `src/core/strings.ts`.** The screen titles below are taken from the handoff. `routeError.title` is the one string without handoff copy.
 
 ```ts
 /** Bulgarian UI copy. Core returns codes; the UI looks the words up here. */
@@ -226,9 +226,9 @@ export const STRINGS = {
 } as const;
 ```
 
-- [ ] **Step 5: Run the tests, then the gate.** Run `pnpm vitest run src/core/tokens.test.ts`, then `pnpm check`. Expected: PASS, and the core typecheck stays clean (neither file uses DOM types).
+- [x] **Step 5: Run the tests, then the gate.** Run `pnpm vitest run src/core/tokens.test.ts`, then `pnpm check`. Expected: PASS, and the core typecheck stays clean (neither file uses DOM types).
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add src/core/tokens.ts src/core/tokens.test.ts src/core/strings.ts
@@ -255,7 +255,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - Tailwind colours: `bg`, `s1`, `s2`, `s3`, `line`, `text`, `muted`, `a`, `b`, `on`, `suit-red`, `white`, used as `bg-s1`, `text-muted`, `border-line`, `bg-a`, `text-on`…
   - Font `font-sans` = Nunito.
 
-- [ ] **Step 1: Add the dependencies.**
+- [x] **Step 1: Add the dependencies.**
 
 ```bash
 pnpm add react-router @fontsource-variable/nunito
@@ -264,9 +264,9 @@ pnpm add -D happy-dom @testing-library/react @testing-library/dom @testing-libra
 
 Expected: `react-router` resolves to ^8, and its peer requirement (`react >=19.2.7`) is met by the installed React. Check with `pnpm ls react react-router`.
 
-- [ ] **Step 2: Let Vitest pick up component tests.** In `vite.config.ts`, change the include list to `['src/**/*.test.ts', 'src/**/*.test.tsx', 'test/**/*.test.ts']`. Leave `environment: 'node'`: DOM tests opt in per file with the docblock.
+- [x] **Step 2: Let Vitest pick up component tests.** In `vite.config.ts`, change the include list to `['src/**/*.test.ts', 'src/**/*.test.tsx', 'test/**/*.test.ts']`. Leave `environment: 'node'`: DOM tests opt in per file with the docblock.
 
-- [ ] **Step 3: Write the failing test.** Create `src/ui/theme.test.ts`:
+- [x] **Step 3: Write the failing test.** Create `src/ui/theme.test.ts`:
 
 ```ts
 // @vitest-environment happy-dom
@@ -316,9 +316,9 @@ describe('theme', () => {
 });
 ```
 
-- [ ] **Step 4: Run the test to see it fail.** Run: `pnpm vitest run src/ui/theme.test.ts`. Expected: FAIL, because `./theme` does not exist.
+- [x] **Step 4: Run the test to see it fail.** Run: `pnpm vitest run src/ui/theme.test.ts`. Expected: FAIL, because `./theme` does not exist.
 
-- [ ] **Step 5: Create `src/ui/theme.ts` and `src/ui/cx.ts`.**
+- [x] **Step 5: Create `src/ui/theme.ts` and `src/ui/cx.ts`.**
 
 ```ts
 // src/ui/theme.ts
@@ -355,7 +355,7 @@ export const cx = (...parts: (string | false | null | undefined)[]): string =>
   parts.filter(Boolean).join(' ');
 ```
 
-- [ ] **Step 6: Replace `src/index.css`.** Before writing, check the `@theme` / `@theme inline` / `--color-*: initial` syntax with context7 (`/tailwindlabs/tailwindcss.com`, "theme variables namespaces reset" and "@theme inline").
+- [x] **Step 6: Replace `src/index.css`.** Before writing, check the `@theme` / `@theme inline` / `--color-*: initial` syntax with context7 (`/tailwindlabs/tailwindcss.com`, "theme variables namespaces reset" and "@theme inline").
 
 ```css
 @import "tailwindcss";
@@ -424,9 +424,9 @@ dialog.sheet::backdrop {
 
 In `src/main.tsx`, add `import '@fontsource-variable/nunito';` above `import './index.css';`. Task 6 rewrites `main.tsx`, so keep this line then.
 
-- [ ] **Step 7: Run the tests and the gate.** Run `pnpm vitest run src/ui/theme.test.ts`, then `pnpm check`. Expected: PASS. Then run `pnpm build` and check that the built CSS contains `--color-s1` and no `--color-red-500`: `grep -c "color-red-500" dist/assets/*.css` prints `0`.
+- [x] **Step 7: Run the tests and the gate.** Run `pnpm vitest run src/ui/theme.test.ts`, then `pnpm check`. Expected: PASS. Then run `pnpm build` and check that the built CSS contains `--color-s1` and no `--color-red-500`: `grep -c "color-red-500" dist/assets/*.css` prints `0`.
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```bash
 git add package.json pnpm-lock.yaml vite.config.ts src/index.css src/main.tsx src/ui/theme.ts src/ui/theme.test.ts src/ui/cx.ts
@@ -448,7 +448,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `Chip(props: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: 'a' | 'b' | 'neutral'; selected?: boolean; size?: 'sm' | 'md' })`
   - `Segmented<T extends string | number>(props: { label: string; options: readonly { value: T; label: string }[]; value: T; onChange: (value: T) => void })`
 
-- [ ] **Step 1: Write the failing tests.** Create `src/ui/controls.test.tsx`:
+- [x] **Step 1: Write the failing tests.** Create `src/ui/controls.test.tsx`:
 
 ```tsx
 // @vitest-environment happy-dom
@@ -508,9 +508,9 @@ describe('Segmented', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to see them fail.** Run: `pnpm vitest run src/ui/controls.test.tsx`. Expected: FAIL, because the modules are missing.
+- [x] **Step 2: Run the tests to see them fail.** Run: `pnpm vitest run src/ui/controls.test.tsx`. Expected: FAIL, because the modules are missing.
 
-- [ ] **Step 3: Create the three components.** Sizes and radii come from the Global Constraints: md = 56px / radius 16, lg = 64px / radius 20; chips sm = 26px, md = 42px.
+- [x] **Step 3: Create the three components.** Sizes and radii come from the Global Constraints: md = 56px / radius 16, lg = 64px / radius 20; chips sm = 26px, md = 42px.
 
 ```tsx
 // src/ui/Button.tsx
@@ -627,9 +627,9 @@ export function Segmented<T extends string | number>({ label, options, value, on
 }
 ```
 
-- [ ] **Step 4: Run the tests and the gate.** Run `pnpm vitest run src/ui/controls.test.tsx`, then `pnpm check`. Expected: PASS. If Biome's a11y rules flag `role="radio"` on a `<button>` (for example `useSemanticElements`), keep the ARIA radio pattern: native radio inputs can't be styled this way without extra markup. Add a `biome-ignore` with that reason on the exact rule Biome names.
+- [x] **Step 4: Run the tests and the gate.** Run `pnpm vitest run src/ui/controls.test.tsx`, then `pnpm check`. Expected: PASS. If Biome's a11y rules flag `role="radio"` on a `<button>` (for example `useSemanticElements`), keep the ARIA radio pattern: native radio inputs can't be styled this way without extra markup. Add a `biome-ignore` with that reason on the exact rule Biome names.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/ui/Button.tsx src/ui/Chip.tsx src/ui/Segmented.tsx src/ui/controls.test.tsx
@@ -651,7 +651,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `Avatar(props: { name: string; emoji: string | null; photoUrl?: string | null; size: number; ring?: 'a' | 'b' | 'line' })`
   - `usePhotoUrl(photoId: string | null, photos: Pick<PhotoStore, 'get'>): string | null`. It creates an object URL for the Blob and revokes it when the id changes or the component unmounts.
 
-- [ ] **Step 1: Write the failing tests.** Create `src/ui/avatar.test.tsx`:
+- [x] **Step 1: Write the failing tests.** Create `src/ui/avatar.test.tsx`:
 
 ```tsx
 // @vitest-environment happy-dom
@@ -702,9 +702,9 @@ describe('usePhotoUrl', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to see them fail.** Run: `pnpm vitest run src/ui/avatar.test.tsx`. Expected: FAIL, because the modules are missing.
+- [x] **Step 2: Run the tests to see them fail.** Run: `pnpm vitest run src/ui/avatar.test.tsx`. Expected: FAIL, because the modules are missing.
 
-- [ ] **Step 3: Create the hook and the component.**
+- [x] **Step 3: Create the hook and the component.**
 
 ```ts
 // src/ui/usePhotoUrl.ts
@@ -768,9 +768,9 @@ export function Avatar({ name, emoji, photoUrl, size, ring = 'line' }: AvatarPro
 }
 ```
 
-- [ ] **Step 4: Run the tests and the gate.** Run `pnpm vitest run src/ui/avatar.test.tsx`, then `pnpm check`. Expected: PASS.
+- [x] **Step 4: Run the tests and the gate.** Run `pnpm vitest run src/ui/avatar.test.tsx`, then `pnpm check`. Expected: PASS.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/ui/Avatar.tsx src/ui/usePhotoUrl.ts src/ui/avatar.test.tsx
@@ -793,7 +793,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `popoverPosition(anchor: Rect, size: { width: number; height: number }, placement: Placement, viewport: { width: number; height: number }, gap?: number): { top: number; left: number }`
   - `Popover(props: { open: boolean; onClose: () => void; anchor: RefObject<HTMLElement | null>; placement: Placement; label: string; children: ReactNode })`
 
-- [ ] **Step 1: Write the failing position tests.** This is pure maths. Create `src/ui/popover-position.test.ts`:
+- [x] **Step 1: Write the failing position tests.** This is pure maths. Create `src/ui/popover-position.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -828,7 +828,7 @@ describe('popoverPosition', () => {
 
 Run `pnpm vitest run src/ui/popover-position.test.ts`. Expected: FAIL, because `./popover-position` does not exist.
 
-- [ ] **Step 2: Create `src/ui/popover-position.ts`.**
+- [x] **Step 2: Create `src/ui/popover-position.ts`.**
 
 ```ts
 export type Placement = 'below' | 'above' | 'right' | 'left';
@@ -868,7 +868,7 @@ export function popoverPosition(
 
 Run `pnpm vitest run src/ui/popover-position.test.ts`. Expected: PASS.
 
-- [ ] **Step 3: Write the failing overlay tests.** Create `src/ui/overlays.test.tsx`. Before writing it, check happy-dom's support: grep `node_modules/happy-dom` for `showModal` and `showPopover`. If `showPopover` is missing, replace the Popover test with a check that the element renders with `popover="auto"` and the label, and note it in your report.
+- [x] **Step 3: Write the failing overlay tests.** Create `src/ui/overlays.test.tsx`. Before writing it, check happy-dom's support: grep `node_modules/happy-dom` for `showModal` and `showPopover`. If `showPopover` is missing, replace the Popover test with a check that the element renders with `popover="auto"` and the label, and note it in your report.
 
 ```tsx
 // @vitest-environment happy-dom
@@ -926,7 +926,7 @@ describe('Popover', () => {
 });
 ```
 
-- [ ] **Step 4: Create `src/ui/Sheet.tsx`.** Use the native `<dialog>` (ADR 0008). Tapping `::backdrop` targets the dialog element itself, so the panel's content sits in an inner wrapper and only clicks whose target *is* the dialog close it. The native `close` event covers Esc and `dialog.close()`.
+- [x] **Step 4: Create `src/ui/Sheet.tsx`.** Use the native `<dialog>` (ADR 0008). Tapping `::backdrop` targets the dialog element itself, so the panel's content sits in an inner wrapper and only clicks whose target *is* the dialog close it. The native `close` event covers Esc and `dialog.close()`.
 
 ```tsx
 import { type ReactNode, useEffect, useId, useRef } from 'react';
@@ -975,7 +975,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
 
 If Biome names a different rule for the dialog's `onClick` (for example `noStaticElementInteractions` or `noNoninteractiveElementInteractions`), put the ignore on the rule it reports, with the same reason.
 
-- [ ] **Step 5: Create `src/ui/Popover.tsx`.** Use the native `popover="auto"`: light dismiss (tapping outside) and Esc close it and fire `toggle` with `newState: 'closed'`. Before the first paint, `useLayoutEffect` measures the card and places it with `popoverPosition`.
+- [x] **Step 5: Create `src/ui/Popover.tsx`.** Use the native `popover="auto"`: light dismiss (tapping outside) and Esc close it and fire `toggle` with `newState: 'closed'`. Before the first paint, `useLayoutEffect` measures the card and places it with `popoverPosition`.
 
 ```tsx
 import { type ReactNode, type RefObject, useLayoutEffect, useRef } from 'react';
@@ -1034,9 +1034,9 @@ export function Popover({ open, onClose, anchor, placement, label, children }: P
 
 If React 19's types reject `popover` or `onToggle` on a `div`, check `@types/react` for the supported prop names (`popover` is supported in React 19). Note the exact cast you needed in your report. `w-56` is 224px.
 
-- [ ] **Step 6: Run all overlay tests and the gate.** Run `pnpm vitest run src/ui`, then `pnpm check`. Expected: PASS.
+- [x] **Step 6: Run all overlay tests and the gate.** Run `pnpm vitest run src/ui`, then `pnpm check`. Expected: PASS.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add src/ui/Sheet.tsx src/ui/Popover.tsx src/ui/popover-position.ts src/ui/popover-position.test.ts src/ui/overlays.test.tsx
@@ -1066,9 +1066,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Before writing code, check with context7 (`/websites/reactrouter`, current version) the data-mode imports for v8: `createBrowserRouter`, `createMemoryRouter` and `RouteObject` from `react-router`, `RouterProvider` from `react-router/dom`, and the object form of `lazy: { Component: async () => … }`. Also check `node_modules/react-router/package.json` for the installed version.
 
-- [ ] **Step 1: Placeholder screens.** Each route file renders its title from `STRINGS.screens` as an `<h1 className="text-[32px] font-black">`. `home.tsx` and `table.tsx` export named components `Home` and `Table`, which load eagerly. The lazy ones (`setup`, `history`, `end`, `stats`) export `Component`. `home.tsx` also shows `PreloadLink`s to `/setup`, `/stats` and `/table` as `Button`-styled links (`className` from the secondary Button look, text = the target's screen title), so preload can be tried in the browser. Phase 5 replaces these bodies.
+- [x] **Step 1: Placeholder screens.** Each route file renders its title from `STRINGS.screens` as an `<h1 className="text-[32px] font-black">`. `home.tsx` and `table.tsx` export named components `Home` and `Table`, which load eagerly. The lazy ones (`setup`, `history`, `end`, `stats`) export `Component`. `home.tsx` also shows `PreloadLink`s to `/setup`, `/stats` and `/table` as `Button`-styled links (`className` from the secondary Button look, text = the target's screen title), so preload can be tried in the browser. Phase 5 replaces these bodies.
 
-- [ ] **Step 2: Write the failing router tests.** Create `src/app/router.test.tsx`:
+- [x] **Step 2: Write the failing router tests.** Create `src/app/router.test.tsx`:
 
 ```tsx
 // @vitest-environment happy-dom
@@ -1120,9 +1120,9 @@ describe('router', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to see them fail.** Run: `pnpm vitest run src/app`. Expected: FAIL, because the modules are missing.
+- [x] **Step 3: Run the tests to see them fail.** Run: `pnpm vitest run src/app`. Expected: FAIL, because the modules are missing.
 
-- [ ] **Step 4: Create the shell.**
+- [x] **Step 4: Create the shell.**
 
 ```tsx
 // src/app/routes.tsx
@@ -1226,7 +1226,7 @@ export function PreloadLink({ onPointerEnter, onFocus, ...props }: LinkProps) {
 
 `routes.tsx` imports `home.tsx`, which imports `PreloadLink`, which imports `routes.tsx`. The cycle is safe because `preloadRoute` is only called in event handlers. If Biome or the typecheck objects, move `LAZY_ROUTES` and `preloadRoute` into `src/app/lazy-routes.ts` and import them from both.
 
-- [ ] **Step 5: Rewrite `src/main.tsx` and delete `src/App.tsx`.**
+- [x] **Step 5: Rewrite `src/main.tsx` and delete `src/App.tsx`.**
 
 ```tsx
 import '@fontsource-variable/nunito';
@@ -1258,9 +1258,9 @@ void hydrateAppStore().then(() => {
 
 Run `git rm src/App.tsx`.
 
-- [ ] **Step 6: Run the tests, the gate and the build.** Run `pnpm vitest run src/app`, then `pnpm check`, then `pnpm build`. Expected: PASS. The build output lists separate JS chunks for `setup`, `history`, `end` and `stats`.
+- [x] **Step 6: Run the tests, the gate and the build.** Run `pnpm vitest run src/app`, then `pnpm check`, then `pnpm build`. Expected: PASS. The build output lists separate JS chunks for `setup`, `history`, `end` and `stats`.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add src/app src/routes src/main.tsx src/App.tsx
@@ -1281,7 +1281,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Consumes: every `src/ui` primitive, `useAppStore` and `photoStore` from `src/store/instance.ts`, `THEMES`, `FELTS`, `STRINGS`, `feltStyle`.
 - Produces: the route `/dev/ui`, present only when `import.meta.env.DEV`.
 
-- [ ] **Step 1: Build the gallery page** (`export function Component()`). It has one section per primitive, so the product owner and later tasks can compare the primitives against `docs/design-handoff/screens/png/`:
+- [x] **Step 1: Build the gallery page** (`export function Component()`). It has one section per primitive, so the product owner and later tasks can compare the primitives against `docs/design-handoff/screens/png/`:
   - **Theme switcher:** four `Chip`s labelled `STRINGS.themes[key].name`, `selected` for the current theme, `onClick` → `updateSettings({ theme })`. Select the current theme with a narrow selector: `useAppStore((s) => s.settings.theme)`.
   - **Felt swatches:** four 120×80 boxes, `rounded-[32px] border-[6px]`, `style={feltStyle(key)}`, labelled `STRINGS.felts[key]`.
   - **Buttons:** every variant in both sizes, plus one disabled.
@@ -1294,7 +1294,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
   UI state (sheet open, popover open) stays in the component. This page is a developer tool: its labels may mix English section headings with handoff copy.
 
-- [ ] **Step 2: Register it in DEV only.** In `src/app/routes.tsx`, add this to `LAZY_ROUTES` conditionally:
+- [x] **Step 2: Register it in DEV only.** In `src/app/routes.tsx`, add this to `LAZY_ROUTES` conditionally:
 
 ```ts
 ...(import.meta.env.DEV ? { '/dev/ui': () => import('../routes/dev-ui') } : {}),
@@ -1302,9 +1302,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 `lazyRoute` derives the path `dev/ui` from the key.
 
-- [ ] **Step 3: Check it builds without the gallery.** Run `pnpm check && pnpm build`, then `grep -l "Иван обявява" dist/assets/*.js || echo "not in production bundle"`. Expected: `not in production bundle`.
+- [x] **Step 3: Check it builds without the gallery.** Run `pnpm check && pnpm build`, then `grep -l "Иван обявява" dist/assets/*.js || echo "not in production bundle"`. Expected: `not in production bundle`.
 
-- [ ] **Step 4: Check it in a browser.** Run `pnpm dev`, open `/dev/ui` (the controller can use Playwright) and confirm:
+- [x] **Step 4: Check it in a browser.** Run `pnpm dev`, open `/dev/ui` (the controller can use Playwright) and confirm:
   - the four themes switch the page colours and glow;
   - the font is Nunito;
   - a sheet slides up, closes on an overlay tap and on Esc;
@@ -1313,7 +1313,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
   Take one screenshot per theme into the scratchpad for the report. Don't commit them.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add src/routes/dev-ui.tsx src/app/routes.tsx
@@ -1330,7 +1330,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `docs/adr/0008-native-dialog-and-popover-over-vaul.md`
 - Modify: `docs/superpowers/plans/2026-09-25-roadmap.md`, `docs/Home.md`, `docs/Status.md`, `docs/Backlog.md`, `docs/Architecture/Overview.md`, `docs/Architecture/Testing.md`
 
-- [ ] **Step 1: Write ADR 0008.**
+- [x] **Step 1: Write ADR 0008.**
 
 ```markdown
 # Sheets and popovers on the native dialog and popover APIs, not vaul
@@ -1347,7 +1347,7 @@ The roadmap planned bottom sheets on vaul. By Phase 4 vaul had seen no release s
 No swipe-down-to-dismiss (the spec doesn't ask for it). The sheet slide-in and popover fade are CSS keyframes in `src/index.css`, turned off under `prefers-reduced-motion`.
 ```
 
-- [ ] **Step 2: Update the other docs.**
+- [x] **Step 2: Update the other docs.**
   - **Roadmap:** in the Phase 4 row, replace "Sheet on vaul" with "Sheet on native `<dialog>` (ADR 0008)". Link this plan in the Plan column.
   - **Home:** list ADR 0008 under Decisions and this plan under Plans.
   - **Architecture/Overview:** describe the UI layer (`src/ui` primitives, `src/app` router shell, `src/routes` screens), and remove "Phase 4+" from the UI box.
@@ -1358,7 +1358,7 @@ No swipe-down-to-dismiss (the spec doesn't ask for it). The sheet slide-in and p
     - Remove the `strings.ts` gap.
   - **Backlog:** remove the done Phase 4 lines, and add anything the reviews deferred.
 
-- [ ] **Step 3: Verify and commit.**
+- [x] **Step 3: Verify and commit.**
 
 Run: `pnpm docs:check && pnpm check`
 Expected: both pass.
