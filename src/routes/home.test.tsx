@@ -3,9 +3,12 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { STRINGS } from '../core/strings';
+import { appStore } from '../store/instance';
 import { renderRoute, resetApp } from '../test/app';
 
 const S = STRINGS.home;
+
+const SEATS = ['p0', 'p1', 'p2', 'p3'] as const;
 
 beforeEach(() => {
   resetApp();
@@ -71,5 +74,33 @@ describe('Home', () => {
 
     const button = screen.getByRole('button', { name: S.share }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
+  });
+
+  it('shows no "Продължи мача" link without a match', () => {
+    renderRoute('/');
+
+    expect(screen.queryByRole('link', { name: S.continueMatch })).toBeNull();
+  });
+
+  it('shows "Продължи мача" to /table, above "Нова игра", for a playing match', () => {
+    appStore.getState().startMatch({ seats: [...SEATS], teamA: 'Ние', teamB: 'Вие', bestOf: 1 });
+
+    renderRoute('/');
+
+    const links = screen.getAllByRole('link');
+    const continueIndex = links.findIndex((l) => l.textContent === S.continueMatch);
+    const newGameIndex = links.findIndex((l) => l.textContent === S.newGame);
+    expect(continueIndex).toBeGreaterThanOrEqual(0);
+    expect(newGameIndex).toBeGreaterThan(continueIndex);
+    expect(screen.getByRole('link', { name: S.continueMatch }).getAttribute('href')).toBe('/table');
+  });
+
+  it('links "Продължи мача" to /end for an ended match', () => {
+    appStore.getState().startMatch({ seats: [...SEATS], teamA: 'Ние', teamB: 'Вие', bestOf: 1 });
+    appStore.getState().endMatch();
+
+    renderRoute('/');
+
+    expect(screen.getByRole('link', { name: S.continueMatch }).getAttribute('href')).toBe('/end');
   });
 });

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import type { BestOf, Player, Seat, Team } from '../core/model';
+import { totals } from '../core/match';
+import type { BestOf, Match, Player, Seat, Team } from '../core/model';
 import { assignSeat, draftFromSeats, isDraftComplete, type SeatDraft } from '../core/roster';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
@@ -39,6 +40,9 @@ export function Component() {
   const [pickSeat, setPickSeat] = useState<Seat | null>(null);
   const hintId = useId();
   const [registerSeat, setRegisterSeat] = useState<Seat | null>(null);
+  // The match a "Раздавай!" tap would replace, kept only while its confirmation is open
+  // (a sheet's form mounts only while the sheet is open).
+  const [replacing, setReplacing] = useState<Match | null>(null);
 
   const byId = new Map(roster.map((p) => [p.id, p]));
   const complete = isDraftComplete(draft);
@@ -46,7 +50,7 @@ export function Component() {
   const seatPlayer = (seat: Seat, playerId: string) =>
     setDraft((d) => assignSeat(d, seat, playerId));
 
-  const start = () => {
+  const beginMatch = () => {
     if (!isDraftComplete(draft)) return;
     startMatch({
       seats: draft,
@@ -55,6 +59,19 @@ export function Component() {
       bestOf,
     });
     navigate('/table');
+  };
+
+  const start = () => {
+    if (!isDraftComplete(draft)) return;
+    // Read fresh at click time: a match still playing with at least one saved deal needs
+    // confirmation before it's discarded (ADR 0011); a match with no deals, or an ended
+    // match already recorded on the leaderboard, is replaced at once.
+    const { match } = appStore.getState();
+    if (match && match.status === 'playing' && match.games.length > 0) {
+      setReplacing(match);
+      return;
+    }
+    beginMatch();
   };
 
   const teamCard = (team: Team) => (
@@ -151,6 +168,27 @@ export function Component() {
           if (registerSeat !== null) seatPlayer(registerSeat, playerId);
         }}
       />
+      <Sheet open={replacing !== null} onClose={() => setReplacing(null)} title={S.replaceTitle}>
+        {replacing !== null && (
+          <>
+            <p className="text-base font-semibold text-muted">
+              {S.replaceBody(totals(replacing).A, totals(replacing).B)}
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button onClick={() => setReplacing(null)}>{S.replaceCancel}</Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setReplacing(null);
+                  beginMatch();
+                }}
+              >
+                {S.replaceConfirm}
+              </Button>
+            </div>
+          </>
+        )}
+      </Sheet>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PreloadLink } from '../app/PreloadLink';
+import { resumePath } from '../app/resume';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { RegisterSheet } from '../features/players/RegisterSheet';
@@ -12,6 +13,8 @@ const S = STRINGS.home;
 export function Home() {
   const theme = useAppStore((s) => s.settings.theme);
   const roster = useAppStore((s) => s.roster);
+  // resumePath returns a primitive (or null), so this selector is stable across renders.
+  const resume = useAppStore((s) => resumePath(s.match));
   const [register, setRegister] = useState<{ playerId: string | null } | null>(null);
   const [themeOpen, setThemeOpen] = useState(false);
 
@@ -26,7 +29,12 @@ export function Home() {
       </header>
 
       <nav className="flex flex-col gap-2.5">
-        <PreloadLink to="/setup" className={buttonClass('primary', 'lg')}>
+        {resume && (
+          <PreloadLink to={resume} className={buttonClass('primary', 'lg')}>
+            {S.continueMatch}
+          </PreloadLink>
+        )}
+        <PreloadLink to="/setup" className={buttonClass(resume ? 'secondary' : 'primary', 'lg')}>
           {S.newGame}
         </PreloadLink>
         <div className="grid grid-cols-2 gap-2.5">

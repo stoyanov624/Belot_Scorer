@@ -2,6 +2,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { totals } from '../core/match';
 import type { Seats } from '../core/model';
 import { STRINGS } from '../core/strings';
 import { appStore } from '../store/instance';
@@ -186,5 +187,79 @@ describe('Setup', () => {
     await renderSetup();
 
     expect(screen.getByRole('link', { name: S.back }).getAttribute('href')).toBe('/');
+  });
+
+  it('confirms before replacing a playing match that has a saved deal', async () => {
+    const [ivo, geri, maria, petar] = seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    appStore.getState().startMatch({
+      seats: [ivo, geri, maria, petar] as Seats,
+      teamA: 'Стария',
+      teamB: 'Другия',
+      bestOf: 1,
+    });
+    appStore.getState().setContract('hearts', 0);
+    const saved = appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+    if (!saved.ok) throw new Error('setup failed');
+    const before = appStore.getState().match;
+    if (!before) throw new Error('setup failed');
+    const t = totals(before);
+
+    await renderSetup();
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+
+    expect(screen.getByRole('dialog', { name: S.replaceTitle })).toBeTruthy();
+    expect(screen.getByText(S.replaceBody(t.A, t.B))).toBeTruthy();
+
+    // "Отказ" keeps the old match untouched.
+    await userEvent.click(screen.getByRole('button', { name: S.replaceCancel }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(appStore.getState().match).toEqual(before);
+
+    // "Започни нов мач" replaces it and goes to the table.
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+    await userEvent.click(screen.getByRole('button', { name: S.replaceConfirm }));
+
+    expect(appStore.getState().match?.games).toHaveLength(0);
+    expect(appStore.getState().match?.status).toBe('playing');
+    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+  });
+
+  it('replaces a playing match with no saved deals without confirming', async () => {
+    const [ivo, geri, maria, petar] = seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    appStore.getState().startMatch({
+      seats: [ivo, geri, maria, petar] as Seats,
+      teamA: 'Стария',
+      teamB: 'Другия',
+      bestOf: 1,
+    });
+
+    await renderSetup();
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(appStore.getState().match?.games).toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
+  });
+
+  it('replaces an ended match without confirming', async () => {
+    const [ivo, geri, maria, petar] = seedPlayers(['Иво', 'Гери', 'Мария', 'Петър']);
+    appStore.getState().startMatch({
+      seats: [ivo, geri, maria, petar] as Seats,
+      teamA: 'Стария',
+      teamB: 'Другия',
+      bestOf: 1,
+    });
+    appStore.getState().setContract('hearts', 0);
+    const saved = appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+    if (!saved.ok) throw new Error('setup failed');
+    appStore.getState().endMatch();
+
+    await renderSetup();
+    await userEvent.click(screen.getByRole('button', { name: S.deal }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(appStore.getState().match?.status).toBe('playing');
+    expect(appStore.getState().match?.games).toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Маса' })).toBeTruthy();
   });
 });
