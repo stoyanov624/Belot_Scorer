@@ -4,7 +4,6 @@ import {
   type ContractKey,
   type DeclKey,
   type KareRank,
-  KareRankSchema,
   type Seat,
   type Team,
 } from './model';
@@ -41,7 +40,7 @@ export const CONTRACT_KIND: Record<ContractKey, ContractKind> = {
 export const RED_CONTRACTS: ReadonlySet<ContractKey> = new Set(['diamonds', 'hearts']);
 
 export const CARDS: readonly Card[] = CardSchema.options;
-export const KARE_RANKS: readonly KareRank[] = KareRankSchema.options;
+export const KARE_RANKS: readonly KareRank[] = ['Q', 'K', '10', 'A', '9', 'J'];
 
 export const SEQ_LENGTH = { terca: 3, kvarta: 4, kvinta: 5 } as const;
 /** Cards of a player's eight consumed by each declaration. Belot reuses cards. */
