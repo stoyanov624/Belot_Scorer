@@ -1,26 +1,80 @@
+import { useState } from 'react';
 import { PreloadLink } from '../app/PreloadLink';
 import { STRINGS } from '../core/strings';
+import { PlayerAvatar } from '../features/players/PlayerAvatar';
+import { RegisterSheet } from '../features/players/RegisterSheet';
+import { ThemeSheet } from '../features/settings/ThemeSheet';
+import { useAppStore } from '../store/instance';
+import { Button, buttonClass } from '../ui/Button';
 
-/** Matches Button's secondary/md look so these links read as buttons. */
-const LINK_CLASS =
-  'inline-flex min-h-11 h-14 items-center justify-center gap-2 rounded-2xl border border-line bg-s1 px-4 text-[17px] font-extrabold text-text transition-transform active:scale-[0.97]';
+const S = STRINGS.home;
 
-/** Placeholder body; Phase 5 replaces it. Links exist so preload can be tried in the browser. */
 export function Home() {
+  const theme = useAppStore((s) => s.settings.theme);
+  const roster = useAppStore((s) => s.roster);
+  const [register, setRegister] = useState<{ playerId: string | null } | null>(null);
+  const [themeOpen, setThemeOpen] = useState(false);
+
   return (
-    <>
-      <h1 className="text-[32px] font-black">{STRINGS.screens.home}</h1>
-      <nav className="flex flex-col gap-3">
-        <PreloadLink to="/setup" className={LINK_CLASS}>
-          {STRINGS.screens.setup}
+    <div className="flex flex-col gap-7 pt-6">
+      <header className="flex flex-col gap-2">
+        <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-team-a">
+          {STRINGS.themes[theme].name}
+        </p>
+        <h1 className="text-[64px] font-black leading-none">{STRINGS.appName}</h1>
+        <p className="text-base font-semibold text-muted">{S.subtitle}</p>
+      </header>
+
+      <nav className="flex flex-col gap-2.5">
+        <PreloadLink to="/setup" className={buttonClass('primary', 'lg')}>
+          {S.newGame}
         </PreloadLink>
-        <PreloadLink to="/stats" className={LINK_CLASS}>
-          {STRINGS.screens.stats}
-        </PreloadLink>
-        <PreloadLink to="/table" className={LINK_CLASS}>
-          {STRINGS.screens.table}
-        </PreloadLink>
+        <div className="grid grid-cols-2 gap-2.5">
+          <PreloadLink to="/stats" className={buttonClass('secondary', 'md')}>
+            {S.stats}
+          </PreloadLink>
+          <Button onClick={() => setThemeOpen(true)}>{S.theme}</Button>
+          <Button onClick={() => setRegister({ playerId: null })}>{S.newPlayer}</Button>
+          {/* Sharing arrives in Phase 6. */}
+          <Button disabled>{S.share}</Button>
+        </div>
       </nav>
-    </>
+
+      <section aria-labelledby="home-players" className="flex flex-col gap-3.5">
+        <div className="flex items-center justify-between text-[13px] font-extrabold uppercase tracking-[0.06em] text-muted">
+          <h2 id="home-players">{S.players}</h2>
+          <span>{roster.length}</span>
+        </div>
+        {roster.length === 0 ? (
+          <p className="rounded-[20px] border-2 border-dashed border-line p-6 text-center text-[15px] font-bold text-muted">
+            {S.empty}
+          </p>
+        ) : (
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-x-2.5 gap-y-3.5">
+            {roster.map((player) => (
+              <li key={player.id} className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setRegister({ playerId: player.id })}
+                  className="flex w-full flex-col items-center gap-1.5 transition-transform active:scale-95"
+                >
+                  <PlayerAvatar player={player} size={68} />
+                  <span className="w-full truncate text-center text-sm font-extrabold">
+                    {player.name}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <RegisterSheet
+        open={register !== null}
+        playerId={register?.playerId ?? null}
+        onClose={() => setRegister(null)}
+      />
+      <ThemeSheet open={themeOpen} onClose={() => setThemeOpen(false)} />
+    </div>
   );
 }
