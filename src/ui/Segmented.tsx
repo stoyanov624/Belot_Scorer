@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { cx } from './cx';
 
 export interface SegmentedProps<T extends string | number> {
@@ -23,10 +24,9 @@ export function Segmented<T extends string | number>({
       {options.map((option) => {
         const checked = option.value === value;
         return (
-          <>
+          <Fragment key={option.value}>
             {/* biome-ignore lint/a11y/useSemanticElements: ARIA radio pattern; native radio inputs can't be styled this way without extra markup */}
             <button
-              key={option.value}
               type="button"
               role="radio"
               aria-checked={checked}
@@ -38,7 +38,7 @@ export function Segmented<T extends string | number>({
             >
               {option.label}
             </button>
-          </>
+          </Fragment>
         );
       })}
     </div>
