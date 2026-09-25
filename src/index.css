@@ -1,1 +1,67 @@
 @import "tailwindcss";
+
+/* Only the design tokens exist as colours and fonts: no stray Tailwind palette. */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --font-sans: "Nunito Variable", system-ui, sans-serif;
+}
+
+/* Colours follow the --t-* variables that src/ui/theme.ts writes on <html> (ADR 0004). */
+@theme inline {
+  --color-bg: var(--t-bg);
+  --color-s1: var(--t-s1);
+  --color-s2: var(--t-s2);
+  --color-s3: var(--t-s3);
+  --color-line: var(--t-line);
+  --color-text: var(--t-text);
+  --color-muted: var(--t-muted);
+  --color-a: var(--t-a);
+  --color-b: var(--t-b);
+  --color-on: var(--t-on);
+  --color-suit-red: oklch(0.68 0.19 25);
+  --color-white: #fff;
+}
+
+@layer base {
+  html {
+    background-color: var(--t-bg);
+    background-image: var(--t-glow);
+    background-attachment: fixed;
+    color: var(--t-text);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    min-height: 100dvh;
+  }
+}
+
+/* Sheets and popovers: the only motion the spec allows besides the button press. */
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+dialog.sheet[open] {
+  animation: sheet-in 180ms ease-out;
+}
+dialog.sheet::backdrop {
+  background: oklch(0.1 0.02 50 / 0.6);
+}
+[popover].popover:popover-open {
+  animation: pop-in 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet[open],
+  [popover].popover:popover-open {
+    animation: none;
+  }
+}
