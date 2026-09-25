@@ -12,6 +12,9 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - `src/ui/Popover.tsx`: the anchor has no `aria-expanded`/`aria-controls`
 - `src/app/PreloadLink.tsx` preloads on hover/focus only; add touch (`pointerdown`) or idle preload
 - `/dev/ui` gallery has double horizontal padding (its own inside `RootLayout`'s)
+- `src/app/RouteError.tsx`: a per-route error inside `RootLayout` gets double side padding (its own `px-4` plus the layout's)
+- `src/ui/Sheet.tsx` / `src/ui/Popover.tsx`: closing and reopening an overlay within the same task can let the late `close`/`toggle` event close it again (guard reads the `open` prop; checking the element's live state would close the gap)
+- `src/ui/Segmented.tsx`: arrow keys call `preventDefault` even with a modifier held (e.g. Alt+ArrowLeft)
 - `src/routes/dev-ui.tsx` (the `/dev/ui` gallery): doesn't demo the `Avatar` photo variant (`photoStore` unused); its labels are Bulgarian literals outside `src/core/strings.ts` (accepted as a dev-tool carve-out)
 
 ## Phase 5: Screens
