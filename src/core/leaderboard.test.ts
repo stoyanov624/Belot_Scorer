@@ -72,4 +72,40 @@ describe('leaderboard', () => {
     const { players } = leaderboard([rec], []);
     expect(players.find((r) => r.key === 'p2')?.pts).toBe(0);
   });
+
+  it('resolves latest names and teamName by match date, not array order', () => {
+    const earlier: MatchRecord = {
+      ...rec,
+      id: 'm3',
+      date: 1,
+      seats: ['p1', 'p2', 'p3', 'p4'],
+      names: ['Иван', 'Петър', 'Мария', 'Жоро'],
+      teamA: 'Стари',
+      games: [{ decls: [] }],
+    };
+    const later: MatchRecord = {
+      ...rec,
+      id: 'm4',
+      date: 2,
+      seats: ['p1', 'p2', 'p3', 'p4'],
+      names: ['Иванчо', 'Петро', 'Маро', 'Жорчо'],
+      teamA: 'Нови',
+      games: [{ decls: [] }],
+    };
+    // Later record first in array, earlier record second
+    const { pairs, players } = leaderboard([later, earlier], roster);
+    const p1p3 = pairs.find((p) => p.key === 'p1|p3');
+    // Should use teamName from later-dated record (date: 2), not from array order
+    expect(p1p3?.teamName).toBe('Нови');
+    // p3 is not in roster, so should resolve to later name
+    const p3 = players.find((p) => p.key === 'p3');
+    expect(p3?.names).toEqual(['Маро']);
+  });
+
+  it('resolves missing player names from record', () => {
+    const { players } = leaderboard([rec], roster);
+    // p3 (Мария) is not in roster, should use record name
+    const p3 = players.find((p) => p.key === 'p3');
+    expect(p3?.names).toEqual(['Мария']);
+  });
 });

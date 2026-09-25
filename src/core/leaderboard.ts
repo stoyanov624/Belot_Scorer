@@ -47,7 +47,7 @@ export function leaderboard(
       .toSorted()
       .join('|');
 
-  for (const m of stats) {
+  for (const m of stats.toSorted((a, b) => a.date - b.date)) {
     const w: Team | null = m.totalA > m.totalB ? 'A' : m.totalB > m.totalA ? 'B' : null;
 
     m.seats.forEach((id, seat) => {
