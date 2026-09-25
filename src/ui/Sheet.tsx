@@ -22,6 +22,7 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
   const titleId = useId();
   const subtitleId = useId();
   const hasSubtitle = subtitle !== undefined && subtitle !== null;
+  const hasAside = aside !== undefined && aside !== null && aside !== false;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -54,7 +55,7 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
           className="flex flex-wrap items-start justify-between gap-x-2 gap-y-2.5"
         >
           <div className="flex min-w-0 grow basis-[min-content] flex-col gap-0.5">
-            <h2 id={titleId} className={cx('text-2xl font-black', aside && 'whitespace-nowrap')}>
+            <h2 id={titleId} className={cx('text-2xl font-black', hasAside && 'whitespace-nowrap')}>
               {title}
             </h2>
             {hasSubtitle && (
