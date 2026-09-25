@@ -6,9 +6,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 - `src/core/tokens.ts` test covers only the `casino` theme's `themeVars` output
 - `src/ui/Popover.tsx` doesn't reposition on resize/scroll
-- `src/routes/home.tsx` duplicates `Button` secondary classes for its links instead of reusing `Button`; when Home is rebuilt, export a `buttonClass(variant, size)` from `src/ui/Button.tsx` for link-styled buttons
 - `src/ui/Chip.tsx` is always a toggle (`aria-pressed`); there is no non-interactive badge component yet
-- `src/ui/Sheet.tsx` keeps its children mounted while closed, so form state persists across cancel and reopen
 - `src/ui/Popover.tsx`: the anchor has no `aria-expanded`/`aria-controls`
 - `src/app/PreloadLink.tsx` preloads on hover/focus only; add touch (`pointerdown`) or idle preload
 - `/dev/ui` gallery has double horizontal padding (its own inside `RootLayout`'s)
@@ -19,12 +17,20 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5: Screens
 
-- All screens from the handoff, plus RTL tests for the full Deal and Match flow
+- Remaining screens from the handoff (table, history, end, stats), plus RTL tests for the full Deal and Match flow
 - Failed-load screen: explain, offer "start fresh" via `resetData()` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md))
 - Save-error banner for `saveError`; decide whether a later successful write clears it
-- `src/core/strings.ts`: Bulgarian copy for every core code, including `in-match`, the `NameError`s and the `SaveDealError`s
-- Avatar component that loads photo Blobs from `photoStore` (object URLs)
+- `src/core/strings.ts`: Bulgarian copy for the remaining core codes — declaration resolution/scoring errors and `SaveDealError` (`in-match` and the `NameError`s are covered, added in 5a)
 - `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px and 4px at 100px (the spec only names 3px) — add a width option once real screens wire those sizes
+
+## Phase 5a: Home, players and setup
+
+- A started match is replaced without warning when "Раздавай!" is pressed again from setup, as in the prototype — `src/routes/setup.tsx`'s `start()` calls `startMatch` unconditionally once the draft is complete
+- `src/core/persisted.ts`: the `MIGRATIONS` JSDoc sits above the unrelated `V1State` schema instead of directly above `MIGRATIONS`
+- `src/ui/controls.test.tsx`'s `toContain('h-11')` assertion also matches `BASE`'s `min-h-11`, so it's weaker than it looks
+- `src/app/RootLayout.tsx`'s padding (`px-4 py-6` = 16/24px) doesn't match the handoff's home padding (`48px 20px 32px`) — sides 16 vs 20, bottom 24 vs 32
+- `src/routes/home.tsx`'s players section label has a `tracking-[0.06em]` not called for by the spec
+- `src/routes/setup.test.tsx` asserts a couple of sheet titles as Bulgarian literals (`'Място: Север'`, `'Нов играч'`) instead of via `STRINGS`
 
 ## Phase 6: Share & import
 
