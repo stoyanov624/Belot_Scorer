@@ -1,11 +1,15 @@
 // @vitest-environment happy-dom
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AVATAR_EMOJI } from '../../core/avatars';
-import { appStore } from '../../store/instance';
+import { appStore, photoStore } from '../../store/instance';
 import { resetApp } from '../../test/app';
 import { RegisterSheet } from './RegisterSheet';
+
+vi.mock('./crop-photo', () => ({
+  cropToJpeg: vi.fn(async () => new Blob(['x'], { type: 'image/jpeg' })),
+}));
 
 beforeEach(() => {
   resetApp();
@@ -98,6 +102,31 @@ describe('RegisterSheet', () => {
 
     expect(screen.getByText('Играчът е в текущия мач и не може да бъде изтрит.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Изтрий играча' })).toBeNull();
+  });
+
+  it('discards an upload that resolves after the form unmounts', async () => {
+    const removeSpy = vi.spyOn(photoStore, 'remove').mockResolvedValue(undefined);
+    let resolvePut: (id: string) => void = () => {};
+    const putSpy = vi.spyOn(photoStore, 'put').mockReturnValue(
+      new Promise<string>((resolve) => {
+        resolvePut = resolve;
+      }),
+    );
+
+    const { rerender } = render(<RegisterSheet open playerId={null} onClose={() => {}} />);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['x'], 'photo.png', { type: 'image/png' });
+    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+    fireEvent.change(fileInput);
+
+    // The crop/put pipeline is still pending; close the sheet (unmounts the form) before it settles.
+    await waitFor(() => expect(putSpy).toHaveBeenCalled());
+    rerender(<RegisterSheet open={false} playerId={null} onClose={() => {}} />);
+
+    resolvePut('photo1');
+    await waitFor(() => expect(removeSpy).toHaveBeenCalledWith('photo1'));
+    expect(appStore.getState().roster).toHaveLength(0);
   });
 
   it('closes without saving on cancel', async () => {

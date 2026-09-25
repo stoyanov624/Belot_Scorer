@@ -1,4 +1,4 @@
-import { type ChangeEvent, useId, useRef, useState } from 'react';
+import { type ChangeEvent, useEffect, useId, useRef, useState } from 'react';
 import { AVATAR_EMOJI, randomEmoji } from '../../core/avatars';
 import type { NameError } from '../../core/roster';
 import { STRINGS } from '../../core/strings';
@@ -59,10 +59,17 @@ function RegisterForm({
   const fileRef = useRef<HTMLInputElement>(null);
   const errorId = useId();
   const seated = existing !== null && (seats?.includes(existing.id) ?? false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   // A photo uploaded in this form but not saved would otherwise be orphaned.
   const discardUpload = () => {
-    if (photo && photo !== existing?.photo) void photoStore.remove(photo);
+    if (photo && photo !== existing?.photo) photoStore.remove(photo).catch(() => {});
   };
 
   const pickEmoji = (value: string) => {
@@ -77,6 +84,10 @@ function RegisterForm({
     if (!file) return;
     const { cropToJpeg } = await import('./crop-photo');
     const id = await photoStore.put(await cropToJpeg(file));
+    if (!mounted.current) {
+      photoStore.remove(id).catch(() => {});
+      return;
+    }
     discardUpload();
     setPhoto(id);
     setEmoji(null);
@@ -104,8 +115,10 @@ function RegisterForm({
 
   const remove = () => {
     if (!existing) return;
-    discardUpload();
-    if (removePlayer(existing.id).ok) onDone();
+    if (removePlayer(existing.id).ok) {
+      discardUpload();
+      onDone();
+    }
   };
 
   return (
