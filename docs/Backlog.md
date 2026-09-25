@@ -32,6 +32,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 - Resume/leave a match: on startup with a stored match, go to /table (playing) or /end (ended)? Does going Home or starting a new setup leave the match (`leaveMatch` has no caller yet; ADR 0010's 'until the match is left')? The prototype stores `screen` and resumes. Decide at the start of the 5b plan.
 - A started match is replaced without warning when "Раздавай!" is pressed again from setup, as in the prototype — `src/routes/setup.tsx`'s `start()` calls `startMatch` unconditionally once the draft is complete
+- `scoreDeal`, `resolve`, `declPoints` and `leaderboard` still default `rules` to `DEFAULT_RULES`; every match path passes `match.rules` today, but dropping the defaults would stop a future caller silently scoring with the wrong rules (ADR 0009)
 - RootLayout padding: decide per-screen padding with the table — `src/app/RootLayout.tsx`'s `px-4 py-6` (16/24px) doesn't match the handoff's home padding (`48px 20px 32px`)
 
 ## Phase 6: Share & import
@@ -48,6 +49,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Unassigned
 
+- `src/features/players/RegisterSheet.tsx` (dev only): a Fast Refresh edit that re-runs effects while an unsaved upload is pending deletes its blob while the form still shows it
 - One redundant write of the loaded document on every app start (zustand persist + the `hydration: 'ready'` update)
 - `memoryKv` stores references, not structured clones, so tests can't catch values IndexedDB would refuse
 - The rejecting-`set` store test uses a loose write-count bound (`<= 4`; the expected count is 2)

@@ -68,7 +68,7 @@ src/routes/setup.tsx                            new game + SeatSheet
 - Create: `docs/adr/0009-match-snapshots-rules.md`, `docs/adr/0010-seated-player-cannot-be-deleted.md`
 - Modify: `docs/Status.md`, `docs/Home.md`, `docs/superpowers/plans/2026-09-25-roadmap.md`
 
-- [ ] **Step 1: ADR 0009**
+- [x] **Step 1: ADR 0009**
 
 ```markdown
 # A match snapshots its scoring rules when it starts
@@ -82,7 +82,7 @@ Rules vary between groups of players, so the settings hold a full `RulesConfig`.
 - The leaderboard still scores recorded declarations with the current rules (match records don't carry rules). Revisit if groups start changing declaration points.
 ```
 
-- [ ] **Step 2: ADR 0010**
+- [x] **Step 2: ADR 0010**
 
 ```markdown
 # A player seated in the current match cannot be deleted
@@ -94,7 +94,7 @@ The handoff says deleting a player "frees the seats they sat on". That works in 
 The note text is not in the handoff; the placeholder is recorded in `docs/Status.md` for the product owner.
 ```
 
-- [ ] **Step 3: Status, Home, roadmap**
+- [x] **Step 3: Status, Home, roadmap**
   - `docs/Status.md`:
     - Remove the three answered open questions (rules snapshot, deleting a seated player, error-boundary copy): they're decided.
     - Add an open question: "Copy not in the handoff: the note shown instead of «Изтрий играча» for a seated player, and the accessible labels of the team-name fields — confirm the wording in `src/core/strings.ts`."
@@ -105,7 +105,7 @@ The note text is not in the handoff; the placeholder is recorded in `docs/Status
     - **5b:** Table: seats, declarations popover, contract sheet, deal end (resolution + points), clear/undo. Plan: later.
     - **5c:** History, match end + series, leaderboard, failed-load screen, save-error banner. Plan: later.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run: `pnpm docs:check`
 Expected: `docs links ok`.
@@ -133,7 +133,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `PERSIST_VERSION = 2`, and `MIGRATIONS[1]` (v1 → v2).
   - Store: `startMatch` snapshots `settings.rules`, and the store's `saveDeal` no longer passes rules.
 
-- [ ] **Step 1: Write the failing tests first.**
+- [x] **Step 1: Write the failing tests first.**
   - **`match.test.ts`:** add these, and change every `createMatch({ … targetScore: N })` to `createMatch({ … rules: { ...DEFAULT_RULES, targetScore: N } })`.
     - A match created with custom `rules` keeps them (`createMatch(...).rules` equals the input).
     - `saveDeal` scores with `match.rules`: a match whose `rules.declPoints.belot` is 3 records a Belot worth 3.
@@ -146,7 +146,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 Run: `pnpm vitest run src/core/match.test.ts src/core/persisted.test.ts src/store/match-actions.test.ts`
 Expected: FAIL (type errors and assertion failures).
 
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
   - **`model.ts`:** import `RulesConfigSchema` from `./rules`. Replace `targetScore: z.number().int().positive()` with `rules: RulesConfigSchema`, and update the doc comment ("Snapshotted from the settings when the match started (ADR 0009)").
   - **`match.ts`:**
     - `NewMatch` gets `rules: RulesConfig` instead of `targetScore`.
@@ -174,9 +174,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
 
   - **`match-actions.ts`:** `startMatch` → `createMatch({ ...opts, rules: get().settings.rules })`. The store `saveDeal` calls `saveDeal(match, input)`.
 
-- [ ] **Step 3: Run the tests, then the gate.** Run the three files, then `pnpm check`. Expected: PASS. Also run `grep -rn "targetScore" src test` and check that no stale uses remain outside `rules`, the migration and settings.
+- [x] **Step 3: Run the tests, then the gate.** Run the three files, then `pnpm check`. Expected: PASS. Also run `grep -rn "targetScore" src test` and check that no stale uses remain outside `rules`, the migration and settings.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add src/core/model.ts src/core/match.ts src/core/persisted.ts src/store/match-actions.ts src/core/match.test.ts src/core/persisted.test.ts src/store/match-actions.test.ts
@@ -202,7 +202,7 @@ Add any other test file you changed to the `git add` list.
   - `draftFromSeats(seats: Seats | null, known: (id: string) => boolean): SeatDraft`
   - `STRINGS.seats`, `STRINGS.home`, `STRINGS.register`, `STRINGS.setup`, `STRINGS.theme` (shapes below)
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```ts
 // src/core/avatars.test.ts
@@ -241,7 +241,7 @@ describe('draftFromSeats', () => {
 
 Run: `pnpm vitest run src/core/avatars.test.ts src/core/roster.test.ts`. Expected: FAIL.
 
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
 
 ```ts
 // src/core/avatars.ts
@@ -270,7 +270,7 @@ export function draftFromSeats(seats: Seats | null, known: (id: string) => boole
 }
 ```
 
-- [ ] **Step 3: Add the 5a copy to `src/core/strings.ts`.** Remove the "Not in the handoff: placeholder…" comment on `routeError`, because the copy is now final. Add these keys to `STRINGS`:
+- [x] **Step 3: Add the 5a copy to `src/core/strings.ts`.** Remove the "Not in the handoff: placeholder…" comment on `routeError`, because the copy is now final. Add these keys to `STRINGS`:
 
 ```ts
   /** Indexed by Seat: 0 North, 1 East, 2 South, 3 West. */
@@ -329,7 +329,7 @@ export function draftFromSeats(seats: Seats | null, known: (id: string) => boole
 
 `STRINGS` is `as const`, so `seriesOptions` values are the literals 1 | 3 | 5 | 7 and match `BestOf`. The functions are fine inside `as const`. The file is pure data, so core purity holds.
 
-- [ ] **Step 4: Run the tests and the gate, then commit.**
+- [x] **Step 4: Run the tests and the gate, then commit.**
 
 Run `pnpm vitest run src/core`, then `pnpm check`. Expected: PASS.
 
@@ -355,7 +355,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `renderRoute(path: string)`, which renders the app routes in a memory router
   - `resetApp()`, which resets the store to empty data and unlocks writes
 
-- [ ] **Step 1: Write the failing Button tests.** Append to `src/ui/controls.test.tsx`:
+- [x] **Step 1: Write the failing Button tests.** Append to `src/ui/controls.test.tsx`:
 
 ```tsx
 describe('buttonClass', () => {
@@ -373,7 +373,7 @@ describe('buttonClass', () => {
 
 Import `buttonClass` from `./Button`. Run it and see it fail.
 
-- [ ] **Step 2: Refactor `src/ui/Button.tsx`.** The sizes follow the spec:
+- [x] **Step 2: Refactor `src/ui/Button.tsx`.** The sizes follow the spec:
   - sm: 44px, radius 14, 15/800 (the back button)
   - md: 56px, radius 18, 17/800
   - lg: 64px, radius 20, 20/900
@@ -422,7 +422,7 @@ export function Button({ variant = 'secondary', size = 'md', type = 'button', cl
 
 Compare this with the current `Button.tsx` before replacing it. Keep any behaviour the current file has that this snippet lacks, and report the difference. Check that no existing caller passes a size/colour class that now conflicts: grep `<Button` in `src/`.
 
-- [ ] **Step 3: Screen-test support.**
+- [x] **Step 3: Screen-test support.**
   1. Check that `fake-indexeddb`'s latest version isn't hours old (`npm view fake-indexeddb time --json | tail -3`), then run `pnpm add -D fake-indexeddb`.
   2. In `src/test-setup.ts`, add `import 'fake-indexeddb/auto';` as the first line. It installs a global `indexedDB`, so `src/store/instance.ts` can load in happy-dom tests. Node-environment tests are unaffected.
   3. Create `src/test/app.tsx`:
@@ -448,7 +448,7 @@ export function renderRoute(path: string) {
 
   4. Add a smoke test `src/test/app.test.tsx` (happy-dom docblock). After `resetApp()` and `renderRoute('/')`, the heading "Белот" is shown and `appStore.getState().roster` is `[]`.
 
-- [ ] **Step 4: Run the tests and the gate, then commit.**
+- [x] **Step 4: Run the tests and the gate, then commit.**
 
 Run `pnpm vitest run src/ui src/test`, then `pnpm check`. Expected: PASS, with pristine output.
 
@@ -474,7 +474,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `cropToJpeg(file: Blob): Promise<Blob>` (192×192 JPEG q=0.8; lazy-loaded)
   - `RegisterSheet({ open, playerId, onClose, onSaved? })`. `playerId` null means a new player. `onSaved(id)` fires after a successful save.
 
-- [ ] **Step 1: Write the failing crop test.**
+- [x] **Step 1: Write the failing crop test.**
 
 ```ts
 // src/features/players/crop-photo.test.ts
@@ -492,7 +492,7 @@ describe('squareSource', () => {
 });
 ```
 
-- [ ] **Step 2: Create `crop-photo.ts` and `PlayerAvatar.tsx`.**
+- [x] **Step 2: Create `crop-photo.ts` and `PlayerAvatar.tsx`.**
 
 ```ts
 // src/features/players/crop-photo.ts
@@ -550,7 +550,7 @@ export function PlayerAvatar({
 
 `AvatarProps['ring']` is `'a' | 'b' | 'line'`.
 
-- [ ] **Step 3: Write the failing RegisterSheet tests.** Create `src/features/players/register-sheet.test.tsx` (happy-dom docblock). Call `resetApp()` in `beforeEach`. Render with `render(<RegisterSheet open playerId={…} onClose={onClose} onSaved={onSaved} />)`: the sheet doesn't need a router. Cases:
+- [x] **Step 3: Write the failing RegisterSheet tests.** Create `src/features/players/register-sheet.test.tsx` (happy-dom docblock). Call `resetApp()` in `beforeEach`. Render with `render(<RegisterSheet open playerId={…} onClose={onClose} onSaved={onSaved} />)`: the sheet doesn't need a router. Cases:
   1. **New player saves:** the title is "Нов играч". Type "Иво" into the textbox named "Име или прякор" and click "Запази". The roster then has one player named "Иво" with a non-null emoji from `AVATAR_EMOJI`, and `onSaved` and `onClose` are called.
   2. **Empty name:** clicking "Запази" with an empty name shows "Въведете име." (role alert) and saves nothing.
   3. **Duplicate name:** with "Иво" seeded via `appStore.getState().savePlayer`, typing "иво" and saving shows "Вече има играч с това име.".
@@ -561,7 +561,7 @@ export function PlayerAvatar({
 
 Run it and see it fail.
 
-- [ ] **Step 4: Create `RegisterSheet.tsx`.** The form mounts only while the sheet is open, so each open starts fresh (see the Overlay contract in the Architecture notes).
+- [x] **Step 4: Create `RegisterSheet.tsx`.** The form mounts only while the sheet is open, so each open starts fresh (see the Overlay contract in the Architecture notes).
 
 ```tsx
 import { type ChangeEvent, useId, useRef, useState } from 'react';
@@ -739,7 +739,7 @@ function RegisterForm({
 
 The Avatar ring keys are `'a' | 'b' | 'line'` (they map to the `team-a`/`team-b` classes).
 
-- [ ] **Step 5: Run the tests and the gate, then commit.** Run `pnpm vitest run src/features/players`, then `pnpm check`. Expected: PASS, with pristine output. Cropping itself (canvas) is verified in the browser in Task 9.
+- [x] **Step 5: Run the tests and the gate, then commit.** Run `pnpm vitest run src/features/players`, then `pnpm check`. Expected: PASS, with pristine output. Cropping itself (canvas) is verified in the browser in Task 9.
 
 ```bash
 git add src/features/players
@@ -758,7 +758,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `ThemeSheet({ open, onClose })`
 
-- [ ] **Step 1: Write the failing tests** (happy-dom, `resetApp()` in `beforeEach`).
+- [x] **Step 1: Write the failing tests** (happy-dom, `resetApp()` in `beforeEach`).
   1. With `open`, the dialog "Атмосфера" shows 4 theme buttons, named by theme name ("Кръчма" …), and 4 felt buttons ("Дърво" …). "Кръчма" and "Дърво" are `aria-pressed="true"`.
   2. Clicking "Късна нощ" sets `appStore.getState().settings.theme` to `'night'`.
   3. Clicking "Камък" sets `settings.felt` to `'stone'`.
@@ -766,7 +766,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
   Two names collide: the theme "Сукно" and the felt "Сукно". Query each inside its section: wrap each section in a `role="group"` with `aria-label` = the section title, and use `within(screen.getByRole('group', { name: 'Тема' }))`.
 
-- [ ] **Step 2: Create `ThemeSheet.tsx`.**
+- [x] **Step 2: Create `ThemeSheet.tsx`.**
 
 ```tsx
 import { FeltKeySchema, ThemeKeySchema } from '../../core/settings';
@@ -857,7 +857,7 @@ function ThemeForm({ onDone }: { onDone: () => void }) {
 
 The theme card's accessible name comes from its text (name plus subtitle), so query with a regex: `getByRole('button', { name: /Кръчма/ })`.
 
-- [ ] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/features/settings`, then `pnpm check`. Expected: PASS.
+- [x] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/features/settings`, then `pnpm check`. Expected: PASS.
 
 ```bash
 git add src/features/settings
@@ -878,7 +878,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Consumes: `PreloadLink`, `buttonClass`, `Button`, `PlayerAvatar`, `RegisterSheet`, `ThemeSheet`, `useAppStore`, `STRINGS`.
 - Produces: `Home`, the eager route component (keeps its name).
 
-- [ ] **Step 1: Write the failing tests** (`renderRoute('/')` after `resetApp()`):
+- [x] **Step 1: Write the failing tests** (`renderRoute('/')` after `resetApp()`):
   1. The heading "Белот", the theme label "Кръчма", the subtitle, and the empty state "Още няма регистрирани играчи." are shown, and the players count is `0`.
   2. "Нова игра" is a link to `/setup`, and "Класация" is a link to `/stats`.
   3. "Нов играч" opens the dialog "Нов играч". Saving "Иво" closes it and shows "Иво" in the players grid.
@@ -886,7 +886,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   5. "Тема" opens the dialog "Атмосфера".
   6. "Сподели / Внос" is disabled (sharing comes in Phase 6).
 
-- [ ] **Step 2: Replace `src/routes/home.tsx`.**
+- [x] **Step 2: Replace `src/routes/home.tsx`.**
 
 ```tsx
 import { useState } from 'react';
@@ -971,7 +971,7 @@ export function Home() {
 
 `STRINGS.appName` is "Белот". Check that `src/app/router.test.tsx` still passes: it looks for the home heading "Белот", which is still there.
 
-- [ ] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/routes src/app`, then `pnpm check`. Expected: PASS.
+- [x] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/routes src/app`, then `pnpm check`. Expected: PASS.
 
 ```bash
 git add src/routes/home.tsx src/routes/home.test.tsx
@@ -994,7 +994,7 @@ Add `src/app/router.test.tsx` to the `git add` list if you changed it.
 - Consumes: `draftFromSeats`, `assignSeat`, `isDraftComplete`, `SeatDraft` (core/roster), `Segmented`, `Sheet`, `Button`/`buttonClass`, `PlayerAvatar`, `RegisterSheet`, `appStore`/`useAppStore`, `STRINGS`, `useNavigate` and `Link` from `react-router`.
 - Produces: `Component`, the lazy setup route.
 
-- [ ] **Step 1: Write the failing tests** (`resetApp()`, then seed players via `appStore.getState().savePlayer`, then `renderRoute('/setup')` and `findBy…`):
+- [x] **Step 1: Write the failing tests** (`resetApp()`, then seed players via `appStore.getState().savePlayer`, then `renderRoute('/setup')` and `findBy…`):
   1. With no players, the heading "Нова игра", both team cards ("Ние"/"Вие" inputs, "Север · Юг"/"Изток · Запад") and four seat rows each reading "Избери играч" are shown. The hint "Изберете играч за всяко от 4-те места." is shown. "Раздавай!" has `aria-disabled="true"`, and clicking it creates no match.
   2. **Seat sheet:** with 4 players seeded, tapping the "Север" row opens the dialog "Място: Север". Choosing "Иво" closes it, and the North row shows "Иво".
   3. **Swap:** with "Иво" at North, opening "Изток" and choosing "Иво" moves "Иво" to East and empties North.
@@ -1004,7 +1004,7 @@ Add `src/app/router.test.tsx` to the `git add` list if you changed it.
   7. **Blank team name:** a team name left blank starts the match with the default "Ние"/"Вие".
   8. "← Начало" is a link to `/`.
 
-- [ ] **Step 2: Replace `src/routes/setup.tsx`.**
+- [x] **Step 2: Replace `src/routes/setup.tsx`.**
 
 ```tsx
 import { useState } from 'react';
@@ -1227,7 +1227,7 @@ Points to check against the code:
 - `STRINGS.seats[seat]` with `seat: Seat` is a tuple index, so it is always a string.
 - `(team === 'A' ? setTeamA : setTeamB)(value)` may trip Biome's style rules. If it does, write two plain `onChange` handlers.
 
-- [ ] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/routes`, then `pnpm check` and `pnpm build`. Expected: PASS, and `setup` is still its own chunk.
+- [x] **Step 3: Run the tests and the gate, then commit.** Run `pnpm vitest run src/routes`, then `pnpm check` and `pnpm build`. Expected: PASS, and `setup` is still its own chunk.
 
 ```bash
 git add src/routes/setup.tsx src/routes/setup.test.tsx
@@ -1243,14 +1243,14 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `docs/Status.md`, `docs/Backlog.md`, `docs/Architecture/Overview.md`, `docs/superpowers/plans/2026-09-25-roadmap.md`
 
-- [ ] **Step 1: Browser check** (controller, Playwright at 430×900; screenshots stay out of the repo). Do these in order:
+- [x] **Step 1: Browser check** (controller, Playwright at 430×900; screenshots stay out of the repo). Do these in order:
   1. On `/`, compare against `01-nachalen-ekran.png`.
   2. Register a player with an emoji, then one with an uploaded photo. Use any local JPEG, and check the avatar shows the cropped square.
   3. Open the "Тема" sheet and compare against `14-tema.png`. Switch the theme.
   4. On `/setup`, compare against `03-nova-igra.png`. Fill the seats, including a swap, start the match, and land on `/table`.
   5. Reload: the roster, theme and match survive.
   6. The console shows no errors apart from the known favicon 404.
-- [ ] **Step 2: Update the vault.**
+- [x] **Step 2: Update the vault.**
   - **Status:** 5a done; Next is the Phase 5b plan.
   - **Backlog:**
     - Remove the fixed items: the `buttonClass` export, and "Sheet keeps children mounted", which 5a resolves by mounting forms only while open.
@@ -1258,7 +1258,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     - Add "a started match is replaced without warning when 'Раздавай!' is pressed again from setup", as in the prototype.
   - **Architecture/Overview:** add `src/features/<area>/` to the layer table (shared screen components that may use the store). Note that `src/ui` stays store-free.
   - **Roadmap:** tick 5a.
-- [ ] **Step 3: Verify and commit.**
+- [x] **Step 3: Verify and commit.**
 
 Run: `pnpm docs:check && pnpm check`
 
