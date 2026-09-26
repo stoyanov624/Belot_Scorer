@@ -1,0 +1,102 @@
+import { describe, expect, it } from 'vitest';
+import {
+  addDeclaration,
+  createMatch,
+  endMatch,
+  nextMatch,
+  saveDeal,
+  setContract,
+  validDeclarationTotals,
+} from '../../core/match';
+import type { BestOf, Match, Seat, Team } from '../../core/model';
+import { DEFAULT_RULES } from '../../core/rules';
+import { endSummary } from './copy';
+
+const NAMES = ['Иван', 'Петър', 'Мария', 'Георги'] as const;
+const playerName = (seat: Seat) => NAMES[seat];
+const teamName = (t: Team) => (t === 'A' ? 'Ние' : 'Вие');
+
+const fresh = (bestOf: BestOf) =>
+  createMatch({
+    seats: ['p0', 'p1', 'p2', 'p3'],
+    teamA: 'Ние',
+    teamB: 'Вие',
+    bestOf,
+    rules: DEFAULT_RULES,
+  });
+
+const save = (m: Match, cardPointsA: number) => {
+  const r = saveDeal(m, { cardPointsA, capo: null });
+  if (!r.ok) throw new Error(r.error);
+  return r.match;
+};
+
+/** Two deals that leave team A ahead 22:12, with one valid declaration for team A. */
+function playAWinningDeals(m: Match): Match {
+  m = save(setContract(m, 'clubs', 0), 10); // a=10, b=6
+  m = setContract(m, 'clubs', 0);
+  m = addDeclaration(m, { id: `belot-${m.games.length}`, seat: 0, key: 'belot' });
+  m = save(m, 10); // a=12, b=6
+  return m;
+}
+
+describe('endSummary', () => {
+  it('reports a single match won by team A', () => {
+    let m = fresh(1);
+    m = playAWinningDeals(m);
+    m = endMatch(m);
+    const s = endSummary(m, playerName, teamName);
+
+    expect(s.line).toBe('Край на мача · 2 раздавания');
+    expect(s.winner).toBe('A');
+    expect(s.title).toBe('Ние печелят');
+    expect(s.winnerNames).toBe('Иван и Мария');
+    expect(s.pays).toBe('🍻 Вие черпят следващия рунд');
+    expect(s.isSeries).toBe(false);
+    expect(s.totals).toEqual({ A: 22, B: 12 });
+    expect(s.decls).toEqual({ A: 2, B: 0 });
+    expect(s.decls).toEqual(validDeclarationTotals(m.games, m.rules));
+  });
+
+  it('reports one match won within a series that is not yet decided', () => {
+    let m = fresh(3);
+    m = playAWinningDeals(m);
+    m = endMatch(m);
+    const s = endSummary(m, playerName, teamName);
+
+    expect(s.line).toBe('Край на мач 1 · 2 раздавания');
+    expect(s.title).toBe('Ние печелят мача');
+    expect(s.isSeries).toBe(true);
+    expect(s.seriesOver).toBe(false);
+    expect(s.nextNo).toBe(2);
+  });
+
+  it('reports a series-deciding win', () => {
+    let m1 = fresh(3);
+    m1 = playAWinningDeals(m1);
+    m1 = endMatch(m1); // series becomes A:1, B:0
+
+    let m2 = nextMatch(m1);
+    m2 = playAWinningDeals(m2);
+    m2 = endMatch(m2); // series becomes A:2, B:0 — decided
+
+    const s = endSummary(m2, playerName, teamName);
+    expect(s.title).toBe('Ние печелят серията');
+    expect(s.seriesOver).toBe(true);
+    expect(s.series).toEqual({ A: 2, B: 0 });
+  });
+
+  it('reports a tie with no winner and no title', () => {
+    let m = fresh(1);
+    m = save(setContract(m, 'clubs', 0), 16); // a=16, b=0
+    m = save(setContract(m, 'clubs', 1), 0); // a=0, b=16
+    m = endMatch(m);
+    const s = endSummary(m, playerName, teamName);
+
+    expect(s.winner).toBeNull();
+    expect(s.title).toBeNull();
+    expect(s.winnerNames).toBeNull();
+    expect(s.pays).toBeNull();
+    expect(s.totals).toEqual({ A: 16, B: 16 });
+  });
+});
