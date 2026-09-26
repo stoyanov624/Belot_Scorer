@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { fireEvent, screen } from '@testing-library/react';
-import { get, set } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PERSIST_VERSION } from '../core/persisted';
 import { STRINGS } from '../core/strings';
@@ -21,9 +21,14 @@ vi.mock('idb-keyval', async (importOriginal) => {
 
 const S = STRINGS.recovery;
 
-beforeEach(() => {
-  resetApp();
+beforeEach(async () => {
+  // Real `set` first, so the clearing writes below (and resetData's own write) land in the
+  // fake IndexedDB rather than through a previous test's mock; then wipe the state and backup
+  // keys so each test starts from nothing stored, not whatever the previous test left behind.
   vi.mocked(set).mockImplementation(realSet.fn);
+  await del(STORAGE_KEY);
+  await del(backupKey(STORAGE_KEY));
+  resetApp();
 });
 
 describe('RootLayout recovery', () => {
@@ -46,6 +51,8 @@ describe('RootLayout recovery', () => {
   });
 
   it('keeps the backup after a failed load and after resetData', async () => {
+    expect(await get(backupKey(STORAGE_KEY))).toBeUndefined();
+
     const bad = { version: PERSIST_VERSION, state: { roster: 'nope' } };
     await set(STORAGE_KEY, bad);
     await appStore.persist.rehydrate();
