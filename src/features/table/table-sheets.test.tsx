@@ -63,6 +63,21 @@ describe('Clear sheet', () => {
     expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull();
   });
 
+  it('closes on "Отказ" without touching the deal', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    appStore.getState().addDeclaration(0, 'terca');
+    renderRoute('/table');
+
+    await userEvent.click(screen.getByRole('button', { name: S.clear }));
+    const sheet = screen.getByRole('dialog', { name: CLEAR.title });
+    await userEvent.click(within(sheet).getByRole('button', { name: CLEAR.cancel }));
+
+    expect(appStore.getState().match?.contract).toBe('hearts');
+    expect(appStore.getState().match?.current).toHaveLength(1);
+    expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull();
+  });
+
   it('has no undo button with no saved deals', async () => {
     startMatch();
     renderRoute('/table');

@@ -52,6 +52,7 @@ function ClearForm({ onClose }: { onClose: () => void }) {
           {S.undo(savedCount)}
         </Button>
       )}
+      <Button onClick={onClose}>{S.cancel}</Button>
     </>
   );
 }

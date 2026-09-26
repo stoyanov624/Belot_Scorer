@@ -165,6 +165,8 @@ export const STRINGS = {
     body: 'Текущото раздаване започва наново: обявите и избраната игра се изтриват.',
     current: (n: number) => `Изчисти раздаване ${n}`,
     undo: (n: number) => `Изтрий последното записано раздаване (${n})`,
+    // From the prototype's clear sheet; README §7 omits it (product owner confirmed 2026-09-26).
+    cancel: 'Отказ',
   },
   endMatch: {
     title: 'Приключване на мача?',
