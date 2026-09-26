@@ -1,6 +1,6 @@
 # Phase 5c: History, Match End, Leaderboard and Recovery Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Finish the app's screens:
 - **History** (`/history`): the current match's deals, newest first, with the in-progress deal on top.
@@ -101,14 +101,14 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 - Store `clearStats(): void`: sets `stats: []` and touches nothing else.
 - `STRINGS.history`, `STRINGS.end`, `STRINGS.stats`, `STRINGS.recovery` (shapes below).
 
-- [ ] **Step 1: Failing tests.**
+- [x] **Step 1: Failing tests.**
   - `validDeclarationTotals`:
     - Deals with valid and invalid declarations for both teams sum only the valid ones.
     - Custom rules (belot 3) are respected.
     - With no games it returns `{A:0,B:0}`.
   - `clearStats`: after a recorded match, `stats` becomes `[]` and the roster and match are unchanged.
-- [ ] **Step 2: Implement both.**
-- [ ] **Step 3: Add the copy** (exact text from the handoff and prototype):
+- [x] **Step 2: Implement both.**
+- [x] **Step 3: Add the copy** (exact text from the handoff and prototype):
 
 ```ts
   history: {
@@ -166,7 +166,7 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 ```
 
   `stats.tabs` is the accessible name of the Segmented. It is not in the handoff; mark it as such. `end.names` is the prototype's "Иван и Мария". The history back label reuses the handoff's "← Назад".
-- [ ] **Step 4: Run the tests and the gate, then commit** as `feat(core): valid declaration totals, clear stats, 5c copy`.
+- [x] **Step 4: Run the tests and the gate, then commit** as `feat(core): valid declaration totals, clear stats, 5c copy`.
 
 ---
 
@@ -217,7 +217,7 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
   - `nextNo` = `series.A + series.B + 1`.
   - `line` uses `STRINGS.end.lineSeries(Math.max(series.A + series.B, 1), games)` in a series (prototype).
 
-- [ ] **Step 1: Failing tests** (node environment; build every fixture through core `createMatch` + `setContract` + `saveDeal` + `endMatch`, and resolve through `updateDeclaration`):
+- [x] **Step 1: Failing tests** (node environment; build every fixture through core `createMatch` + `setContract` + `saveDeal` + `endMatch`, and resolve through `updateDeclaration`):
   - **`historyEntries`:**
     - Newest first, with running totals.
     - Contract strings, with `red` true for hearts.
@@ -231,8 +231,8 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
     - A series-deciding win: "Ние печелят серията", `seriesOver: true`.
     - A tie: `winner: null`, `title: null`.
     - The declaration totals equal `validDeclarationTotals`.
-- [ ] **Step 2: Implement** (pure; reuse the table's `declLabel`/`contractLine`/`teamNameOf` and `STRINGS.contracts`).
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(history,end): pure history entries and match-end summary`.
+- [x] **Step 2: Implement** (pure; reuse the table's `declLabel`/`contractLine`/`teamNameOf` and `STRINGS.contracts`).
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(history,end): pure history entries and match-end summary`.
 
 ---
 
@@ -240,7 +240,7 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 
 **Files:** Modify `src/routes/history.tsx`. Create `src/routes/history.test.tsx`.
 
-- [ ] **Step 1: Failing tests** (`renderRoute('/history')`, state seeded through store actions):
+- [x] **Step 1: Failing tests** (`renderRoute('/history')`, state seeded through store actions):
   - **No match:** redirects to `/`.
   - **Header:** "История на мача" with a "← Назад" link to `/table` while playing, or to `/end` once ended.
   - **Score bar:** shows the team names, the totals and "до 151".
@@ -250,8 +250,8 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
   - **In-progress card:** "Раздаване 4 · в ход" appears while current declarations exist.
   - **Empty:** "Още няма приключени раздавания." shows with no deals and no current declarations.
   - **Header badge:** the table's "История" badge link still navigates here (existing table test).
-- [ ] **Step 2: Implement.** Use `historyEntries`/`currentEntry`, `playerAt` for names, and `teamNameOf`. Players are shown by name only; the mockup has no avatars. Use `<del>` for dropped declarations, which is semantic.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(history): match history screen`.
+- [x] **Step 2: Implement.** Use `historyEntries`/`currentEntry`, `playerAt` for names, and `teamNameOf`. Players are shown by name only; the mockup has no avatars. Use `<del>` for dropped declarations, which is semantic.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(history): match history screen`.
 
 ---
 
@@ -259,7 +259,7 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 
 **Files:** Modify `src/routes/end.tsx`. Create `src/routes/end.test.tsx`.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - **Redirects:** no match goes to `/`; a playing match goes to `/table`.
   - **Single match won by Ние:** shows the line, "Ние печелят", the winner names, "🍻 Вие черпят следващия рунд", the big score, "Обяви Ние"/"Обяви Вие" with the valid totals, and the buttons "Към началния екран", "История", "Реванш".
     - "Към началния екран" leaves the match (`match` becomes null) and navigates to `/`. Home then shows no "Продължи мача".
@@ -270,11 +270,11 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
   - **Series decided:** shows "Ние печелят серията" with the home/history/rematch buttons.
   - **Tie** (manual end at equal scores): shows "Равенство" and no winner avatars or pill.
   - **History:** the "История" link goes to `/history`, whose back link returns to `/end`.
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
   - Build it from `endSummary`.
   - Winner avatars are `PlayerAvatar` at 100px, `decorative` (the names are shown), ring in the team colour, overlapped with `-ml-4` on the second.
   - Store actions: `nextMatch`, `rematch`, `leaveMatch`. Navigate with `replace: true` to `/table`, since the end screen shouldn't stay in history once play resumes. Use a plain push to `/` after `leaveMatch`.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(end): match end screen with series and rematch`.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(end): match end screen with series and rematch`.
 
 ---
 
@@ -284,7 +284,7 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 
 **Interfaces:** `statsSub(row: LeaderRow, kind: 'players' | 'pairs'): string`. For pairs it's prefixed with `row.teamName + ' · '` when a team name exists, otherwise it's the plain sub line.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - **`statsSub`** (node environment, rows from core `leaderboard` over records built with `toMatchRecord` or through store actions): the players line and the pairs line with the team-name prefix.
   - **Screen, empty:** with no stats, the title, the hint with 0, the empty box, and no reset button.
   - **Screen, one recorded match** (play and end a match through store actions):
@@ -295,11 +295,11 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
   - **Pairs tab:** "По отбори" lists 2 pair rows named "Иван и Мария" (seats 0 and 2) with the team-name prefix and overlapped avatars.
   - **Reset:** the first press changes the label to the armed text and keeps the stats; the second press clears them (the empty box shows). Leaving the screen disarms it (arm state is local).
   - **Back:** "← Начало" links to `/`.
-- [ ] **Step 2: Implement.**
+- [x] **Step 2: Implement.**
   - Call `leaderboard(stats, roster, settings.rules)` in the render. It's pure; if cost ever matters, memoise it with the compiler, not with `useMemo`.
   - Avatars come from the roster by `playerIds`. A player no longer in the roster falls back to the row's name with no photo and no emoji (Avatar shows the initial).
   - The reset button is Button `dangerText`.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(stats): leaderboard with players and pairs`.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(stats): leaderboard with players and pairs`.
 
 ---
 
@@ -307,30 +307,30 @@ src/app/RootLayout.tsx (+test)           failed-load screen, save-error banner
 
 **Files:** Modify `src/app/RootLayout.tsx`. Create `src/app/root-layout.test.tsx`.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - **Failed load:** seed the failure the real way. Write an invalid document into fake IndexedDB under `STORAGE_KEY` (`belot-state`) with `idb-keyval`'s `set`, then call `appStore.persist.rehydrate()`, which yields `hydration: 'failed'` with the write gate closed.
     - `renderRoute('/')` shows the recovery title, body and "Започни наново" instead of Home.
     - Pressing it calls `resetData` (hydration becomes `ready`, data is empty) and Home appears.
     - The backup key still holds the invalid document.
   - **Save error:** simulate a write failure the real way if feasible (a store whose `set` rejects is how `app-store.test.ts` does it). With the shared instance, a spy on `idb-keyval`'s `set` rejecting once, followed by a store action, is acceptable. The banner text appears and doesn't cover the routes (the page heading is still present).
-- [ ] **Step 2: Implement** in `RootLayout`:
+- [x] **Step 2: Implement** in `RootLayout`:
   - Select `hydration` and `saveError`.
   - On `failed`, render the recovery screen (centred column, 24/900 title, 15/600 muted body, primary lg button) instead of `<Outlet />`.
   - When `saveError` is set, render the banner (`role="alert"`) above the outlet.
-- [ ] **Step 3: Run the tests and the gate, then commit** as `feat(app): failed-load recovery screen and save-error banner`.
+- [x] **Step 3: Run the tests and the gate, then commit** as `feat(app): failed-load recovery screen and save-error banner`.
 
 ---
 
 ### Task 7: Browser check and vault update
 
-- [ ] **Step 1: Browser check** (controller, Playwright at 390×844; screenshots stay out of the repo; state through the real UI or store actions only):
+- [x] **Step 1: Browser check** (controller, Playwright at 390×844; screenshots stay out of the repo; state through the real UI or store actions only):
   1. Play a bestOf-3 series to the end through the UI, comparing against `11-kray-na-mach.png` at each end screen: "Мач 2 →", then "Ние печелят серията", then "Реванш".
   2. Compare history after several deals (including a dropped tierce, inside, hanging and capot) against `10-istoriya.png`.
   3. Compare the leaderboard against `12`/`13`. Test the reset double press.
   4. "Към началния екран" leaves the match and Home shows no "Продължи мача".
   5. Recovery: write a corrupt document via DevTools/evaluate and reload. The recovery screen shows, and "Започни наново" recovers.
   6. The console shows no errors except the favicon 404.
-- [ ] **Step 2: Vault update.**
+- [x] **Step 2: Vault update.**
   - **Status:**
     - Done: 5c, with a summary. The app is feature-complete for a single device.
     - Next: the Phase 6 plan (share and import).

@@ -17,11 +17,9 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5: Screens
 
-- Remaining screens from the handoff (history, end, stats), plus RTL tests for the Match end flow
-- Failed-load screen: explain, offer "start fresh" via `resetData()` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md))
-- Save-error banner for `saveError`; decide whether a later successful write clears it
+- `saveError` never clears: decide whether a later successful write should hide the banner
 - `src/core/strings.ts`: no copy for `SaveDealError`'s `no-contract`/`match-ended` (the UI can't reach them today), and a failed save in the deal-end sheet is silent
-- `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px and 4px at 100px (the spec only names 3px) — add a width option once real screens wire those sizes
+- `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px (leaderboard) and 4px at 100px (end screen), both now wired — add a width option
 
 ## Phase 5a: Home, players and setup
 
@@ -37,9 +35,8 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5c: History and wrap
 
-- History needs helpers over the stored `Deal` (it keeps the inputs, not the `DealScore`): re-score each Deal with `match.rules` to show its rows
-- The end screen's «Към началния екран» must call `leaveMatch()`, or resume-on-start sends the player straight back to `/end`
-- Home's «Продължи мача» also shows for an ended match (it opens `/end`); decide its label or hide it once the end screen exists
+- Heading levels skip: history's deal cards and the leaderboard rows are `h3` directly under the `h1` (history's `h2` appears only while a deal is in progress)
+- `src/core/strings.ts`'s «Копие е запазено» in `recovery.body` overstates it slightly: `backUp` swallows write failures and keeps an older existing backup instead of the new bad document
 
 ## Phase 6: Share & import
 
