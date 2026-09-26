@@ -4,9 +4,6 @@ export const STRINGS = {
   screens: {
     home: 'Белот',
     setup: 'Нова игра',
-    history: 'История на мача',
-    end: 'Край на мача',
-    stats: 'Класация',
   },
   themes: {
     pub: { name: 'Кръчма', sub: 'бира и дим' },
@@ -215,7 +212,7 @@ export const STRINGS = {
     pairs: 'По отбори',
     // Not in the handoff: the accessible name of the players/pairs Segmented.
     tabs: 'Класация по',
-    // Second sentence is from the prototype; the handoff README has only the first.
+    // Both sentences are from the prototype; the handoff README has no empty-state copy here.
     empty: 'Още няма завършени мачове. Класацията се попълва след всеки приключен мач.',
     sub: (count: number, belots: number, wins: number, matches: number) =>
       `${count} обяви · ${belots} белота · ${wins}/${matches} победи`,

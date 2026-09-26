@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { totals } from '../core/match';
 import type { BestOf, Match, Player, Seat, Team } from '../core/model';
 import { assignSeat, draftFromSeats, isDraftComplete, type SeatDraft } from '../core/roster';
+import { seatsOf } from '../core/rules';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { RegisterSheet } from '../features/players/RegisterSheet';
@@ -13,7 +14,6 @@ import { Segmented } from '../ui/Segmented';
 import { Sheet } from '../ui/Sheet';
 
 const S = STRINGS.setup;
-const TEAM_SEATS: Record<Team, [Seat, Seat]> = { A: [0, 2], B: [1, 3] };
 
 /** Where setup starts: the last match's table (the same friends usually play again). */
 function initialSetup() {
@@ -98,7 +98,7 @@ export function Component() {
           {team === 'A' ? S.teamASeats : S.teamBSeats}
         </span>
       </header>
-      {TEAM_SEATS[team].map((seat) => (
+      {seatsOf(team).map((seat) => (
         <SeatRow
           key={seat}
           seat={seat}

@@ -25,7 +25,7 @@ describe('router', () => {
 
   it('lazy-loads a secondary screen', async () => {
     renderAt('/stats');
-    expect(await screen.findByRole('heading', { name: STRINGS.screens.stats })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: STRINGS.stats.title })).toBeTruthy();
   });
 
   it('shows the error boundary for an unknown path', async () => {

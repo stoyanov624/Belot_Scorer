@@ -16,6 +16,7 @@ import {
   resolutionCardLabel,
   resolutionErrors,
   resolutionLines,
+  seriesFormat,
   teamNameOf,
 } from './copy';
 
@@ -93,6 +94,15 @@ describe('headerLine', () => {
     const m: Match = { ...base, series: { A: 1, B: 0 } };
     expect(matchNumber(m)).toBe(2);
     expect(headerLine(m)).toBe('Мач 2 · серия 1:0 · 2 от 3');
+  });
+});
+
+describe('seriesFormat', () => {
+  it('looks up the series option label for a bestOf value', () => {
+    expect(seriesFormat(1)).toBe('1 мач');
+    expect(seriesFormat(3)).toBe('2 от 3');
+    expect(seriesFormat(5)).toBe('3 от 5');
+    expect(seriesFormat(7)).toBe('4 от 7');
   });
 });
 

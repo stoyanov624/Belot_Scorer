@@ -8,6 +8,7 @@ import {
   KARE_RANKS,
   otherTeam,
   RulesConfigSchema,
+  seatsOf,
   seqLength,
   teamOf,
   validTops,
@@ -24,6 +25,13 @@ describe('teams', () => {
     expect([0, 1, 2, 3].map((s) => teamOf(s as 0 | 1 | 2 | 3))).toEqual(['A', 'B', 'A', 'B']);
     expect(otherTeam('A')).toBe('B');
     expect(otherTeam('B')).toBe('A');
+  });
+});
+
+describe('seatsOf', () => {
+  it('gives each team its two seats in table order', () => {
+    expect(seatsOf('A')).toEqual([0, 2]);
+    expect(seatsOf('B')).toEqual([1, 3]);
   });
 });
 

@@ -1,5 +1,5 @@
 import type { MatchRecord, Player, Seat, Team } from './model';
-import { DEFAULT_RULES, declPoints, type RulesConfig, teamOf } from './rules';
+import { DEFAULT_RULES, declPoints, type RulesConfig, seatsOf, teamOf } from './rules';
 
 export interface LeaderRow {
   key: string;
@@ -13,8 +13,6 @@ export interface LeaderRow {
   matches: number;
   wins: number;
 }
-
-const SEATS_OF: Record<Team, [Seat, Seat]> = { A: [0, 2], B: [1, 3] };
 
 const newRow = (key: string, playerIds: string[]): LeaderRow => ({
   key,
@@ -42,7 +40,7 @@ export function leaderboard(
   const lastName = new Map<string, string>();
 
   const pairKey = (m: MatchRecord, team: Team) =>
-    SEATS_OF[team]
+    seatsOf(team)
       .map((s) => m.seats[s])
       .toSorted()
       .join('|');

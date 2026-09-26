@@ -76,6 +76,9 @@ export const DEAL_ORDER = [0, 3, 2, 1] as const satisfies readonly Seat[];
 export const teamOf = (seat: Seat): Team => (seat % 2 === 0 ? 'A' : 'B');
 export const otherTeam = (team: Team): Team => (team === 'A' ? 'B' : 'A');
 
+/** A team's two seats, in table order (North/South for A, East/West for B). */
+export const seatsOf = (team: Team): [Seat, Seat] => (team === 'A' ? [0, 2] : [1, 3]);
+
 export const isSequence = (key: DeclKey): key is keyof typeof SEQ_LENGTH => key in SEQ_LENGTH;
 export const seqLength = (key: DeclKey): number => (isSequence(key) ? SEQ_LENGTH[key] : 0);
 

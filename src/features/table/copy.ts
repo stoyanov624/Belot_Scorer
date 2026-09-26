@@ -4,7 +4,16 @@
  * resolves anything itself.
  */
 import { matchNumber } from '../../core/match';
-import type { Card, ContractKey, DeclKey, KareRank, Match, Seat, Team } from '../../core/model';
+import type {
+  BestOf,
+  Card,
+  ContractKey,
+  DeclKey,
+  KareRank,
+  Match,
+  Seat,
+  Team,
+} from '../../core/model';
 import type { Resolution } from '../../core/resolve';
 import {
   CONTRACT_KIND,
@@ -42,11 +51,15 @@ export function declOptionPoints(key: DeclKey, rules: RulesConfig): string {
   return min === max ? String(min) : `${min}+`;
 }
 
+/** The series format's label for a bestOf value, e.g. "2 от 3". */
+export function seriesFormat(bestOf: BestOf): string {
+  return STRINGS.setup.seriesOptions.find((o) => o.value === bestOf)?.label ?? '';
+}
+
 /** The table header: the target score for a single match, or the series line mid-series. */
 export function headerLine(m: Match): string {
   if (m.bestOf === 1) return STRINGS.table.headerSingle(m.rules.targetScore);
-  const format = STRINGS.setup.seriesOptions.find((o) => o.value === m.bestOf)?.label ?? '';
-  return STRINGS.table.headerSeries(matchNumber(m), m.series.A, m.series.B, format);
+  return STRINGS.table.headerSeries(matchNumber(m), m.series.A, m.series.B, seriesFormat(m.bestOf));
 }
 
 /** The contract pill's text once a contract and caller are chosen, else null. */
