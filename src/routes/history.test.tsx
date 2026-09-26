@@ -131,9 +131,9 @@ describe('History', () => {
     await renderHistory();
 
     const dropped = screen.getByText('Терца до 9');
-    expect(dropped.tagName).toBe('DEL');
+    expect(dropped.closest('del')).not.toBeNull();
     const kept = screen.getByText('Терца до K');
-    expect(kept.tagName).not.toBe('DEL');
+    expect(kept.closest('del')).toBeNull();
   });
 
   it('shows "Без обяви" for a deal with no declarations', async () => {

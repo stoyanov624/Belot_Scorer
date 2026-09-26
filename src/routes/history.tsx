@@ -13,12 +13,6 @@ import { cx } from '../ui/cx';
 
 const S = STRINGS.history;
 
-/** Splits a copy-built contract line ("♥ Купа · Иван") into its leading symbol and the rest. */
-function splitContractLine(line: string): [string, string] {
-  const i = line.indexOf(' ');
-  return i === -1 ? [line, ''] : [line.slice(0, i), line.slice(i + 1)];
-}
-
 /** The match history screen (§9): a score bar, the in-progress deal, then past deals newest first. */
 export function Component() {
   const match = useAppStore((s) => s.match);
@@ -29,7 +23,7 @@ export function Component() {
   const playerName = (seat: Seat) => playerAt(match, roster, seat).name;
   const teamName = teamNameOf(match);
   const entries = historyEntries(match, playerName, teamName);
-  const current = currentEntry(match, playerName);
+  const current = currentEntry(match);
   const score = totals(match);
   const backTo = resumePath(match) ?? '/';
 
@@ -56,7 +50,7 @@ export function Component() {
         <section className="flex flex-col gap-2 rounded-[20px] border border-dashed border-line p-4">
           <h2 className="text-[15px] font-extrabold text-muted">{S.inProgress(current.no)}</h2>
           {current.decls.map((row) => (
-            <DeclRow key={`${row.seat}-${row.label}`} row={row} name={playerName(row.seat)} />
+            <DeclRow key={row.id} row={row} name={playerName(row.seat)} />
           ))}
         </section>
       )}
@@ -67,40 +61,35 @@ export function Component() {
         </p>
       )}
 
-      {entries.map((entry) => {
-        const [sym, rest] = splitContractLine(entry.contract);
-        return (
-          <section key={entry.no} className="flex flex-col gap-2.5 rounded-[20px] bg-s1 p-4">
-            <div className="flex items-baseline justify-between gap-2.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <h3 className="flex-none text-[17px] font-black">{S.deal(entry.no)}</h3>
-                <p className="truncate text-[13px] font-extrabold text-muted">
-                  <span aria-hidden className={cx(entry.red && 'text-suit-red')}>
-                    {sym}
-                  </span>{' '}
-                  {rest}
-                </p>
-              </div>
-              <p className="shrink-0 text-[15px] font-extrabold tabular-nums">
-                <span className="text-team-a">{entry.a}</span> :{' '}
-                <span className="text-team-b">{entry.b}</span>
+      {entries.map((entry) => (
+        <section key={entry.no} className="flex flex-col gap-2.5 rounded-[20px] bg-s1 p-4">
+          <div className="flex items-baseline justify-between gap-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <h3 className="flex-none text-base font-black">{S.deal(entry.no)}</h3>
+              <p className="truncate text-[13px] font-extrabold text-muted">
+                <span aria-hidden className={cx(entry.red && 'text-suit-red')}>
+                  {entry.contract.sym}
+                </span>{' '}
+                {entry.contract.rest}
               </p>
             </div>
+            <p className="shrink-0 text-[15px] font-extrabold tabular-nums">
+              <span className="text-team-a">{entry.a}</span> :{' '}
+              <span className="text-team-b">{entry.b}</span>
+            </p>
+          </div>
 
-            {entry.decls.length === 0 ? (
-              <p className="text-sm font-semibold text-muted">{S.noDecls}</p>
-            ) : (
-              entry.decls.map((row) => (
-                <DeclRow key={`${row.seat}-${row.label}`} row={row} name={playerName(row.seat)} />
-              ))
-            )}
+          {entry.decls.length === 0 ? (
+            <p className="text-sm font-semibold text-muted">{S.noDecls}</p>
+          ) : (
+            entry.decls.map((row) => <DeclRow key={row.id} row={row} name={playerName(row.seat)} />)
+          )}
 
-            {entry.notes && <p className="text-[13px] font-black text-team-b">{entry.notes}</p>}
+          {entry.notes && <p className="text-[13px] font-black text-team-b">{entry.notes}</p>}
 
-            <p className="text-xs font-bold text-muted">{S.runningTotal(entry.runA, entry.runB)}</p>
-          </section>
-        );
-      })}
+          <p className="text-xs font-bold text-muted">{S.runningTotal(entry.runA, entry.runB)}</p>
+        </section>
+      ))}
     </div>
   );
 }
@@ -126,8 +115,11 @@ function DeclRow({ row, name }: { row: HistoryDeclRow; name: string }) {
     <div className="flex items-center gap-2.5 text-[15px]">
       {dot}
       <span className="flex-1 font-bold">{name}</span>
-      <del className="font-extrabold opacity-50">{row.label}</del>
-      <del className="w-10 text-right font-bold text-muted opacity-50">{row.points}</del>
+      {/* One `<del>` around both label and points, so assistive tech announces the drop once. */}
+      <del className="flex items-center gap-2.5 font-extrabold opacity-50">
+        <span>{row.label}</span>
+        <span className="w-10 text-right font-bold text-muted">{row.points}</span>
+      </del>
     </div>
   );
 }

@@ -87,21 +87,21 @@ describe('historyEntries', () => {
     ]);
   });
 
-  it('builds the contract line with its symbol, red only for red suits', () => {
+  it('builds the contract as a separate symbol and rest, red only for red suits', () => {
     const deal2 = entries.find((e) => e.no === 2);
-    expect(deal2?.contract).toBe('♥ Купа · Иван');
+    expect(deal2?.contract).toEqual({ sym: '♥', rest: 'Купа · Иван' });
     expect(deal2?.red).toBe(true);
 
     const deal1 = entries.find((e) => e.no === 1);
-    expect(deal1?.contract).toBe('♣ Спатия · Петър');
+    expect(deal1?.contract).toEqual({ sym: '♣', rest: 'Спатия · Петър' });
     expect(deal1?.red).toBe(false);
   });
 
-  it('marks a dropped declaration invalid', () => {
+  it('marks a dropped declaration invalid, with a stable index-based id', () => {
     const deal2 = entries.find((e) => e.no === 2);
     expect(deal2?.decls).toEqual([
-      { seat: 0, team: 'A', label: 'Терца до K', points: 2, valid: true },
-      { seat: 1, team: 'B', label: 'Терца до 9', points: 2, valid: false },
+      { id: 0, seat: 0, team: 'A', label: 'Терца до K', points: 2, valid: true },
+      { id: 1, seat: 1, team: 'B', label: 'Терца до 9', points: 2, valid: false },
     ]);
   });
 
@@ -131,7 +131,7 @@ describe('historyEntries', () => {
 describe('currentEntry', () => {
   it('is null when there are no current declarations', () => {
     const m = fresh();
-    expect(currentEntry(m, playerName)).toBeNull();
+    expect(currentEntry(m)).toBeNull();
   });
 
   it('shows one entry per current declaration, all valid', () => {
@@ -141,11 +141,11 @@ describe('currentEntry', () => {
     m = addDeclaration(m, { id: 'c2', seat: 3, key: 'kare' });
     m = updateDeclaration(m, 'c2', { rank: 'J' });
 
-    expect(currentEntry(m, playerName)).toEqual({
+    expect(currentEntry(m)).toEqual({
       no: 1,
       decls: [
-        { seat: 0, team: 'A', label: 'Белот', points: 2, valid: true },
-        { seat: 3, team: 'B', label: 'Каре J', points: 20, valid: true },
+        { id: 0, seat: 0, team: 'A', label: 'Белот', points: 2, valid: true },
+        { id: 1, seat: 3, team: 'B', label: 'Каре J', points: 20, valid: true },
       ],
     });
   });
@@ -154,6 +154,6 @@ describe('currentEntry', () => {
     let m = buildMatch();
     m = setContract(m, 'hearts', 0);
     m = addDeclaration(m, { id: 'c3', seat: 0, key: 'belot' });
-    expect(currentEntry(m, playerName)?.no).toBe(7);
+    expect(currentEntry(m)?.no).toBe(7);
   });
 });

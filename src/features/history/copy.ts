@@ -10,6 +10,8 @@ import { STRINGS } from '../../core/strings';
 import { contractLine, declLabel } from '../table/copy';
 
 export interface HistoryDeclRow {
+  /** Stable within one deal's rows — an index, since recorded declarations carry no id. */
+  id: number;
   seat: Seat;
   team: Team;
   label: string;
@@ -23,7 +25,7 @@ export interface HistoryEntry {
   b: number;
   runA: number;
   runB: number;
-  contract: string;
+  contract: { sym: string; rest: string };
   red: boolean;
   decls: HistoryDeclRow[];
   notes: string;
@@ -39,7 +41,8 @@ interface DeclLike {
 
 /** The declaration rows shown on a deal card or the in-progress card. */
 function declRows(decls: readonly DeclLike[], rules: Match['rules']): HistoryDeclRow[] {
-  return decls.map((d) => ({
+  return decls.map((d, i) => ({
+    id: i,
     seat: d.seat,
     team: teamOf(d.seat),
     label: declLabel(d),
@@ -69,14 +72,16 @@ export function historyEntries(
   const entries = match.games.map((g, i): HistoryEntry => {
     runA += g.a;
     runB += g.b;
-    const rest = contractLine({ contract: g.contract, caller: g.caller }, playerName);
+    // Deal.contract/.caller are always set on a recorded deal, unlike the in-progress
+    // Match.contract/.caller that contractLine also serves.
+    const rest = contractLine({ contract: g.contract, caller: g.caller }, playerName) ?? '';
     return {
       no: i + 1,
       a: g.a,
       b: g.b,
       runA,
       runB,
-      contract: rest === null ? '' : `${STRINGS.contracts[g.contract].sym} ${rest}`,
+      contract: { sym: STRINGS.contracts[g.contract].sym, rest },
       red: RED_CONTRACTS.has(g.contract),
       decls: declRows(g.decls, match.rules),
       notes: dealNotes(g, teamName),
@@ -93,7 +98,6 @@ export interface CurrentEntry {
 /** The in-progress deal's card: null once there are no declarations yet to show. */
 export function currentEntry(
   match: Pick<Match, 'current' | 'games' | 'rules'>,
-  _playerName: (seat: Seat) => string,
 ): CurrentEntry | null {
   if (match.current.length === 0) return null;
   return {
