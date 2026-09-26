@@ -417,9 +417,7 @@ describe('Deal-end sheet', () => {
     await userEvent.type(screen.getByLabelText('Ние'), '10');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
 
-    expect(
-      await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 }),
-    ).toBeTruthy();
+    expect(await screen.findByRole('button', { name: STRINGS.end.rematch })).toBeTruthy();
     expect(router.state.location.pathname).toBe('/end');
     expect(appStore.getState().match?.status).toBe('ended');
   });
@@ -432,9 +430,7 @@ describe('Leaving the table', () => {
     appStore.getState().endMatch();
     const { router } = renderRoute('/table');
 
-    expect(
-      await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 }),
-    ).toBeTruthy();
+    expect(await screen.findByRole('button', { name: STRINGS.end.rematch })).toBeTruthy();
     expect(router.state.location.pathname).toBe('/end');
   });
 
@@ -447,7 +443,7 @@ describe('Leaving the table', () => {
 
     await userEvent.click(screen.getByRole('button', { name: S.endMatch }));
     await userEvent.click(screen.getByRole('button', { name: STRINGS.endMatch.end }));
-    await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 });
+    await screen.findByRole('button', { name: STRINGS.end.rematch });
 
     await act(() => router.navigate(-1));
 
@@ -466,7 +462,7 @@ describe('Leaving the table', () => {
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
     await userEvent.type(screen.getByLabelText('Ние'), '10');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
-    await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 });
+    await screen.findByRole('button', { name: STRINGS.end.rematch });
 
     await act(() => router.navigate(-1));
 

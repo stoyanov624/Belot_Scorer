@@ -140,9 +140,7 @@ describe('End-match sheet', () => {
     await userEvent.click(within(sheet).getByRole('button', { name: END.end }));
 
     expect(appStore.getState().match?.status).toBe('ended');
-    expect(
-      await screen.findByRole('heading', { name: STRINGS.screens.end, level: 1 }),
-    ).toBeTruthy();
+    expect(await screen.findByRole('button', { name: STRINGS.end.rematch })).toBeTruthy();
     expect(router.state.location.pathname).toBe('/end');
   });
 
