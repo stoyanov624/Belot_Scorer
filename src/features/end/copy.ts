@@ -24,7 +24,7 @@ export interface EndSummary {
 }
 
 /** Seats of the winning team's two players, in table order. */
-const winnerSeats = (t: Team): [Seat, Seat] => (t === 'A' ? [0, 2] : [1, 3]);
+export const winnerSeats = (t: Team): [Seat, Seat] => (t === 'A' ? [0, 2] : [1, 3]);
 
 /** The match-end screen's text and numbers, following the prototype's `endLine`/`winTitle`. */
 export function endSummary(

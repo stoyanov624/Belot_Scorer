@@ -3,7 +3,7 @@ import { PreloadLink } from '../app/PreloadLink';
 import { resumePath } from '../app/resume';
 import type { Seat } from '../core/model';
 import { STRINGS } from '../core/strings';
-import { endSummary } from '../features/end/copy';
+import { endSummary, winnerSeats } from '../features/end/copy';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { teamNameOf } from '../features/table/copy';
 import { playerAt } from '../features/table/seat-player';
@@ -12,9 +12,6 @@ import { Button, buttonClass } from '../ui/Button';
 import { cx } from '../ui/cx';
 
 const S = STRINGS.end;
-
-/** Seats of the winning team's two players, in table order (mirrors `endSummary`'s own mapping). */
-const WINNER_SEATS: Record<'A' | 'B', readonly [Seat, Seat]> = { A: [0, 2], B: [1, 3] };
 
 /** The match-end screen (§10): winner or tie, series card, big score, declaration totals, actions. */
 export function Component() {
@@ -55,7 +52,7 @@ export function Component() {
       {summary.winner !== null && (
         <div className="flex flex-col items-center gap-3.5">
           <div className="flex">
-            {WINNER_SEATS[summary.winner].map((seat, i) => (
+            {winnerSeats(summary.winner).map((seat, i) => (
               <PlayerAvatar
                 key={seat}
                 player={playerAt(match, roster, seat)}
