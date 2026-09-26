@@ -2,8 +2,9 @@ import { Navigate, useNavigate } from 'react-router';
 import { PreloadLink } from '../app/PreloadLink';
 import { resumePath } from '../app/resume';
 import type { Seat } from '../core/model';
+import { seatsOf } from '../core/rules';
 import { STRINGS } from '../core/strings';
-import { endSummary, winnerSeats } from '../features/end/copy';
+import { endSummary } from '../features/end/copy';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { teamNameOf } from '../features/table/copy';
 import { playerAt } from '../features/table/seat-player';
@@ -40,7 +41,7 @@ export function Component() {
   };
   const goHome = () => {
     leaveMatch();
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   return (
@@ -49,36 +50,36 @@ export function Component() {
         {summary.line}
       </p>
 
-      {summary.winner !== null && (
+      {summary.winner !== null ? (
         <div className="flex flex-col items-center gap-3.5">
           <div className="flex">
-            {winnerSeats(summary.winner).map((seat, i) => (
+            {seatsOf(summary.winner).map((seat) => (
               <PlayerAvatar
                 key={seat}
                 player={playerAt(match, roster, seat)}
                 size={100}
                 ring={summary.winner === 'A' ? 'a' : 'b'}
                 decorative
-                style={i === 1 ? { marginLeft: '-1rem' } : undefined}
+                style={{ margin: '0 -6px' }}
               />
             ))}
           </div>
+          <h1
+            className={cx(
+              'text-[40px] font-black leading-tight',
+              summary.winner === 'A' ? 'text-team-a' : 'text-team-b',
+            )}
+          >
+            {summary.title}
+          </h1>
           <p className="text-base font-bold text-muted">{summary.winnerNames}</p>
           <p className="rounded-[14px] border border-line bg-s1 px-4 py-2 text-base font-extrabold">
             {summary.pays}
           </p>
         </div>
+      ) : (
+        <h1 className="text-[40px] font-black leading-tight">{summary.title}</h1>
       )}
-
-      <h1
-        className={cx(
-          'text-[40px] font-black leading-tight',
-          summary.winner === 'A' && 'text-team-a',
-          summary.winner === 'B' && 'text-team-b',
-        )}
-      >
-        {summary.winner !== null ? summary.title : S.tie}
-      </h1>
 
       {summary.isSeries && (
         <div className="flex flex-col items-center gap-2 rounded-[20px] border border-line bg-s1 px-[22px] py-3.5">
@@ -108,11 +109,11 @@ export function Component() {
       </div>
 
       <div className="grid w-full max-w-[440px] grid-cols-2 gap-2.5">
-        <div className="rounded-[18px] bg-s1 p-3 text-left">
+        <div className="rounded-[18px] bg-s1 p-3 text-center">
           <p className="text-xs font-bold text-muted">{S.decls(match.teamA)}</p>
           <p className="text-[22px] font-black">{summary.decls.A}</p>
         </div>
-        <div className="rounded-[18px] bg-s1 p-3 text-left">
+        <div className="rounded-[18px] bg-s1 p-3 text-center">
           <p className="text-xs font-bold text-muted">{S.decls(match.teamB)}</p>
           <p className="text-[22px] font-black">{summary.decls.B}</p>
         </div>

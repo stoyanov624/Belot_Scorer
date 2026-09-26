@@ -3,15 +3,22 @@
  * the winner card, series card and declaration totals show. Never scores — it reads totals,
  * winner and series state the core already derived or recorded.
  */
-import { isSeriesOver, totals, validDeclarationTotals, winner } from '../../core/match';
+import {
+  isSeriesOver,
+  matchNumber,
+  totals,
+  validDeclarationTotals,
+  winner,
+} from '../../core/match';
 import type { Match, Seat, Team } from '../../core/model';
-import { otherTeam } from '../../core/rules';
+import { otherTeam, seatsOf } from '../../core/rules';
 import { STRINGS } from '../../core/strings';
+import { seriesFormat } from '../table/copy';
 
 export interface EndSummary {
   line: string;
   winner: Team | null;
-  title: string | null;
+  title: string;
   winnerNames: string | null;
   pays: string | null;
   isSeries: boolean;
@@ -23,9 +30,6 @@ export interface EndSummary {
   nextNo: number;
 }
 
-/** Seats of the winning team's two players, in table order. */
-export const winnerSeats = (t: Team): [Seat, Seat] => (t === 'A' ? [0, 2] : [1, 3]);
-
 /** The match-end screen's text and numbers, following the prototype's `endLine`/`winTitle`. */
 export function endSummary(
   match: Match,
@@ -36,28 +40,26 @@ export function endSummary(
   const over = isSeriesOver(match);
   const played = match.series.A + match.series.B;
   const deals = match.games.length;
+  // Ties don't advance the series count, so the match's own 1-based number (which already
+  // accounts for that) is the source of truth here, not `played`.
   const line = isSeries
-    ? STRINGS.end.lineSeries(Math.max(played, 1), deals)
+    ? STRINGS.end.lineSeries(matchNumber(match), deals)
     : STRINGS.end.line(deals);
 
   const w = winner(match);
-  let title: string | null = null;
-  if (w !== null) {
-    title =
-      isSeries && over
+  const title =
+    w === null
+      ? STRINGS.end.tie
+      : isSeries && over
         ? STRINGS.end.winsSeries(teamName(w))
         : isSeries
           ? STRINGS.end.winsMatch(teamName(w))
           : STRINGS.end.wins(teamName(w));
-  }
   const winnerNames =
-    w === null
-      ? null
-      : STRINGS.end.names(playerName(winnerSeats(w)[0]), playerName(winnerSeats(w)[1]));
+    w === null ? null : STRINGS.end.names(playerName(seatsOf(w)[0]), playerName(seatsOf(w)[1]));
   const pays = w === null ? null : STRINGS.end.pays(teamName(otherTeam(w)));
 
-  const format = STRINGS.setup.seriesOptions.find((o) => o.value === match.bestOf)?.label ?? '';
-  const seriesLabel = isSeries ? STRINGS.end.series(format) : null;
+  const seriesLabel = isSeries ? STRINGS.end.series(seriesFormat(match.bestOf)) : null;
 
   return {
     line,

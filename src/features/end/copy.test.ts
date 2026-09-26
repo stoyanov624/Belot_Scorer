@@ -84,9 +84,12 @@ describe('endSummary', () => {
     expect(s.title).toBe('Ние печелят серията');
     expect(s.seriesOver).toBe(true);
     expect(s.series).toEqual({ A: 2, B: 0 });
+    expect(s.line).toBe('Край на мач 2 · 2 раздавания');
+    expect(s.seriesLabel).toBe('Серия · 2 от 3');
+    expect(s.nextNo).toBe(3);
   });
 
-  it('reports a tie with no winner and no title', () => {
+  it('reports a tie with no winner, the tie title from core strings', () => {
     let m = fresh(1);
     m = save(setContract(m, 'clubs', 0), 16); // a=16, b=0
     m = save(setContract(m, 'clubs', 1), 0); // a=0, b=16
@@ -94,9 +97,24 @@ describe('endSummary', () => {
     const s = endSummary(m, playerName, teamName);
 
     expect(s.winner).toBeNull();
-    expect(s.title).toBeNull();
+    expect(s.title).toBe('Равенство');
     expect(s.winnerNames).toBeNull();
     expect(s.pays).toBeNull();
     expect(s.totals).toEqual({ A: 16, B: 16 });
+  });
+
+  it('keeps the previous match number after a tie mid-series (ties do not advance the count)', () => {
+    let m1 = fresh(3);
+    m1 = playAWinningDeals(m1);
+    m1 = endMatch(m1); // series becomes A:1, B:0
+
+    let m2 = nextMatch(m1);
+    m2 = save(setContract(m2, 'clubs', 0), 16); // a=16, b=0
+    m2 = save(setContract(m2, 'clubs', 1), 0); // a=0, b=16 — tie
+    m2 = endMatch(m2); // tie: series stays A:1, B:0
+
+    const s = endSummary(m2, playerName, teamName);
+    expect(s.line).toBe('Край на мач 2 · 2 раздавания');
+    expect(s.title).toBe('Равенство');
   });
 });
