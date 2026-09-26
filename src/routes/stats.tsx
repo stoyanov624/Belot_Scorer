@@ -4,7 +4,7 @@ import { type LeaderRow, leaderboard } from '../core/leaderboard';
 import type { Player } from '../core/model';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
-import { statsSub } from '../features/stats/copy';
+import { statsName, statsSub } from '../features/stats/copy';
 import { useAppStore } from '../store/instance';
 import { Button, buttonClass } from '../ui/Button';
 import { cx } from '../ui/cx';
@@ -100,10 +100,7 @@ function LeaderRowView({
   avatarFor: (id: string, name: string) => Pick<Player, 'name' | 'emoji' | 'photo'>;
 }) {
   const rankStyle = rankClasses(rank);
-  const name =
-    kind === 'pairs'
-      ? STRINGS.end.names(row.names[0] ?? '?', row.names[1] ?? '?')
-      : (row.names[0] ?? '?');
+  const name = statsName(row, kind);
 
   return (
     <div

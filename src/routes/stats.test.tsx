@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Seats } from '../core/model';
@@ -119,7 +119,9 @@ describe('Leaderboard', () => {
         '0 обяви · 0 белота · 0/1 победи',
       );
       expect(screen.getAllByText(S.points)).toHaveLength(4);
-      expect(container.querySelector('[data-rank="1"] .text-2xl')?.textContent).toBe('2'); // Иван's points
+      const first = container.querySelector<HTMLElement>('[data-rank="1"]');
+      if (!first) throw new Error('missing row');
+      expect(within(first).getByText('2')).toBeTruthy(); // Иван's points
       // Decorative: avatars carry no accessible name of their own.
       expect(screen.queryAllByRole('img')).toHaveLength(0);
     });
@@ -175,6 +177,24 @@ describe('Leaderboard', () => {
 
       expect(screen.getByRole('button', { name: S.reset })).toBeTruthy();
       expect(screen.queryByRole('button', { name: S.resetArmed })).toBeNull();
+    });
+
+    it('falls back to the recorded name and an initial avatar for a player no longer in the roster (ADR 0010)', async () => {
+      lowerTargetScore();
+      startMatch();
+      playAndEndMatch();
+      // Гошо (seat 3) is no longer seated once the match is left, so the delete is allowed.
+      appStore.getState().leaveMatch();
+      const removed = appStore.getState().removePlayer('p3');
+      if (!removed.ok) throw new Error('removePlayer failed');
+
+      const { container } = await renderStats();
+
+      expect(rowNames()).toContain('Гошо');
+      const row = container.querySelector('[data-rank="4"]');
+      expect(row?.textContent).toContain('Гошо');
+      const avatar = row?.querySelector('[aria-hidden="true"]');
+      expect(avatar?.textContent).toBe('Г');
     });
   });
 });

@@ -9,7 +9,7 @@ import {
 } from '../../core/match';
 import type { Match } from '../../core/model';
 import { DEFAULT_RULES } from '../../core/rules';
-import { statsSub } from './copy';
+import { statsName, statsSub } from './copy';
 
 const NAMES = ['Иван', 'Петър', 'Мария', 'Гошо'] as const;
 
@@ -54,5 +54,29 @@ describe('statsSub', () => {
     if (!row) throw new Error('missing row');
 
     expect(statsSub({ ...row, teamName: null }, 'pairs')).toBe('1 обяви · 1 белота · 1/1 победи');
+  });
+});
+
+describe('statsName', () => {
+  const match = buildMatch();
+  const record = toMatchRecord(match, [...NAMES], { id: 'm1', date: 1 });
+  const { players, pairs } = leaderboard([record], []);
+  const row = players.find((p) => p.key === 'p0');
+  if (!row) throw new Error('missing row');
+
+  it("shows a player's own name for a players row", () => {
+    expect(statsName(row, 'players')).toBe('Иван');
+  });
+
+  it('joins both names with "и" for a pairs row', () => {
+    const pair = pairs.find((p) => p.key === 'p0|p2');
+    if (!pair) throw new Error('missing row');
+
+    expect(statsName(pair, 'pairs')).toBe('Иван и Мария');
+  });
+
+  it('falls back to "?" for a missing name', () => {
+    expect(statsName({ ...row, names: [] }, 'players')).toBe('?');
+    expect(statsName({ ...row, names: [] }, 'pairs')).toBe('? и ?');
   });
 });
