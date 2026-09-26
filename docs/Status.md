@@ -20,6 +20,7 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 ## Open product questions
 
 - **Copy not in the handoff:** the note shown instead of «Изтрий играча» for a seated player (placeholder text is live in `src/core/strings.ts`'s `register.inMatch`), and the accessible labels of the team-name fields — confirm the wording.
+- **Copy not in the handoff (Phase 5c, ADR 0006):** the failed-load screen's title/body/«Започни наново» (`src/core/strings.ts`'s `recovery.title`/`recovery.body`/`recovery.reset`) and the save-error banner (`recovery.saveError`) — confirm the wording.
 - **«← Начало» on the table** is not in mockup 04 or the prototype. It was added (first in the header's button row) because resume-on-start would otherwise leave no way Home; keep or drop? The product owner decides after testing.
 - **Step-2 contract pill:** «Без коз», «Всичко коз» (and «Спатия» from deal 10) wrap below «Край на раздаване N» at 390px; a symbol-only pill would fit. The product owner decides after testing.
 

@@ -103,3 +103,32 @@ describe('updateSettings', () => {
     expect(store.getState().settings).toMatchObject({ theme: 'night', felt: 'wood' });
   });
 });
+
+describe('clearStats', () => {
+  it('clears stats and leaves the roster and match untouched', () => {
+    const { savePlayer, startMatch, setContract, saveDeal, endMatch } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: '🐻', photo: null });
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: '🐻', photo: null });
+    const p2 = savePlayer({ id: null, name: 'Мария', emoji: '🐻', photo: null });
+    const p3 = savePlayer({ id: null, name: 'Жоро', emoji: '🐻', photo: null });
+    if (!p0.ok || !p1.ok || !p2.ok || !p3.ok) throw new Error('savePlayer failed');
+    startMatch({
+      seats: [p0.id, p1.id, p2.id, p3.id],
+      teamA: 'Ние',
+      teamB: 'Вие',
+      bestOf: 1,
+    });
+    setContract('hearts', 0);
+    saveDeal({ cardPointsA: 10, capo: null });
+    endMatch();
+    expect(store.getState().stats).toHaveLength(1);
+
+    const roster = store.getState().roster;
+    const match = store.getState().match;
+    store.getState().clearStats();
+
+    expect(store.getState().stats).toEqual([]);
+    expect(store.getState().roster).toEqual(roster);
+    expect(store.getState().match).toEqual(match);
+  });
+});

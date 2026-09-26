@@ -211,6 +211,20 @@ export function rematch(m: Match): Match {
   return { ...nextMatch(m), series: { A: 0, B: 0 } };
 }
 
+/** Sum of the valid recorded declarations across the given deals, per team. */
+export function validDeclarationTotals(
+  games: readonly Deal[],
+  rules: RulesConfig,
+): Record<Team, number> {
+  const sum: Record<Team, number> = { A: 0, B: 0 };
+  for (const g of games) {
+    for (const d of g.decls) {
+      if (d.valid) sum[teamOf(d.seat)] += declPoints(d, rules);
+    }
+  }
+  return sum;
+}
+
 export function toMatchRecord(
   m: Match,
   names: [string, string, string, string],

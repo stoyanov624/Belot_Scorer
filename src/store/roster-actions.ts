@@ -22,6 +22,8 @@ export interface RosterActions {
    * replaces everything with empty data. The backup key is left untouched.
    */
   resetData(): void;
+  /** The leaderboard's reset: clears recorded match stats, nothing else. */
+  clearStats(): void;
 }
 
 export function rosterActions(set: SetState, get: GetState, deps: AppDeps): RosterActions {
@@ -64,6 +66,10 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
     resetData() {
       deps.storage.unlock();
       set({ ...EMPTY_STATE, hydration: 'ready', saveError: false });
+    },
+
+    clearStats() {
+      set({ stats: [] });
     },
   };
 }

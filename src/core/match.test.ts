@@ -18,8 +18,9 @@ import {
   totals,
   undoLastDeal,
   updateDeclaration,
+  validDeclarationTotals,
 } from './match';
-import type { Deal, Match } from './model';
+import type { Deal, Match, RecordedDeclaration } from './model';
 import { MatchSchema } from './model';
 import { DEFAULT_RULES, type RulesConfig } from './rules';
 
@@ -361,6 +362,34 @@ describe('series', () => {
 
   it('rematch resets the series', () => {
     expect(rematch(endMatch(withGames(fresh(3), [160, 0]))).series).toEqual({ A: 0, B: 0 });
+  });
+});
+
+describe('validDeclarationTotals', () => {
+  const decl = (
+    seat: RecordedDeclaration['seat'],
+    key: RecordedDeclaration['key'],
+    valid: boolean,
+  ): RecordedDeclaration => ({ seat, key, top: null, rank: null, valid });
+
+  it('sums only the valid declarations, per team', () => {
+    const games: Deal[] = [
+      {
+        ...fakeDeal(10, 5),
+        decls: [decl(0, 'belot', true), decl(1, 'terca', false), decl(3, 'kvarta', true)],
+      },
+    ];
+    expect(validDeclarationTotals(games, DEFAULT_RULES)).toEqual({ A: 2, B: 5 });
+  });
+
+  it("respects the match's own rules", () => {
+    const rules = { ...DEFAULT_RULES, declPoints: { ...DEFAULT_RULES.declPoints, belot: 3 } };
+    const games: Deal[] = [{ ...fakeDeal(10, 5), decls: [decl(0, 'belot', true)] }];
+    expect(validDeclarationTotals(games, rules)).toEqual({ A: 3, B: 0 });
+  });
+
+  it('is zero for both teams with no games', () => {
+    expect(validDeclarationTotals([], DEFAULT_RULES)).toEqual({ A: 0, B: 0 });
   });
 });
 
