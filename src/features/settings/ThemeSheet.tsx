@@ -4,7 +4,7 @@ import { THEMES } from '../../core/tokens';
 import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
 import { cx } from '../../ui/cx';
-import { Sheet } from '../../ui/Sheet';
+import { Sheet, SheetActions } from '../../ui/Sheet';
 import { feltStyle } from '../../ui/theme';
 
 const S = STRINGS.theme;
@@ -80,9 +80,11 @@ function ThemeForm({ onDone }: { onDone: () => void }) {
         </div>
       </fieldset>
 
-      <Button variant="primary" size="lg" onClick={onDone}>
-        {S.done}
-      </Button>
+      <SheetActions className="flex flex-col">
+        <Button variant="primary" size="lg" onClick={onDone}>
+          {S.done}
+        </Button>
+      </SheetActions>
     </>
   );
 }

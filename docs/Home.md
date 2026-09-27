@@ -37,6 +37,7 @@ Read in this order:
 - [0009 A match snapshots its scoring rules when it starts](adr/0009-match-snapshots-rules.md)
 - [0010 A player seated in the current match cannot be deleted](adr/0010-seated-player-cannot-be-deleted.md)
 - [0011 Resume a stored match, continue it from Home, confirm before replacing it](adr/0011-resume-and-replace-matches.md)
+- [0012 Scale the table, end screen, setup and sheets with the viewport height](adr/0012-scale-with-viewport-height.md)
 
 ## Product spec
 

@@ -15,7 +15,7 @@ import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
 import { cx } from '../../ui/cx';
-import { Sheet } from '../../ui/Sheet';
+import { Sheet, SheetActions } from '../../ui/Sheet';
 import {
   calcRows,
   dealVerdict,
@@ -251,12 +251,12 @@ function PointsStep({
       )}
       {error && <p className="text-sm font-extrabold text-team-b">{error}</p>}
 
-      <div className="grid grid-cols-[1fr_1.6fr] gap-2.5">
+      <SheetActions className="grid grid-cols-[1fr_1.6fr] gap-2.5">
         <Button onClick={onBack}>{S.back}</Button>
         <Button variant="primary" aria-disabled={error !== null} onClick={save}>
           {S.save}
         </Button>
-      </div>
+      </SheetActions>
     </>
   );
 }
@@ -339,7 +339,7 @@ function ResolveStep({ onCancel, onNext }: { onCancel: () => void; onNext: () =>
         </p>
       ))}
 
-      <div className="grid grid-cols-[1fr_1.6fr] gap-2.5">
+      <SheetActions className="grid grid-cols-[1fr_1.6fr] gap-2.5">
         <Button onClick={onCancel}>{S.cancel}</Button>
         <Button
           variant="primary"
@@ -350,7 +350,7 @@ function ResolveStep({ onCancel, onNext }: { onCancel: () => void; onNext: () =>
         >
           {S.next}
         </Button>
-      </div>
+      </SheetActions>
     </>
   );
 }
@@ -381,8 +381,10 @@ function ResolveCard({
 }) {
   const seq = isSequence(decl.key);
   return (
-    <li className="flex flex-col gap-2 rounded-[18px] bg-s2 p-3">
-      <div className="flex items-center gap-2.5">
+    // Name and chips share a line when the sheet is wide enough (a laptop), halving the card's
+    // height; on a phone the chips wrap below, as in mockup 07 (ADR 0012).
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[18px] bg-s2 p-3">
+      <div className="flex min-w-[150px] flex-1 items-center gap-2.5">
         <span
           aria-hidden
           className={cx(
@@ -413,7 +415,12 @@ function ResolveCard({
             ))}
       </div>
       {status && (
-        <p className={cx('text-xs font-black', status === 'counts' ? 'text-team-a' : 'text-muted')}>
+        <p
+          className={cx(
+            'basis-full text-xs font-black',
+            status === 'counts' ? 'text-team-a' : 'text-muted',
+          )}
+        >
           {status === 'counts' ? S.counts : S.drops}
         </p>
       )}

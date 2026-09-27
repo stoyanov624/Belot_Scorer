@@ -17,6 +17,24 @@ export interface SheetProps {
  * The caller owns `open`; `onClose` fires only for a user dismissal (Esc, overlay tap) while
  * open. Children stay mounted while closed.
  */
+/**
+ * A sheet's closing row of actions. It sticks to the sheet's bottom edge, so the buttons stay
+ * visible while a tall sheet scrolls on a short window (ADR 0012). Use it only as the sheet's
+ * last child: its negative margins take over the scroll area's bottom padding.
+ */
+export function SheetActions({ className, children }: { className?: string; children: ReactNode }) {
+  return (
+    <div
+      className={cx(
+        'sticky -bottom-[26px] -mx-5 -mb-[26px] bg-s1 px-5 pt-2 pb-[26px] shadow-[0_-10px_14px_-6px_var(--color-s1)]',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function Sheet({ open, onClose, title, subtitle, aside, children }: SheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();

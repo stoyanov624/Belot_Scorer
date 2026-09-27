@@ -13,6 +13,13 @@ import { Button, buttonClass } from '../ui/Button';
 import { cx } from '../ui/cx';
 
 const S = STRINGS.end;
+/** 100px (§10); shorter landscape windows scale it with the height (ADR 0012). */
+const AVATAR_STYLE = {
+  margin: '0 -6px',
+  width: 'var(--end-avatar)',
+  height: 'var(--end-avatar)',
+  fontSize: 'calc(var(--end-avatar) / 2)',
+};
 
 /** The match-end screen (§10): winner or tie, series card, big score, declaration totals, actions. */
 export function Component() {
@@ -45,14 +52,14 @@ export function Component() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center gap-6 py-6 text-center">
+    <div className="flex flex-1 flex-col items-center gap-6 py-6 text-center landscape:gap-[clamp(10px,2.4dvh,24px)] landscape:py-[clamp(12px,2.4dvh,24px)]">
       <p className="text-[13px] font-extrabold uppercase tracking-wide text-muted">
         {summary.line}
       </p>
 
       {summary.winner !== null ? (
-        <div className="flex flex-col items-center gap-3.5">
-          <div className="flex">
+        <div className="flex flex-col items-center gap-3.5 landscape:gap-[clamp(6px,1.4dvh,14px)]">
+          <div className="flex [--end-avatar:100px] landscape:[--end-avatar:clamp(56px,10dvh,100px)]">
             {seatsOf(summary.winner).map((seat) => (
               <PlayerAvatar
                 key={seat}
@@ -60,13 +67,13 @@ export function Component() {
                 size={100}
                 ring={summary.winner === 'A' ? 'a' : 'b'}
                 decorative
-                style={{ margin: '0 -6px' }}
+                style={AVATAR_STYLE}
               />
             ))}
           </div>
           <h1
             className={cx(
-              'text-[40px] font-black leading-tight',
+              'text-[40px] font-black leading-tight landscape:text-[clamp(28px,4dvh,40px)]',
               summary.winner === 'A' ? 'text-team-a' : 'text-team-b',
             )}
           >
@@ -78,17 +85,19 @@ export function Component() {
           </p>
         </div>
       ) : (
-        <h1 className="text-[40px] font-black leading-tight">{summary.title}</h1>
+        <h1 className="text-[40px] font-black leading-tight landscape:text-[clamp(28px,4dvh,40px)]">
+          {summary.title}
+        </h1>
       )}
 
       {summary.isSeries && (
-        <div className="flex flex-col items-center gap-2 rounded-[20px] border border-line bg-s1 px-[22px] py-3.5">
+        <div className="flex flex-col items-center gap-2 rounded-[20px] border border-line bg-s1 px-[22px] py-3.5 landscape:gap-1 landscape:py-[clamp(8px,1.4dvh,14px)]">
           <p className="text-xs font-extrabold uppercase tracking-wide text-muted">
             {summary.seriesLabel}
           </p>
           <div className="flex items-center gap-3.5 tabular-nums">
             <span className="text-[15px] font-extrabold text-team-a">{match.teamA}</span>
-            <span className="text-[34px] font-black leading-none">
+            <span className="text-[34px] font-black leading-none landscape:text-[clamp(26px,3.4dvh,34px)]">
               {summary.series.A} : {summary.series.B}
             </span>
             <span className="text-[15px] font-extrabold text-team-b">{match.teamB}</span>
@@ -99,21 +108,25 @@ export function Component() {
       <div className="flex items-center gap-5 tabular-nums">
         <div className="flex flex-col items-center gap-0.5">
           <p className="text-sm font-extrabold text-team-a">{match.teamA}</p>
-          <p className="text-[56px] font-black leading-none">{summary.totals.A}</p>
+          <p className="text-[56px] font-black leading-none landscape:text-[clamp(40px,5.6dvh,56px)]">
+            {summary.totals.A}
+          </p>
         </div>
         <p className="text-4xl font-black text-muted">:</p>
         <div className="flex flex-col items-center gap-0.5">
           <p className="text-sm font-extrabold text-team-b">{match.teamB}</p>
-          <p className="text-[56px] font-black leading-none">{summary.totals.B}</p>
+          <p className="text-[56px] font-black leading-none landscape:text-[clamp(40px,5.6dvh,56px)]">
+            {summary.totals.B}
+          </p>
         </div>
       </div>
 
       <div className="grid w-full max-w-[440px] grid-cols-2 gap-2.5">
-        <div className="rounded-[18px] bg-s1 p-3 text-center">
+        <div className="rounded-[18px] bg-s1 p-3 text-center landscape:py-[clamp(6px,1.2dvh,12px)]">
           <p className="text-xs font-bold text-muted">{S.decls(match.teamA)}</p>
           <p className="text-[22px] font-black">{summary.decls.A}</p>
         </div>
-        <div className="rounded-[18px] bg-s1 p-3 text-center">
+        <div className="rounded-[18px] bg-s1 p-3 text-center landscape:py-[clamp(6px,1.2dvh,12px)]">
           <p className="text-xs font-bold text-muted">{S.decls(match.teamB)}</p>
           <p className="text-[22px] font-black">{summary.decls.B}</p>
         </div>

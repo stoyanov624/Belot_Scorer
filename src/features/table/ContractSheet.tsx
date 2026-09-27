@@ -5,7 +5,7 @@ import { STRINGS } from '../../core/strings';
 import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
 import { cx } from '../../ui/cx';
-import { Sheet } from '../../ui/Sheet';
+import { Sheet, SheetActions } from '../../ui/Sheet';
 import { PlayerAvatar } from '../players/PlayerAvatar';
 import { playerAt } from './seat-player';
 
@@ -123,14 +123,16 @@ function ContractForm({
 
       {warn && <p className="text-sm font-bold text-team-b">{S.ntWarning}</p>}
 
-      <Button
-        variant={ready ? 'primary' : 'muted'}
-        size="lg"
-        aria-disabled={!ready}
-        onClick={confirm}
-      >
-        {cta}
-      </Button>
+      <SheetActions className="flex flex-col">
+        <Button
+          variant={ready ? 'primary' : 'muted'}
+          size="lg"
+          aria-disabled={!ready}
+          onClick={confirm}
+        >
+          {cta}
+        </Button>
+      </SheetActions>
     </>
   );
 }

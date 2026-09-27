@@ -56,7 +56,7 @@ export function Table() {
 
   return (
     // §4: page padding 16px on top, 20px below (RootLayout pads sideways only).
-    <div className="flex flex-1 flex-col gap-3.5 pt-4 pb-5">
+    <div className="flex flex-1 flex-col gap-[min(14px,1.7dvh)] pt-4 pb-5">
       <TableHeader
         line={headerLine(match)}
         dealNo={match.games.length + 1}
@@ -67,7 +67,7 @@ export function Table() {
 
       <div
         style={GRID_AREAS}
-        className="grid flex-1 grid-cols-[minmax(88px,1fr)_minmax(0,1.5fr)_minmax(88px,1fr)] grid-rows-[auto_minmax(200px,1fr)_auto] place-items-center gap-3"
+        className="grid flex-1 grid-cols-[minmax(88px,1fr)_minmax(0,1.5fr)_minmax(88px,1fr)] grid-rows-[auto_minmax(min(200px,22dvh),1fr)_auto] place-items-center gap-[min(12px,1.5dvh)]"
       >
         <div
           style={{ gridArea: 'c', ...feltStyle(felt) }}

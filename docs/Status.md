@@ -21,6 +21,8 @@ _Last updated: 2026-09-26 at commit 7c73b35._ Current state only; history lives 
   - `RootLayout`: the failed-load recovery screen («Започни наново» → `resetData`) and the `role="alert"` save-error banner.
   - A real-browser check at 390×844 matched mockups 10–13: a best-of-3 series played through the UI, the leave flow with reload, the leaderboard reset, and recovery from a corrupt stored document (the backup was kept).
 
+- Laptop fit ([ADR 0012](adr/0012-scale-with-viewport-height.md)): the table, end screen and setup fit a laptop browser window without scrolling, down to 650px tall. The sheets' action buttons stay visible, and the resolve cards take one line each on wide sheets. Portrait phones are unchanged.
+
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/routes`, covered by tests.
 
 ## Next
@@ -40,6 +42,8 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 - **Step-2 contract pill:** «Без коз», «Всичко коз» (and «Спатия» from deal 10) wrap below «Край на раздаване N» at 390px; a symbol-only pill would fit. The product owner decides after testing.
 
 ## Known gaps
+
+- On a portrait phone, setup scrolls (+143px at 390×844), as does the end screen (+20px), and the table header's button row scrolls sideways since «← Начало» was added.
 
 - `saveError` stays true until `resetData` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md)).
 - No favicon (404 in the browser console).

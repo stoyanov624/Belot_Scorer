@@ -12,11 +12,13 @@ import { declLabel } from './copy';
 const AREA = ['n', 'e', 's', 'w'] as const;
 /** Popover placement per seat (§4): below North, left of East, above South, right of West. */
 const PLACEMENT: Record<SeatIndex, Placement> = { 0: 'below', 1: 'left', 2: 'above', 3: 'right' };
-const AVATAR_SIZE = 'clamp(64px,15vw,92px)';
+// Width-driven on phones; on short landscape windows (laptops) the dvh cap keeps the table
+// from scrolling. The dvh term never binds on a portrait phone (ADR 0012).
+const AVATAR_SIZE = 'clamp(52px,min(clamp(64px,15vw,92px),8.5dvh),92px)';
 const AVATAR_STYLE = {
   width: AVATAR_SIZE,
   height: AVATAR_SIZE,
-  fontSize: 'clamp(32px,7.5vw,46px)',
+  fontSize: 'clamp(26px,min(clamp(32px,7.5vw,46px),4.25dvh),46px)',
 };
 
 /** A declaration option offered in the popover, with its display points (copy.declOptionPoints). */
