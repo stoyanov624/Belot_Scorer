@@ -132,3 +132,121 @@ describe('clearStats', () => {
     expect(store.getState().match).toEqual(match);
   });
 });
+
+describe('importShared', () => {
+  it('merge: adds a new player', () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: '🐻', photo: null });
+    if (!p0.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: 'ext1', name: 'Нов Играч', emoji: null, photo: null }],
+      stats: [],
+      match: null,
+    };
+
+    const result = importShared(imported, 'merge');
+
+    expect(store.getState().roster).toHaveLength(2);
+    expect(store.getState().roster.some((p) => p.name === 'Нов Играч')).toBe(true);
+    expect(result.players).toBe(1);
+    expect(removed).toEqual([]);
+  });
+
+  it('take: sets match to the remapped imported match', () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: '🐻', photo: null });
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: '🐻', photo: null });
+    if (!p0.ok || !p1.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [
+        { id: p0.id, name: 'Иван', emoji: '🐻', photo: null },
+        { id: p1.id, name: 'Петър', emoji: '🐻', photo: null },
+        { id: 'ext2', name: 'Мария', emoji: null, photo: null },
+        { id: 'ext3', name: 'Жоро', emoji: null, photo: null },
+      ],
+      stats: [],
+      match: createMatch({
+        seats: [p0.id, p1.id, 'ext2', 'ext3'] as const,
+        teamA: 'Ние',
+        teamB: 'Вие',
+        bestOf: 3,
+        rules: DEFAULT_RULES,
+      }),
+    };
+
+    const result = importShared(imported, 'take');
+
+    expect(store.getState().match?.seats).toEqual([p0.id, p1.id, 'ext2', 'ext3']);
+    expect(result.tookMatch).toBe(true);
+  });
+
+  it('replace: drops photos of local players whose ids are gone', () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: null, photo: 'ph2' });
+    if (!p0.ok || !p1.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: p0.id, name: 'Иван', emoji: null, photo: null }],
+      stats: [],
+      match: null,
+    };
+
+    importShared(imported, 'replace');
+
+    expect(store.getState().roster).toHaveLength(1);
+    expect(removed).toEqual(['ph2']);
+  });
+
+  it("replace: doesn't drop the photo of a player kept by id", () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
+    if (!p0.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: p0.id, name: 'Иван', emoji: null, photo: null }],
+      stats: [],
+      match: null,
+    };
+
+    importShared(imported, 'replace');
+
+    expect(store.getState().roster[0]?.photo).toBe('ph1');
+    expect(removed).toEqual([]);
+  });
+
+  it('merge: never drops photos', () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: null, photo: 'ph2' });
+    if (!p0.ok || !p1.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: 'ext1', name: 'Нов Играч', emoji: null, photo: null }],
+      stats: [],
+      match: null,
+    };
+
+    importShared(imported, 'merge');
+
+    expect(store.getState().roster).toHaveLength(3);
+    expect(removed).toEqual([]);
+  });
+});

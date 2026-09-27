@@ -1,7 +1,9 @@
+import { applyImport, type ImportMode, type ImportResult } from '../core/import';
 import type { Player } from '../core/model';
 import { EMPTY_STATE } from '../core/persisted';
 import { type NameError, removePlayer, upsertPlayer, validatePlayerName } from '../core/roster';
 import type { Settings } from '../core/settings';
+import type { SharePayload } from '../core/share';
 import type { AppDeps, GetState, SetState } from './app-store';
 
 export interface PlayerInput {
@@ -24,6 +26,8 @@ export interface RosterActions {
   resetData(): void;
   /** The leaderboard's reset: clears recorded match stats, nothing else. */
   clearStats(): void;
+  /** Applies shared data (ADR 0013). Replace also drops the photos of players that are gone. */
+  importShared(data: SharePayload, mode: ImportMode): ImportResult;
 }
 
 export function rosterActions(set: SetState, get: GetState, deps: AppDeps): RosterActions {
@@ -70,6 +74,33 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
 
     clearStats() {
       set({ stats: [] });
+    },
+
+    importShared(data, mode) {
+      const { roster, stats, match } = get();
+      const result = applyImport({ roster, stats, match }, data, mode);
+
+      let rosterToSet = result.roster;
+      if (mode === 'replace') {
+        // Preserve local photos for players that are kept by id
+        const localById = new Map(roster.map((p) => [p.id, p]));
+        rosterToSet = result.roster.map((p) => ({
+          ...p,
+          photo: p.photo || localById.get(p.id)?.photo || null,
+        }));
+      }
+
+      set({ roster: rosterToSet, stats: result.stats, match: result.match });
+
+      if (mode === 'replace') {
+        // Drop photos of players that are no longer in the roster
+        const keptIds = new Set(rosterToSet.map((p) => p.id));
+        for (const p of roster) {
+          if (p.photo && !keptIds.has(p.id)) dropPhoto(p.photo);
+        }
+      }
+
+      return result;
     },
   };
 }
