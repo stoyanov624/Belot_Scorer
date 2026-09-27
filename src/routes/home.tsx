@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { PreloadLink } from '../app/PreloadLink';
 import { resumePath } from '../app/resume';
 import { STRINGS } from '../core/strings';
@@ -23,6 +24,9 @@ export function Home() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const pendingCode = params.get('import');
+  const importSheetOpen = importOpen || pendingCode !== null;
 
   return (
     <div className="flex flex-col gap-7 pt-12 pb-8">
@@ -102,9 +106,16 @@ export function Home() {
           />
         </Suspense>
       )}
-      {importOpen && (
+      {importSheetOpen && (
         <Suspense fallback={null}>
-          <ImportSheet open={importOpen} onClose={() => setImportOpen(false)} />
+          <ImportSheet
+            open={importSheetOpen}
+            onClose={() => {
+              setImportOpen(false);
+              if (params.has('import')) setParams({}, { replace: true });
+            }}
+            initialCode={pendingCode}
+          />
         </Suspense>
       )}
     </div>

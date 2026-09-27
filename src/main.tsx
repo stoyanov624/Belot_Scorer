@@ -4,8 +4,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
-import { resumePath } from './app/resume';
 import { routes } from './app/routes';
+import { startPath } from './app/share-link';
 import { appStore, hydrateAppStore } from './store/instance';
 import { syncTheme } from './ui/theme';
 
@@ -23,8 +23,13 @@ syncTheme(appStore, document.documentElement);
 void hydrateAppStore().then(() => {
   // A stored match resumes straight to its screen (ADR 0011), but only when the app was
   // opened at the root: a deep link (e.g. a shared table) must not be redirected away.
-  const path = resumePath(appStore.getState().match);
-  if (path && window.location.pathname === '/') void router.navigate(path, { replace: true });
+  // A `#belot=` link wins over resume and opens import instead (DATA_MODEL §4).
+  const path = startPath(window.location, appStore.getState().match);
+  // The hash is cleared once it has been read, so it never lingers in the address bar or
+  // gets re-read on a later navigation (DATA_MODEL §4).
+  if (window.location.hash.includes('belot='))
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  if (path) void router.navigate(path, { replace: true });
 
   createRoot(root).render(
     <StrictMode>

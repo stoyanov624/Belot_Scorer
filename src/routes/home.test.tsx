@@ -2,7 +2,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { buildPayload } from '../core/share';
 import { STRINGS } from '../core/strings';
+import { encodeShare } from '../share/codec';
 import { appStore } from '../store/instance';
 import { renderRoute, resetApp } from '../test/app';
 
@@ -114,5 +116,21 @@ describe('Home', () => {
     renderRoute('/');
 
     expect(screen.getByRole('link', { name: S.continueMatch }).getAttribute('href')).toBe('/end');
+  });
+
+  it('opens the import sheet prefilled from an ?import= param, and clears it on close', async () => {
+    const payload = buildPayload({ roster: [], stats: [], match: null }, 'all', Date.now());
+    const code = await encodeShare(payload);
+
+    const { router } = renderRoute(`/?import=${encodeURIComponent(code)}`);
+
+    expect(await screen.findByRole('dialog', { name: STRINGS.import.title })).toBeTruthy();
+    expect(await screen.findByText(STRINGS.import.found)).toBeTruthy();
+
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.import.close }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search).toBe('');
   });
 });
