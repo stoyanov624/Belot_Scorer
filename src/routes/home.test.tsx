@@ -77,6 +77,17 @@ describe('Home', () => {
     expect(await screen.findByRole('dialog', { name: STRINGS.share.title })).toBeTruthy();
   });
 
+  it('hands over from the share sheet to the import sheet on "Внос от друг телефон"', async () => {
+    renderRoute('/');
+    await userEvent.click(screen.getByRole('button', { name: S.share }));
+    await screen.findByRole('dialog', { name: STRINGS.share.title });
+
+    await userEvent.click(screen.getByRole('button', { name: STRINGS.share.toImport }));
+
+    expect(await screen.findByRole('dialog', { name: STRINGS.import.title })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: STRINGS.share.title })).toBeNull();
+  });
+
   it('shows no "Продължи мача" link without a match', () => {
     renderRoute('/');
 

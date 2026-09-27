@@ -22,6 +22,7 @@ import { Button } from '../ui/Button';
 import { feltStyle } from '../ui/theme';
 
 const ShareSheet = lazy(() => import('../features/share/ShareSheet'));
+const ImportSheet = lazy(() => import('../features/share/ImportSheet'));
 
 const S = STRINGS.table;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly SeatIndex[];
@@ -43,6 +44,7 @@ export function Table() {
   const [clearOpen, setClearOpen] = useState(false);
   const [endMatchOpen, setEndMatchOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -170,8 +172,16 @@ export function Table() {
             onClose={() => setShareOpen(false)}
             defaultScope="match"
             allowMatch
-            onImport={() => setShareOpen(false)}
+            onImport={() => {
+              setShareOpen(false);
+              setImportOpen(true);
+            }}
           />
+        </Suspense>
+      )}
+      {importOpen && (
+        <Suspense fallback={null}>
+          <ImportSheet open={importOpen} onClose={() => setImportOpen(false)} />
         </Suspense>
       )}
     </div>

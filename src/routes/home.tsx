@@ -9,6 +9,7 @@ import { useAppStore } from '../store/instance';
 import { Button, buttonClass } from '../ui/Button';
 
 const ShareSheet = lazy(() => import('../features/share/ShareSheet'));
+const ImportSheet = lazy(() => import('../features/share/ImportSheet'));
 
 const S = STRINGS.home;
 
@@ -21,6 +22,7 @@ export function Home() {
   const [register, setRegister] = useState<{ playerId: string | null } | null>(null);
   const [themeOpen, setThemeOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-7 pt-12 pb-8">
@@ -93,8 +95,16 @@ export function Home() {
             onClose={() => setShareOpen(false)}
             defaultScope="all"
             allowMatch={matchPlaying}
-            onImport={() => setShareOpen(false)}
+            onImport={() => {
+              setShareOpen(false);
+              setImportOpen(true);
+            }}
           />
+        </Suspense>
+      )}
+      {importOpen && (
+        <Suspense fallback={null}>
+          <ImportSheet open={importOpen} onClose={() => setImportOpen(false)} />
         </Suspense>
       )}
     </div>
