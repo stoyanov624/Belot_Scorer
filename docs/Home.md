@@ -38,6 +38,7 @@ Read in this order:
 - [0010 A player seated in the current match cannot be deleted](adr/0010-seated-player-cannot-be-deleted.md)
 - [0011 Resume a stored match, continue it from Home, confirm before replacing it](adr/0011-resume-and-replace-matches.md)
 - [0012 Scale the table, end screen, setup and sheets with the viewport height](adr/0012-scale-with-viewport-height.md)
+- [0013 Import applies merge, take-match and replace, with an id remap](adr/0013-import-merge-take-replace.md)
 
 ## Product spec
 
