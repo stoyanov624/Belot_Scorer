@@ -143,8 +143,30 @@ describe('importShared', () => {
       app: 'belot' as const,
       v: 2 as const,
       at: 2000,
-      roster: [{ id: 'ext1', name: 'Нов Играч', emoji: null, photo: null }],
-      stats: [],
+      roster: [
+        { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
+        { id: 'ext2', name: 'Втори', emoji: null, photo: null },
+        { id: 'ext3', name: 'Трети', emoji: null, photo: null },
+        { id: 'ext4', name: 'Четвърти', emoji: null, photo: null },
+      ],
+      stats: [
+        {
+          id: 'stat-ext1',
+          date: 2000,
+          seats: ['ext1', 'ext2', 'ext3', 'ext4'] as unknown as [string, string, string, string],
+          names: ['Нов Играч', 'Втори', 'Трети', 'Четвърти'] as unknown as [
+            string,
+            string,
+            string,
+            string,
+          ],
+          teamA: 'Ние',
+          teamB: 'Вие',
+          totalA: 100,
+          totalB: 80,
+          games: [],
+        },
+      ],
       match: null,
     };
 
@@ -153,10 +175,30 @@ describe('importShared', () => {
     expect(store.getState().roster).toEqual([
       { id: p0.id, name: 'Иван', emoji: '🐻', photo: null },
       { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
+      { id: 'ext2', name: 'Втори', emoji: null, photo: null },
+      { id: 'ext3', name: 'Трети', emoji: null, photo: null },
+      { id: 'ext4', name: 'Четвърти', emoji: null, photo: null },
     ]);
-    expect(store.getState().stats).toEqual([]);
-    expect(result.players).toBe(1);
-    expect(result.addedMatches).toBe(0);
+    expect(store.getState().stats).toEqual([
+      {
+        id: 'stat-ext1',
+        date: 2000,
+        seats: ['ext1', 'ext2', 'ext3', 'ext4'] as unknown as [string, string, string, string],
+        names: ['Нов Играч', 'Втори', 'Трети', 'Четвърти'] as unknown as [
+          string,
+          string,
+          string,
+          string,
+        ],
+        teamA: 'Ние',
+        teamB: 'Вие',
+        totalA: 100,
+        totalB: 80,
+        games: [],
+      },
+    ]);
+    expect(result.players).toBe(4);
+    expect(result.addedMatches).toBe(1);
   });
 
   it('take: replaces the match with the imported one', () => {
@@ -302,7 +344,11 @@ describe('importShared', () => {
 
     importShared(imported, 'merge');
 
-    expect(store.getState().roster).toHaveLength(3);
+    expect(store.getState().roster).toEqual([
+      { id: p0.id, name: 'Иван', emoji: null, photo: 'ph1' },
+      { id: p1.id, name: 'Петър', emoji: null, photo: 'ph2' },
+      { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
+    ]);
     expect(removed).toEqual([]);
   });
 });
