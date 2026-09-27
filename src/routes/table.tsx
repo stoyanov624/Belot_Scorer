@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { resumePath } from '../app/resume';
 import { allowedDeclarations } from '../core/declarations';
@@ -21,6 +21,8 @@ import { useAppStore } from '../store/instance';
 import { Button } from '../ui/Button';
 import { feltStyle } from '../ui/theme';
 
+const ShareSheet = lazy(() => import('../features/share/ShareSheet'));
+
 const S = STRINGS.table;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly SeatIndex[];
 const GRID_AREAS = { gridTemplateAreas: "'. n .' 'w c e' '. s .'" };
@@ -40,6 +42,7 @@ export function Table() {
   const [dealEndOpen, setDealEndOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [endMatchOpen, setEndMatchOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -63,6 +66,7 @@ export function Table() {
         historyCount={match.games.length}
         onClear={() => setClearOpen(true)}
         onTheme={() => setThemeOpen(true)}
+        onShare={() => setShareOpen(true)}
       />
 
       <div
@@ -159,6 +163,17 @@ export function Table() {
           if (ended) navigate('/end', { replace: true });
         }}
       />
+      {shareOpen && (
+        <Suspense fallback={null}>
+          <ShareSheet
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            defaultScope="match"
+            allowMatch
+            onImport={() => setShareOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

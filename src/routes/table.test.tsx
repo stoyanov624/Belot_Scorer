@@ -53,16 +53,17 @@ describe('Table', () => {
     expect(screen.getByText('Мач 1 · серия 0:0 · 2 от 3')).toBeTruthy();
   });
 
-  it('shows the header buttons, with "Сподели" disabled', () => {
+  it('shows the header buttons, and opens the share sheet from "Сподели"', async () => {
     startMatch();
     renderRoute('/table');
 
     expect(screen.getByRole('button', { name: S.clear })).toBeTruthy();
     expect(screen.getByRole('button', { name: S.theme })).toBeTruthy();
     expect(screen.getByRole('link', { name: S.history }).getAttribute('href')).toBe('/history');
-    expect((screen.getByRole('button', { name: S.share }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
+
+    await userEvent.click(screen.getByRole('button', { name: S.share }));
+
+    expect(await screen.findByRole('dialog', { name: STRINGS.share.title })).toBeTruthy();
   });
 
   it('opens the theme sheet from "Тема"', async () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { PreloadLink } from '../app/PreloadLink';
 import { resumePath } from '../app/resume';
 import { STRINGS } from '../core/strings';
@@ -8,6 +8,8 @@ import { ThemeSheet } from '../features/settings/ThemeSheet';
 import { useAppStore } from '../store/instance';
 import { Button, buttonClass } from '../ui/Button';
 
+const ShareSheet = lazy(() => import('../features/share/ShareSheet'));
+
 const S = STRINGS.home;
 
 export function Home() {
@@ -15,8 +17,10 @@ export function Home() {
   const roster = useAppStore((s) => s.roster);
   // resumePath returns a primitive (or null), so this selector is stable across renders.
   const resume = useAppStore((s) => resumePath(s.match));
+  const matchPlaying = useAppStore((s) => s.match?.status === 'playing');
   const [register, setRegister] = useState<{ playerId: string | null } | null>(null);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-7 pt-12 pb-8">
@@ -43,8 +47,7 @@ export function Home() {
           </PreloadLink>
           <Button onClick={() => setThemeOpen(true)}>{S.theme}</Button>
           <Button onClick={() => setRegister({ playerId: null })}>{S.newPlayer}</Button>
-          {/* Sharing arrives in Phase 6. */}
-          <Button disabled>{S.share}</Button>
+          <Button onClick={() => setShareOpen(true)}>{S.share}</Button>
         </div>
       </nav>
 
@@ -83,6 +86,17 @@ export function Home() {
         onClose={() => setRegister(null)}
       />
       <ThemeSheet open={themeOpen} onClose={() => setThemeOpen(false)} />
+      {shareOpen && (
+        <Suspense fallback={null}>
+          <ShareSheet
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            defaultScope="all"
+            allowMatch={matchPlaying}
+            onImport={() => setShareOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

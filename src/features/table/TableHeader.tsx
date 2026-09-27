@@ -12,10 +12,18 @@ export interface TableHeaderProps {
   historyCount: number;
   onClear: () => void;
   onTheme: () => void;
+  onShare: () => void;
 }
 
 /** The table's title block and its row of 44px actions, which scrolls sideways when narrow. */
-export function TableHeader({ line, dealNo, historyCount, onClear, onTheme }: TableHeaderProps) {
+export function TableHeader({
+  line,
+  dealNo,
+  historyCount,
+  onClear,
+  onTheme,
+  onShare,
+}: TableHeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5">
       <div className="flex min-w-0 flex-[1_1_180px] flex-col">
@@ -29,8 +37,7 @@ export function TableHeader({ line, dealNo, historyCount, onClear, onTheme }: Ta
         <PreloadLink to="/" className={cx(buttonClass('secondary', 'sm'), 'shrink-0')}>
           {STRINGS.setup.back}
         </PreloadLink>
-        {/* Sharing arrives in Phase 6. */}
-        <Button size="sm" disabled className="shrink-0">
+        <Button size="sm" onClick={onShare} className="shrink-0">
           {S.share}
         </Button>
         <Button size="sm" onClick={onClear} className="shrink-0">

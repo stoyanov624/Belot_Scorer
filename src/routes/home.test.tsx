@@ -69,11 +69,12 @@ describe('Home', () => {
     expect(screen.getByRole('dialog', { name: 'Атмосфера' })).toBeTruthy();
   });
 
-  it('disables "Сподели / Внос"', () => {
+  it('opens the share sheet from "Сподели / Внос"', async () => {
     renderRoute('/');
 
-    const button = screen.getByRole('button', { name: S.share }) as HTMLButtonElement;
-    expect(button.disabled).toBe(true);
+    await userEvent.click(screen.getByRole('button', { name: S.share }));
+
+    expect(await screen.findByRole('dialog', { name: STRINGS.share.title })).toBeTruthy();
   });
 
   it('shows no "Продължи мача" link without a match', () => {
