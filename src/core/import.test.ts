@@ -204,6 +204,32 @@ describe('applyImport', () => {
       expect(result.match).toBeNull();
       expect(result.tookMatch).toBe(false);
     });
+
+    it('keeps the local photo of a player kept by id when imported photo is null', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', null, 'photo-1')],
+        stats: [],
+        match: null,
+      };
+      const data = payload([player('p1', 'New Name', null, null)]);
+
+      const result = applyImport(local, data, 'replace');
+
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
+    });
+
+    it('takes the imported non-null photo over the local one', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', null, 'photo-1')],
+        stats: [],
+        match: null,
+      };
+      const data = payload([player('p1', 'New Name', null, 'photo-2')]);
+
+      const result = applyImport(local, data, 'replace');
+
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-2')]);
+    });
   });
 });
 

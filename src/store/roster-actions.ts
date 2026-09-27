@@ -79,27 +79,11 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
     importShared(data, mode) {
       const { roster, stats, match } = get();
       const result = applyImport({ roster, stats, match }, data, mode);
-
-      let rosterToSet = result.roster;
+      set({ roster: result.roster, stats: result.stats, match: result.match });
       if (mode === 'replace') {
-        // Preserve local photos for players that are kept by id
-        const localById = new Map(roster.map((p) => [p.id, p]));
-        rosterToSet = result.roster.map((p) => ({
-          ...p,
-          photo: p.photo || localById.get(p.id)?.photo || null,
-        }));
+        const kept = new Set(result.roster.map((p) => p.photo));
+        for (const p of roster) if (p.photo && !kept.has(p.photo)) dropPhoto(p.photo);
       }
-
-      set({ roster: rosterToSet, stats: result.stats, match: result.match });
-
-      if (mode === 'replace') {
-        // Drop photos of players that are no longer in the roster
-        const keptIds = new Set(rosterToSet.map((p) => p.id));
-        for (const p of roster) {
-          if (p.photo && !keptIds.has(p.id)) dropPhoto(p.photo);
-        }
-      }
-
       return result;
     },
   };

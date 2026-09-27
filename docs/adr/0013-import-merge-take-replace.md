@@ -5,7 +5,7 @@
 - A by-id update keeps the local name when the imported name would duplicate another local player's name, so two seated players never end up sharing a display name. Every other field, including emoji, still takes the imported value.
 - "Добави и продължи мача тук" (take) confirms first under the same condition as "Раздавай!" in ADR 0011: the local match is `playing` and has at least one saved deal (`needsTakeConfirm`). It reuses the approved replace-match copy: «Нов мач?» / «Текущият мач (a : b) ще бъде изтрит.» / «Започни нов мач» / «Отказ».
 - "Замени всичките ми данни" (replace) clears the local match and takes the imported one if the payload has one; otherwise the match becomes `null`.
-- Replace removes the photo blobs of players who are no longer in the roster, since nothing will reference them afterwards.
+- Replace removes the photo blobs of players who are no longer in the roster, since nothing will reference them afterwards. Replace keeps the local photo of a player kept by id, since shared payloads carry no photos.
 - There is no import of the prototype's v1 payload (ADR 0005); the importer only accepts the `v: 2` shape.
 
 ## Consequences

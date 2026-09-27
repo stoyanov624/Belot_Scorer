@@ -28,8 +28,13 @@ export function applyImport(
   mode: ImportMode,
 ): ImportResult {
   if (mode === 'replace') {
+    const localById = new Map(local.roster.map((p) => [p.id, p]));
+    const roster = data.roster.map((p) => ({
+      ...p,
+      photo: p.photo ?? localById.get(p.id)?.photo ?? null,
+    }));
     return {
-      roster: [...data.roster],
+      roster,
       stats: [...data.stats],
       match: data.match,
       players: data.roster.length,

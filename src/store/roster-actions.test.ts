@@ -134,7 +134,7 @@ describe('clearStats', () => {
 });
 
 describe('importShared', () => {
-  it('merge: adds a new player', () => {
+  it('merge: adds a new player and updates the result counts', () => {
     const { savePlayer, importShared } = store.getState();
     const p0 = savePlayer({ id: null, name: 'Иван', emoji: '🐻', photo: null });
     if (!p0.ok) throw new Error('savePlayer failed');
@@ -150,17 +150,28 @@ describe('importShared', () => {
 
     const result = importShared(imported, 'merge');
 
-    expect(store.getState().roster).toHaveLength(2);
-    expect(store.getState().roster.some((p) => p.name === 'Нов Играч')).toBe(true);
+    expect(store.getState().roster).toEqual([
+      { id: p0.id, name: 'Иван', emoji: '🐻', photo: null },
+      { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
+    ]);
+    expect(store.getState().stats).toEqual([]);
     expect(result.players).toBe(1);
-    expect(removed).toEqual([]);
+    expect(result.addedMatches).toBe(0);
   });
 
-  it('take: sets match to the remapped imported match', () => {
+  it('take: replaces the match with the imported one', () => {
     const { savePlayer, importShared } = store.getState();
     const p0 = savePlayer({ id: null, name: 'Иван', emoji: '🐻', photo: null });
     const p1 = savePlayer({ id: null, name: 'Петър', emoji: '🐻', photo: null });
     if (!p0.ok || !p1.ok) throw new Error('savePlayer failed');
+
+    const importedMatch = createMatch({
+      seats: [p0.id, p1.id, 'ext2', 'ext3'] as const,
+      teamA: 'Ние',
+      teamB: 'Вие',
+      bestOf: 3,
+      rules: DEFAULT_RULES,
+    });
 
     const imported = {
       app: 'belot' as const,
@@ -173,18 +184,12 @@ describe('importShared', () => {
         { id: 'ext3', name: 'Жоро', emoji: null, photo: null },
       ],
       stats: [],
-      match: createMatch({
-        seats: [p0.id, p1.id, 'ext2', 'ext3'] as const,
-        teamA: 'Ние',
-        teamB: 'Вие',
-        bestOf: 3,
-        rules: DEFAULT_RULES,
-      }),
+      match: importedMatch,
     };
 
     const result = importShared(imported, 'take');
 
-    expect(store.getState().match?.seats).toEqual([p0.id, p1.id, 'ext2', 'ext3']);
+    expect(store.getState().match).toEqual(importedMatch);
     expect(result.tookMatch).toBe(true);
   });
 
@@ -205,14 +210,26 @@ describe('importShared', () => {
 
     importShared(imported, 'replace');
 
-    expect(store.getState().roster).toHaveLength(1);
+    expect(store.getState().roster).toEqual([
+      { id: p0.id, name: 'Иван', emoji: null, photo: 'ph1' },
+    ]);
+    expect(store.getState().match).toBeNull();
     expect(removed).toEqual(['ph2']);
   });
 
-  it("replace: doesn't drop the photo of a player kept by id", () => {
-    const { savePlayer, importShared } = store.getState();
+  it('replace: keeps the local photo of a player kept by id and clears a started match', () => {
+    const { savePlayer, startMatch, importShared } = store.getState();
     const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
-    if (!p0.ok) throw new Error('savePlayer failed');
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: '🐻', photo: null });
+    const p2 = savePlayer({ id: null, name: 'Мария', emoji: '🐻', photo: null });
+    const p3 = savePlayer({ id: null, name: 'Жоро', emoji: '🐻', photo: null });
+    if (!p0.ok || !p1.ok || !p2.ok || !p3.ok) throw new Error('savePlayer failed');
+    startMatch({
+      seats: [p0.id, p1.id, p2.id, p3.id],
+      teamA: 'Ние',
+      teamB: 'Вие',
+      bestOf: 1,
+    });
 
     const imported = {
       app: 'belot' as const,
@@ -223,10 +240,49 @@ describe('importShared', () => {
       match: null,
     };
 
-    importShared(imported, 'replace');
+    const result = importShared(imported, 'replace');
 
-    expect(store.getState().roster[0]?.photo).toBe('ph1');
+    expect(store.getState().roster).toEqual([
+      { id: p0.id, name: 'Иван', emoji: null, photo: 'ph1' },
+    ]);
+    expect(store.getState().match).toBeNull();
+    expect(result.tookMatch).toBe(false);
     expect(removed).toEqual([]);
+  });
+
+  it('replace: takes the imported match and clears old photos', () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
+    const p1 = savePlayer({ id: null, name: 'Петър', emoji: null, photo: 'ph2' });
+    if (!p0.ok || !p1.ok) throw new Error('savePlayer failed');
+
+    const importedMatch = createMatch({
+      seats: ['new1', 'new2', 'new3', 'new4'] as const,
+      teamA: 'Ние',
+      teamB: 'Вие',
+      bestOf: 1,
+      rules: DEFAULT_RULES,
+    });
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [
+        { id: 'new1', name: 'Нов 1', emoji: null, photo: null },
+        { id: 'new2', name: 'Нов 2', emoji: null, photo: null },
+        { id: 'new3', name: 'Нов 3', emoji: null, photo: null },
+        { id: 'new4', name: 'Нов 4', emoji: null, photo: null },
+      ],
+      stats: [],
+      match: importedMatch,
+    };
+
+    const result = importShared(imported, 'replace');
+
+    expect(store.getState().match).toEqual(importedMatch);
+    expect(result.tookMatch).toBe(true);
+    expect(removed).toEqual(['ph1', 'ph2']);
   });
 
   it('merge: never drops photos', () => {
