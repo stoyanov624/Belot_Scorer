@@ -1,21 +1,38 @@
 // @vitest-environment happy-dom
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMatch, totals } from '../../core/match';
 import type { Match, MatchRecord, Player, Seats } from '../../core/model';
 import { DEFAULT_RULES } from '../../core/rules';
-import { buildPayload, type ShareScope } from '../../core/share';
+import { buildPayload, type SharePayload, type ShareScope } from '../../core/share';
 import { STRINGS } from '../../core/strings';
-import { encodeShare } from '../../share/codec';
+import { encodeShare, readShared } from '../../share/codec';
 import { appStore } from '../../store/instance';
 import { renderRoute, resetApp } from '../../test/app';
 import ImportSheet, { type ImportSheetProps } from './ImportSheet';
 
+// Only `readShared` is overridden per test (via `mockImplementationOnce`); every other export,
+// and every other test's calls to `readShared`, keep the real codec (`restoreMocks` in
+// vitest.config.ts resets it back to `actual.readShared` before each test).
+vi.mock('../../share/codec', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../share/codec')>();
+  return { ...actual, readShared: vi.fn(actual.readShared) };
+});
+
 const S = STRINGS.import;
 const SETUP = STRINGS.setup;
+
+/** A promise this test can resolve on its own schedule, to force a specific read ordering. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
 
 beforeEach(() => {
   resetApp();
@@ -137,6 +154,50 @@ describe('ImportSheet', () => {
       expect(screen.queryByRole('button', { name: S.take })).toBeNull();
       // Sanity: the payload really had no match, matching the assertion above.
       expect(payload.match).toBeNull();
+    });
+
+    it("keeps the later read's result when an earlier one resolves after it", async () => {
+      const payloadA: SharePayload = {
+        app: 'belot',
+        v: 2,
+        at: 1,
+        roster: [fakePlayer('a', 'Ани')],
+        stats: [],
+        match: null,
+      };
+      const payloadB: SharePayload = {
+        app: 'belot',
+        v: 2,
+        at: 2,
+        roster: [fakePlayer('b', 'Боби')],
+        stats: [],
+        match: null,
+      };
+      const slowA = deferred<{ ok: true; data: SharePayload }>();
+      vi.mocked(readShared).mockImplementationOnce(() => slowA.promise);
+      vi.mocked(readShared).mockImplementationOnce(() =>
+        Promise.resolve({ ok: true, data: payloadB }),
+      );
+      renderSheet();
+      const textarea = screen.getByRole('textbox', { name: S.pasteLabel });
+
+      // Reads link A (slow to resolve), then quickly reads link B (resolves first).
+      await userEvent.type(textarea, 'zAAAA');
+      await userEvent.click(screen.getByRole('button', { name: S.read }));
+      await userEvent.clear(textarea);
+      await userEvent.type(textarea, 'zBBBB');
+      await userEvent.click(screen.getByRole('button', { name: S.read }));
+
+      expect(await screen.findByText(S.players(1, 'Боби'))).toBeTruthy();
+
+      // A's slow read finally resolves; it must not overwrite B's already-shown result.
+      await act(async () => {
+        slowA.resolve({ ok: true, data: payloadA });
+        await Promise.resolve();
+      });
+
+      expect(screen.getByText(S.players(1, 'Боби'))).toBeTruthy();
+      expect(screen.queryByText(S.players(1, 'Ани'))).toBeNull();
     });
   });
 

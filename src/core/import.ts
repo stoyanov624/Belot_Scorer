@@ -17,7 +17,7 @@ export interface ImportResult {
 const norm = (s: string) => s.trim().toLocaleLowerCase('bg');
 
 /** A playing match with saved deals is only replaced after the user confirms (ADR 0011, 0013). */
-export function needsTakeConfirm(local: Match | null): boolean {
+export function needsTakeConfirm(local: Match | null): local is Match {
   return local !== null && local.status === 'playing' && local.games.length > 0;
 }
 

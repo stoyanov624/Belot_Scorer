@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { resumePath } from '../../app/resume';
 import { type ImportResult, needsTakeConfirm } from '../../core/import';
@@ -43,48 +43,47 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   // Set only while the inline "start a new match?" confirmation replaces the action buttons;
   // holds the local match's totals for its body text.
   const [confirmTotals, setConfirmTotals] = useState<{ A: number; B: number } | null>(null);
+  // Bumped by every read attempt (paste, file or the initial `#belot=` code). A read applies
+  // its result only if its token is still the latest, so a slower earlier read (e.g. link A,
+  // then quickly link B) can never overwrite a faster later one.
+  const requestId = useRef(0);
 
-  // Reads a code the app was opened with, once, as soon as the sheet opens. A stale result
-  // from a slower read (e.g. the sheet closed meanwhile) is dropped by the `active` flag.
-  useEffect(() => {
-    let active = true;
-    if (!initialCode) return;
-    void readShared(initialCode).then((result) => {
-      if (!active) return;
-      if (result.ok) {
-        setData(result.data);
-        setError(null);
-        setDone(null);
-        setReplaceArmed(false);
-        setConfirmTotals(null);
-      } else {
-        setError(S.badCode);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [initialCode]);
-
-  const show = (next: SharePayload) => {
+  const show = useCallback((next: SharePayload) => {
     setData(next);
     setError(null);
     setDone(null);
     setReplaceArmed(false);
     setConfirmTotals(null);
-  };
+  }, []);
+
+  const fail = useCallback((message: string) => {
+    setData(null);
+    setError(message);
+  }, []);
+
+  // Reads a code the app was opened with, once, as soon as the sheet opens, through the same
+  // token guard as `onRead` and `onFile`.
+  useEffect(() => {
+    if (!initialCode) return;
+    const token = ++requestId.current;
+    void readShared(initialCode).then((result) => {
+      if (token !== requestId.current) return;
+      if (result.ok) show(result.data);
+      else fail(S.badCode);
+    });
+  }, [initialCode, show, fail]);
 
   const onRead = async () => {
+    const token = ++requestId.current;
     const code = extractCode(text);
     if (!code) {
-      setData(null);
-      setError(S.noCode);
+      fail(S.noCode);
       return;
     }
     const result = await readShared(code);
+    if (token !== requestId.current) return;
     if (!result.ok) {
-      setData(null);
-      setError(S.badCode);
+      fail(S.badCode);
       return;
     }
     show(result.data);
@@ -94,12 +93,13 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     const input = event.target;
     const file = input.files?.[0] ?? null;
     if (!file) return;
-    const text = await file.text();
+    const token = ++requestId.current;
+    const fileText = await file.text();
     input.value = '';
-    const result = parseSharedFile(text);
+    if (token !== requestId.current) return;
+    const result = parseSharedFile(fileText);
     if (!result.ok) {
-      setData(null);
-      setError(S.badFile);
+      fail(S.badFile);
       return;
     }
     show(result.data);
@@ -124,7 +124,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   const onTake = () => {
     if (!data) return;
-    if (localMatch && needsTakeConfirm(localMatch)) {
+    if (needsTakeConfirm(localMatch)) {
       setConfirmTotals(totals(localMatch));
       return;
     }
