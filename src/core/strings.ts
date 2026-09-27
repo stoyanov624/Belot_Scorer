@@ -220,6 +220,57 @@ export const STRINGS = {
     reset: 'Нулирай класацията',
     resetArmed: 'Натиснете пак, за да изтриете цялата класация',
   },
+  share: {
+    title: 'Сподели',
+    scopes: [
+      { value: 'all', label: 'Играчи + класация' },
+      { value: 'match', label: 'Текущия мач' },
+    ],
+    // Not in the handoff: the accessible name of the scope switch.
+    scopeLabel: 'Какво да се сподели',
+    summaryMatch: 'Другият телефон продължава мача от същото място.',
+    summaryAll: (players: number, matches: number) =>
+      `${players} играчи и ${matches} мача от класацията.`,
+    part: (i: number, n: number) => `Част ${i} от ${n}`,
+    hintSingle: 'Сканирайте с камерата на другия телефон или от „Внос“ в уеб страницата.',
+    hintMulti: 'Дръжте екрана пред камерата — частите се сменят сами, докато се прочетат всички.',
+    tooBig: 'Данните са твърде много за QR код — използвайте линк или файл.',
+    preparing: 'Подготвям…',
+    copyLink: 'Копирай линк',
+    sendFile: 'Изпрати файл',
+    copied: 'Линкът е копиран.',
+    downloaded: 'Файлът е изтеглен.',
+    close: 'Затвори',
+    toImport: 'Внос от друг телефон',
+    // Not in the handoff: the QR image's alt text.
+    qrAlt: 'QR код',
+  },
+  import: {
+    title: 'Внос',
+    intro:
+      'Сканирайте QR кода от другия телефон, поставете линк или изберете файл. Работи и в браузър на компютър с камера.',
+    or: 'или',
+    placeholder: 'https://…#belot=…',
+    // Not in the handoff: the accessible name of the paste field.
+    pasteLabel: 'Линк или код',
+    read: 'Прочети линка',
+    file: 'Избери файл',
+    found: 'Намерено',
+    players: (n: number, names: string) => `${n} играчи: ${names}`,
+    matches: (n: number) => `${n} завършени мача за класацията`,
+    currentMatch: (teamA: string, a: number, b: number, teamB: string) =>
+      `Текущ мач: ${teamA} ${a} : ${b} ${teamB}`,
+    merge: 'Добави към моите',
+    take: 'Добави и продължи мача тук',
+    replace: 'Замени всичките ми данни',
+    replaceArmed: 'Натиснете пак — моите данни ще се изтрият',
+    noCode: 'Не открих код в текста.',
+    badCode: 'Линкът не може да се прочете.',
+    badFile: 'Файлът не е от Белот.',
+    done: (players: number, matches: number, tookMatch: boolean) =>
+      `Готово: ${players} играчи${matches ? `, ${matches} мача в класацията` : ''}${tookMatch ? ', мачът продължава тук' : ''}.`,
+    close: 'Затвори',
+  },
   recovery: {
     // Not in the handoff (ADR 0006): see docs/Status.md.
     title: 'Данните не могат да бъдат заредени',
