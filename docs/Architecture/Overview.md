@@ -17,6 +17,7 @@ flowchart LR
   Store --> Storage
   Storage["src/storage<br/>Kv adapters, document storage, photo store"] --> Core
   Storage --> IDB[("IndexedDB<br/>belot-state · belot-photos")]
+  Share["src/share<br/>codec"] --> Core
   Core["src/core<br/>pure domain: rules, scoring, match, schemas"]
 ```
 
@@ -24,6 +25,7 @@ flowchart LR
 |---|---|---|
 | `src/core` | Domain model (Zod schemas), rules, declarations, resolution, scoring, match and series lifecycle, roster, leaderboard, settings, persisted-document format, `tokens.ts` (theme/felt data), `strings.ts` (Bulgarian copy) | `zod` and other core modules only |
 | `src/storage` | `Kv` interface (IndexedDB via `idb-keyval`, in-memory for tests), versioned document storage with write gate, photo Blob store | core, `idb-keyval`, zustand types |
+| `src/share` | Share payload codec (`codec.ts`): JSON → deflate-raw → base64url and back, `.belot` file parsing and naming | core only |
 | `src/store` | One vanilla Zustand store with `persist`: thin actions over core functions, match recording, hydration status. `instance.ts` is the only production wiring | core, storage, `zustand` |
 | `src/lib` | Small platform helpers (`newId` = `nanoid(10)`) | anything |
 | `src/ui` | Presentational primitives: `Button`, `Chip`, `Segmented`, `Avatar` (+ `usePhotoUrl` for photo Blobs, `decorative` prop), `Sheet` and `Popover` on the native `<dialog>`/popover APIs (ADR 0008), `theme.ts` (`applyTheme`/`syncTheme`, writes `tokens.ts` as CSS custom properties), `popover-position.ts`. Store-free: it may import zustand's *types* for prop shapes, never the store instance | core, `react`, `zustand` types |
