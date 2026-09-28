@@ -124,7 +124,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   const onTake = () => {
     if (!data) return;
-    if (needsTakeConfirm(localMatch)) {
+    if (localMatch !== null && needsTakeConfirm(localMatch)) {
       setConfirmTotals(totals(localMatch));
       return;
     }

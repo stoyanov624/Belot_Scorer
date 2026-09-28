@@ -2,10 +2,11 @@
 
 `DATA_MODEL.md` §4 sets out the three import actions and the prototype's `applyImport` behaviour: merge players by id then by name, add new leaderboard records, and let the user take the imported match or replace everything. Phase 6a's core needed the exact edge cases spelled out. The product owner decided (2026-09-27):
 
-- A by-id update keeps the local name when the imported name would duplicate another local player's name, so two seated players never end up sharing a display name. Every other field, including emoji, still takes the imported value.
+- A by-id update keeps the local name when the imported name would duplicate another local player's name, so two seated players never end up sharing a display name.
+- Merge links every by-id update before any by-name linking, so an imported player earlier in the payload can never link by name to a local player that a later by-id entry renames — which would otherwise seat one local player twice and lose the other import.
+- Photos never travel in 6a: `applyImport` ignores incoming photo ids; the local photo survives wherever the player survives, and the emoji is dropped whenever a photo is kept. Phase 6b revisits this when files carry photo data.
 - "Добави и продължи мача тук" (take) confirms first under the same condition as "Раздавай!" in ADR 0011: the local match is `playing` and has at least one saved deal (`needsTakeConfirm`). It reuses the approved replace-match copy: «Нов мач?» / «Текущият мач (a : b) ще бъде изтрит.» / «Започни нов мач» / «Отказ».
 - "Замени всичките ми данни" (replace) clears the local match and takes the imported one if the payload has one; otherwise the match becomes `null`.
-- Replace removes the photo blobs of players who are no longer in the roster, since nothing will reference them afterwards. Replace keeps the local photo of a player kept by id, since shared payloads carry no photos.
 - There is no import of the prototype's v1 payload (ADR 0005); the importer only accepts the `v: 2` shape.
 
 ## Consequences

@@ -17,7 +17,7 @@ export interface ImportResult {
 const norm = (s: string) => s.trim().toLocaleLowerCase('bg');
 
 /** A playing match with saved deals is only replaced after the user confirms (ADR 0011, 0013). */
-export function needsTakeConfirm(local: Match | null): local is Match {
+export function needsTakeConfirm(local: Match | null): boolean {
   return local !== null && local.status === 'playing' && local.games.length > 0;
 }
 
@@ -29,10 +29,12 @@ export function applyImport(
 ): ImportResult {
   if (mode === 'replace') {
     const localById = new Map(local.roster.map((p) => [p.id, p]));
-    const roster = data.roster.map((p) => ({
-      ...p,
-      photo: p.photo ?? localById.get(p.id)?.photo ?? null,
-    }));
+    // Photos never travel in 6a (F2): the incoming photo id is always ignored. A player kept by
+    // id keeps its local photo (dropping any incoming emoji); otherwise there is no photo.
+    const roster = data.roster.map((p) => {
+      const localPhoto = localById.get(p.id)?.photo ?? null;
+      return { ...p, photo: localPhoto, emoji: localPhoto ? null : p.emoji };
+    });
     return {
       roster,
       stats: [...data.stats],
@@ -45,20 +47,36 @@ export function applyImport(
 
   const roster = [...local.roster];
   const idMap = new Map<string, string>();
+  const importedIds = new Set(data.roster.map((p) => p.id));
+
+  // Pass 1: every by-id update, before any by-name linking. Otherwise an imported player earlier
+  // in the payload could link by name to a local player that a later by-id entry renames,
+  // seating one local player twice and losing the other import (F1).
   for (const p of data.roster) {
     const byId = roster.findIndex((r) => r.id === p.id);
-    if (byId >= 0) {
-      const current = roster[byId] as Player;
-      const clash = roster.some((r) => r.id !== p.id && norm(r.name) === norm(p.name));
-      roster[byId] = { ...p, name: clash ? current.name : p.name, photo: p.photo ?? current.photo };
-      idMap.set(p.id, p.id);
-      continue;
-    }
-    const byName = roster.findIndex((r) => norm(r.name) === norm(p.name));
+    if (byId < 0) continue;
+    const current = roster[byId] as Player;
+    const clash = roster.some((r) => r.id !== p.id && norm(r.name) === norm(p.name));
+    // Photos never travel in 6a (F2): the local photo is always kept, dropping any incoming
+    // emoji only when a photo is actually kept.
+    roster[byId] = {
+      ...p,
+      name: clash ? current.name : p.name,
+      photo: current.photo,
+      emoji: current.photo ? null : p.emoji,
+    };
+    idMap.set(p.id, p.id);
+  }
+
+  // Pass 2: by-name linking (the local player stays unchanged; only its id is remapped) and
+  // appending. A local player already claimed by a by-id update above is not a name-link target,
+  // even under a different imported id.
+  for (const p of data.roster) {
+    if (idMap.has(p.id)) continue;
+    const byName = roster.findIndex((r) => norm(r.name) === norm(p.name) && !importedIds.has(r.id));
     if (byName >= 0) {
       const current = roster[byName] as Player;
       idMap.set(p.id, current.id);
-      if (p.photo) roster[byName] = { ...current, photo: p.photo, emoji: null };
       continue;
     }
     roster.push(p);

@@ -46,9 +46,24 @@ const freshMatch = (seats: [string, string, string, string] = ['p0', 'p1', 'p2',
 
 describe('applyImport', () => {
   describe('merge', () => {
-    it('updates a player by id: imported name and emoji win, local photo kept when imported is null', () => {
+    it('updates a player by id: imported name wins; the local photo is always kept, dropping any emoji', () => {
       const local = {
         roster: [player('p1', 'Local Name', '😀', 'photo-1')],
+        stats: [],
+        match: null,
+      };
+      // The incoming photo id only exists on the sending device (F2, ADR 0003) and is ignored
+      // even though this test data sets one.
+      const data = payload([player('p1', 'New Name', '🎉', null)]);
+
+      const result = applyImport(local, data, 'merge');
+
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
+    });
+
+    it('updates a player by id: the imported emoji wins when the local player has no photo', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', '😀', null)],
         stats: [],
         match: null,
       };
@@ -56,7 +71,7 @@ describe('applyImport', () => {
 
       const result = applyImport(local, data, 'merge');
 
-      expect(result.roster).toEqual([player('p1', 'New Name', '🎉', 'photo-1')]);
+      expect(result.roster).toEqual([player('p1', 'New Name', '🎉', null)]);
     });
 
     it('keeps the local name on an id update that would collide with another local name', () => {
@@ -66,14 +81,61 @@ describe('applyImport', () => {
         match: null,
       };
       // The imported record for p2 carries the name 'Иван', which collides with p1's name.
+      // Its photo id is ignored (F2), so p2 has no photo and the imported emoji wins.
       const data = payload([player('p2', 'Иван', '🎉', 'new-photo')]);
 
       const result = applyImport(local, data, 'merge');
 
       expect(result.roster).toEqual([
         player('p1', 'Иван', '😀', null),
-        player('p2', 'Петър', '🎉', 'new-photo'),
+        player('p2', 'Петър', '🎉', null),
       ]);
+    });
+
+    it('links a rename by id and a same-named import by name in one payload without seating one player twice (F1)', () => {
+      const local = {
+        roster: [player('L', 'Ана', null, null)],
+        stats: [],
+        match: null,
+      };
+      const importedMatch = freshMatch(['L', 'N', 'c', 'd']);
+      // 'N' would, in a single-pass merge, link by name to local 'L' (still named "Ана" when
+      // processed first) before 'L' is renamed by its own by-id entry later in the payload —
+      // seating 'L' twice and losing 'N'. The fix processes every by-id update first.
+      const data = payload(
+        [
+          player('N', 'Ана', null, null),
+          player('L', 'Мария', null, null),
+          player('c', 'C', null, null),
+          player('d', 'D', null, null),
+        ],
+        [],
+        importedMatch,
+      );
+
+      const result = applyImport(local, data, 'take');
+
+      expect(result.roster).toEqual([
+        player('L', 'Мария', null, null),
+        player('N', 'Ана', null, null),
+        player('c', 'C', null, null),
+        player('d', 'D', null, null),
+      ]);
+      expect(result.match?.seats).toEqual(['L', 'N', 'c', 'd']);
+    });
+
+    it('never lets a player end up with both a photo and an emoji after a merge', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', null, 'photo-1')],
+        stats: [],
+        match: null,
+      };
+      const data = payload([player('p1', 'New Name', '🎉', null)]);
+
+      const result = applyImport(local, data, 'merge');
+
+      const p1 = result.roster.find((p) => p.id === 'p1');
+      expect(p1).toEqual({ id: 'p1', name: 'New Name', emoji: null, photo: 'photo-1' });
     });
 
     it('links a player by normalized name and remaps stats seats, leaving the local player unchanged', () => {
@@ -218,7 +280,7 @@ describe('applyImport', () => {
       expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
     });
 
-    it('takes the imported non-null photo over the local one', () => {
+    it('ignores an incoming photo id: the local photo wins even when the imported one is non-null', () => {
       const local = {
         roster: [player('p1', 'Local Name', null, 'photo-1')],
         stats: [],
@@ -228,7 +290,21 @@ describe('applyImport', () => {
 
       const result = applyImport(local, data, 'replace');
 
-      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-2')]);
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
+    });
+
+    it('never lets a player end up with both a photo and an emoji after a replace', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', null, 'photo-1')],
+        stats: [],
+        match: null,
+      };
+      const data = payload([player('p1', 'New Name', '🎉', null)]);
+
+      const result = applyImport(local, data, 'replace');
+
+      const p1 = result.roster.find((p) => p.id === 'p1');
+      expect(p1).toEqual({ id: 'p1', name: 'New Name', emoji: null, photo: 'photo-1' });
     });
   });
 });
