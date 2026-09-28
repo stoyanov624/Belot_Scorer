@@ -21,7 +21,17 @@ export function needsTakeConfirm(local: Match | null): boolean {
   return local !== null && local.status === 'playing' && local.games.length > 0;
 }
 
-/** DATA_MODEL §4 import, with the 2026-09-27 decisions (ADR 0013). */
+/**
+ * DATA_MODEL §4 import, with the 2026-09-27 decisions and the 2026-09-28 photo contract
+ * (ADR 0013).
+ *
+ * Photo contract: any non-null `photo` id on an incoming player is ALREADY valid on this
+ * device — Task 3's store layer resolves embedded photos (from a `.belot` file) to new local
+ * ids and strips any id that can't be resolved, before calling `applyImport`. Core therefore
+ * trusts a non-null incoming photo: it wins over the local photo and the emoji is dropped. A
+ * null incoming photo keeps the local photo (6a behaviour) — link and QR payloads always carry
+ * `photo: null`, so those imports never touch a local photo.
+ */
 export function applyImport(
   local: { roster: readonly Player[]; stats: readonly MatchRecord[]; match: Match | null },
   data: SharePayload,
@@ -29,11 +39,11 @@ export function applyImport(
 ): ImportResult {
   if (mode === 'replace') {
     const localById = new Map(local.roster.map((p) => [p.id, p]));
-    // Photos never travel in 6a (F2): the incoming photo id is always ignored. A player kept by
-    // id keeps its local photo (dropping any incoming emoji); otherwise there is no photo.
+    // A non-null imported photo wins; otherwise a player kept by id keeps its local photo. The
+    // emoji is dropped whenever a photo is actually kept.
     const roster = data.roster.map((p) => {
-      const localPhoto = localById.get(p.id)?.photo ?? null;
-      return { ...p, photo: localPhoto, emoji: localPhoto ? null : p.emoji };
+      const photo = p.photo ?? localById.get(p.id)?.photo ?? null;
+      return { ...p, photo, emoji: photo ? null : p.emoji };
     });
     return {
       roster,
@@ -57,13 +67,14 @@ export function applyImport(
     if (byId < 0) continue;
     const current = roster[byId] as Player;
     const clash = roster.some((r) => r.id !== p.id && norm(r.name) === norm(p.name));
-    // Photos never travel in 6a (F2): the local photo is always kept, dropping any incoming
-    // emoji only when a photo is actually kept.
+    // A non-null imported photo wins over the local one; a null one keeps it. The emoji is
+    // dropped only when a photo is actually kept.
+    const photo = p.photo ?? current.photo;
     roster[byId] = {
       ...p,
       name: clash ? current.name : p.name,
-      photo: current.photo,
-      emoji: current.photo ? null : p.emoji,
+      photo,
+      emoji: photo ? null : p.emoji,
     };
     idMap.set(p.id, p.id);
   }
@@ -76,11 +87,15 @@ export function applyImport(
     const byName = roster.findIndex((r) => norm(r.name) === norm(p.name) && !importedIds.has(r.id));
     if (byName >= 0) {
       const current = roster[byName] as Player;
+      // A non-null imported photo is taken (dropping the emoji); a null one leaves the local
+      // player untouched.
+      if (p.photo) roster[byName] = { ...current, photo: p.photo, emoji: null };
       idMap.set(p.id, current.id);
       continue;
     }
-    // Photos never travel in 6a (F2): a brand-new player never gets a foreign photo id.
-    roster.push({ ...p, photo: null });
+    // A brand-new player keeps its non-null photo, dropping the emoji; a null photo keeps the
+    // imported emoji.
+    roster.push({ ...p, emoji: p.photo ? null : p.emoji });
     idMap.set(p.id, p.id);
   }
 

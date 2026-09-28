@@ -24,6 +24,8 @@ export const SharePayloadSchema = z
     roster: z.array(PlayerSchema),
     stats: z.array(MatchRecordSchema),
     match: MatchSchema.nullable(),
+    /** Embedded photo data by id (photo id → data URL), set only by the platform layer (6b). */
+    photos: z.record(z.string(), z.string()).optional(),
   })
   .refine((p) => !p.match || p.match.seats.every((id) => p.roster.some((r) => r.id === id)), {
     message: 'match seats must be in the roster',
@@ -34,8 +36,9 @@ export function buildPayload(
   state: { roster: readonly Player[]; stats: readonly MatchRecord[]; match: Match | null },
   scope: ShareScope,
   at: number,
+  withPhotos = false,
 ): SharePayload {
-  const roster = state.roster.map((p) => ({ ...p, photo: null }));
+  const roster = state.roster.map((p) => ({ ...p, photo: withPhotos ? p.photo : null }));
   const match = scope === 'match' ? state.match : null;
   if (!match) return { app: 'belot', v: 2, at, roster, stats: [...state.stats], match: null };
   const seated = new Set<string>(match.seats);

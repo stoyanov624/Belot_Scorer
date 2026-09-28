@@ -4,7 +4,7 @@
 
 - A by-id update keeps the local name when the imported name would duplicate another local player's name, so two seated players never end up sharing a display name.
 - Merge links every by-id update before any by-name linking, so an imported player earlier in the payload can never link by name to a local player that a later by-id entry renames — which would otherwise seat one local player twice and lose the other import.
-- Photos never travel in 6a: `applyImport` ignores incoming photo ids; the local photo survives wherever the player survives, and the emoji is dropped whenever a photo is kept. Phase 6b revisits this when files carry photo data.
+- Photos never travelled in 6a. In 6b they travel only in the `.belot` file (link and QR payloads still always carry `photo: null`): the store resolves embedded photos to new local ids and strips any id it can't resolve before calling `applyImport`, so core trusts every non-null incoming `photo` id as already valid on this device. A non-null imported photo wins over the local one and drops the emoji; a null one keeps the local photo, as in 6a.
 - "Добави и продължи мача тук" (take) confirms first under the same condition as "Раздавай!" in ADR 0011: the local match is `playing` and has at least one saved deal (`needsTakeConfirm`). It reuses the approved replace-match copy: «Нов мач?» / «Текущият мач (a : b) ще бъде изтрит.» / «Започни нов мач» / «Отказ».
 - "Замени всичките ми данни" (replace) clears the local match and takes the imported one if the payload has one; otherwise the match becomes `null`.
 - There is no import of the prototype's v1 payload (ADR 0005); the importer only accepts the `v: 2` shape.

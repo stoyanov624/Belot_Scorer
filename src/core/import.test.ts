@@ -46,19 +46,32 @@ const freshMatch = (seats: [string, string, string, string] = ['p0', 'p1', 'p2',
 
 describe('applyImport', () => {
   describe('merge', () => {
-    it('updates a player by id: imported name wins; the local photo is always kept, dropping any emoji', () => {
+    it('updates a player by id: imported name wins; a null imported photo keeps the local photo, dropping any emoji', () => {
       const local = {
         roster: [player('p1', 'Local Name', '😀', 'photo-1')],
         stats: [],
         match: null,
       };
-      // The incoming photo id only exists on the sending device (F2, ADR 0003) and is ignored
-      // even though this test data sets one.
       const data = payload([player('p1', 'New Name', '🎉', null)]);
 
       const result = applyImport(local, data, 'merge');
 
       expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
+    });
+
+    it('updates a player by id: a non-null imported photo wins over the local one, dropping the emoji', () => {
+      const local = {
+        roster: [player('p1', 'Local Name', '😀', 'photo-old')],
+        stats: [],
+        match: null,
+      };
+      // Task 3's store layer already resolved this to a locally valid photo id before calling
+      // applyImport, so core trusts it (ADR 0013, 2026-09-28).
+      const data = payload([player('p1', 'New Name', '🎉', 'photo-new')]);
+
+      const result = applyImport(local, data, 'merge');
+
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-new')]);
     });
 
     it('updates a player by id: the imported emoji wins when the local player has no photo', () => {
@@ -81,8 +94,8 @@ describe('applyImport', () => {
         match: null,
       };
       // The imported record for p2 carries the name 'Иван', which collides with p1's name.
-      // Its photo id is ignored (F2), so p2 has no photo and the imported emoji wins.
-      const data = payload([player('p2', 'Иван', '🎉', 'new-photo')]);
+      // Its photo is null, so p2 keeps having no photo and the imported emoji wins.
+      const data = payload([player('p2', 'Иван', '🎉', null)]);
 
       const result = applyImport(local, data, 'merge');
 
@@ -138,7 +151,7 @@ describe('applyImport', () => {
       expect(p1).toEqual({ id: 'p1', name: 'New Name', emoji: null, photo: 'photo-1' });
     });
 
-    it('links a player by normalized name and remaps stats seats, leaving the local player unchanged', () => {
+    it('links a player by normalized name and remaps stats seats: a null imported photo leaves the local player untouched', () => {
       const local = {
         roster: [player('local-1', 'Иван', '😀', 'ph-1')],
         stats: [],
@@ -155,6 +168,19 @@ describe('applyImport', () => {
       expect(result.stats[0]?.seats).toEqual(['local-1', 'x', 'y', 'z']);
     });
 
+    it('links a player by normalized name: a non-null imported photo is taken, dropping the emoji', () => {
+      const local = {
+        roster: [player('local-1', 'Иван', '😀', 'ph-1')],
+        stats: [],
+        match: null,
+      };
+      const data = payload([player('imported-9', '  иван ', '🤖', 'ph-new')]);
+
+      const result = applyImport(local, data, 'merge');
+
+      expect(result.roster).toEqual([player('local-1', 'Иван', null, 'ph-new')]);
+    });
+
     it('adds new players in the imported order, after the local ones', () => {
       const local = {
         roster: [player('a', 'A', null, null), player('b', 'B', null, null)],
@@ -168,9 +194,18 @@ describe('applyImport', () => {
       expect(result.roster.map((p) => p.id)).toEqual(['a', 'b', 'c', 'd']);
     });
 
-    it('strips a foreign photo id from an appended new player, keeping any emoji', () => {
+    it('appends a new player keeping its non-null photo, dropping the emoji', () => {
       const local = { roster: [], stats: [], match: null };
-      const data = payload([player('c', 'C', '🎉', 'foreign')]);
+      const data = payload([player('c', 'C', '🎉', 'new-photo')]);
+
+      const result = applyImport(local, data, 'merge');
+
+      expect(result.roster).toEqual([{ id: 'c', name: 'C', emoji: null, photo: 'new-photo' }]);
+    });
+
+    it('appends a new player with a null photo, keeping its emoji', () => {
+      const local = { roster: [], stats: [], match: null };
+      const data = payload([player('c', 'C', '🎉', null)]);
 
       const result = applyImport(local, data, 'merge');
 
@@ -289,7 +324,7 @@ describe('applyImport', () => {
       expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
     });
 
-    it('ignores an incoming photo id: the local photo wins even when the imported one is non-null', () => {
+    it('a non-null imported photo wins over the local one of a player kept by id', () => {
       const local = {
         roster: [player('p1', 'Local Name', null, 'photo-1')],
         stats: [],
@@ -299,7 +334,7 @@ describe('applyImport', () => {
 
       const result = applyImport(local, data, 'replace');
 
-      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-1')]);
+      expect(result.roster).toEqual([player('p1', 'New Name', null, 'photo-2')]);
     });
 
     it('never lets a player end up with both a photo and an emoji after a replace', () => {

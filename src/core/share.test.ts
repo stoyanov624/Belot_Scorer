@@ -67,6 +67,17 @@ describe('buildPayload', () => {
       record,
     ]);
   });
+
+  it('scope all with withPhotos keeps the roster photo ids', () => {
+    const p = buildPayload({ roster, stats: [record], match }, 'all', 42, true);
+    expect(p.roster.map((r) => r.photo)).toEqual(['ph1', null, null, null, null]);
+  });
+
+  it('scope match with withPhotos keeps only the seated players photo ids', () => {
+    const p = buildPayload({ roster, stats: [record], match }, 'match', 42, true);
+    expect(p.roster.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd']);
+    expect(p.roster.map((r) => r.photo)).toEqual(['ph1', null, null, null]);
+  });
 });
 
 describe('SharePayloadSchema', () => {
@@ -79,6 +90,15 @@ describe('SharePayloadSchema', () => {
   it('rejects a match whose seats are not in the roster', () => {
     const p = buildPayload({ roster, stats: [], match }, 'match', 1);
     expect(SharePayloadSchema.safeParse({ ...p, roster: p.roster.slice(1) }).success).toBe(false);
+  });
+
+  it('accepts a payload with photos and one without', () => {
+    const p = buildPayload({ roster, stats: [], match: null }, 'all', 1);
+    expect(SharePayloadSchema.safeParse(p).success).toBe(true);
+    expect(
+      SharePayloadSchema.safeParse({ ...p, photos: { ph1: 'data:image/jpeg;base64,AAAA' } })
+        .success,
+    ).toBe(true);
   });
 });
 
