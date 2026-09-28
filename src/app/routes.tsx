@@ -1,16 +1,16 @@
 import type { RouteObject } from 'react-router';
-import { Home } from '../routes/home';
-import { Table } from '../routes/table';
+import { Home } from '../screens/home';
+import { Table } from '../screens/table';
 import { RootLayout } from './RootLayout';
 import { RouteError } from './RouteError';
 
 /** Secondary screens, loaded on first visit (or earlier via preloadRoute). */
 export const LAZY_ROUTES: Record<string, () => Promise<{ Component: React.ComponentType }>> = {
-  '/setup': () => import('../routes/setup'),
-  '/history': () => import('../routes/history'),
-  '/end': () => import('../routes/end'),
-  '/stats': () => import('../routes/stats'),
-  ...(import.meta.env.DEV ? { '/dev/ui': () => import('../routes/dev-ui') } : {}),
+  '/setup': () => import('../screens/setup'),
+  '/history': () => import('../screens/history'),
+  '/end': () => import('../screens/end'),
+  '/stats': () => import('../screens/stats'),
+  ...(import.meta.env.DEV ? { '/dev/ui': () => import('../screens/dev-ui') } : {}),
 };
 
 /** Starts downloading a lazy screen's code; no-op for eager or unknown paths. */

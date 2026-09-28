@@ -13,7 +13,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - `src/app/RouteError.tsx`: a per-route error inside `RootLayout` gets double side padding (its own `px-4` plus the layout's)
 - `src/ui/Sheet.tsx` / `src/ui/Popover.tsx`: closing and reopening an overlay within the same task can let the late `close`/`toggle` event close it again (guard reads the `open` prop; checking the element's live state would close the gap)
 - `src/ui/Segmented.tsx`: arrow keys call `preventDefault` even with a modifier held (e.g. Alt+ArrowLeft)
-- `src/routes/dev-ui.tsx` (the `/dev/ui` gallery): doesn't demo the `Avatar` photo variant (`photoStore` unused); its labels are Bulgarian literals outside `src/core/strings.ts` (accepted as a dev-tool carve-out)
+- `src/screens/dev-ui.tsx` (the `/dev/ui` gallery): doesn't demo the `Avatar` photo variant (`photoStore` unused); its labels are Bulgarian literals outside `src/core/strings.ts` (accepted as a dev-tool carve-out)
 
 ## Phase 5: Screens
 
@@ -23,13 +23,13 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 ## Phase 5a: Home, players and setup
 
 - `src/ui/controls.test.tsx`'s `toContain('h-11')` assertion also matches `BASE`'s `min-h-11`, so it's weaker than it looks
-- `src/routes/setup.test.tsx` asserts a couple of sheet titles as Bulgarian literals (`'Място: Север'`, `'Нов играч'`) instead of via `STRINGS`
+- `src/screens/setup.test.tsx` asserts a couple of sheet titles as Bulgarian literals (`'Място: Север'`, `'Нов играч'`) instead of via `STRINGS`
 
 ## Phase 5b: Table & play
 
 - `scoreDeal`, `resolve`, `declPoints` and `leaderboard` still default `rules` to `DEFAULT_RULES`; every match path passes `match.rules` today, but dropping the defaults would stop a future caller silently scoring with the wrong rules (ADR 0009)
 - `src/features/table/DealEndSheet.tsx`: no UI tests for card-point parse edge cases (`abc`, `-3`, `017`, B above max)
-- `src/features/table/*`: the sheets repeat the 13/800 uppercase label class string; `src/routes/setup.tsx` repeats the `isDraftComplete` guard in `start` and `beginMatch`
+- `src/features/table/*`: the sheets repeat the 13/800 uppercase label class string; `src/screens/setup.tsx` repeats the `isDraftComplete` guard in `start` and `beginMatch`
 
 ## Phase 5c: History and wrap
 
@@ -39,7 +39,7 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 ## Phase 6a: Share & import
 
 - `norm` (trimmed bg-locale lowercase) is duplicated in `src/core/import.ts` and `src/core/roster.ts`
-- `src/core/import.test.ts`: `players` never asserted for `take`; `src/routes/setup.tsx` could reuse `needsTakeConfirm`
+- `src/core/import.test.ts`: `players` never asserted for `take`; `src/screens/setup.tsx` could reuse `needsTakeConfirm`
 - `src/share/codec.ts`: no direct `readShared` unknown-prefix test; the `as BlobPart` cast has no explaining comment; no size cap on decompression (a crafted link can expand ~1000:1)
 - `src/features/share/share-sheet.test.tsx`: the 900 ms QR-cycling test mixes fake timers with real async and is delicate
 - Home's import close path (`params.has('import')` guard) is untested

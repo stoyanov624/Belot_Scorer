@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { STRINGS } from '../src/core/strings';
 
 /**
- * Smoke test for the /dev/ui primitive gallery (src/routes/dev-ui.tsx). That route is
+ * Smoke test for the /dev/ui primitive gallery (src/screens/dev-ui.tsx). That route is
  * dev-build-only — `import.meta.env.DEV` gates it out of LAZY_ROUTES (src/app/routes.tsx) — so
  * it never exists on the production build the rest of this suite runs against
  * (playwright.config.ts's default `pnpm build && pnpm preview`).
@@ -45,7 +45,7 @@ const RUN_DEV_UI = process.env.DEV_UI === '1';
     });
 
     test('opens both popover placements', async ({ page }) => {
-      // src/routes/dev-ui.tsx's PLACEMENTS: 'below' anchors on the "Север" avatar, 'above' on
+      // src/screens/dev-ui.tsx's PLACEMENTS: 'below' anchors on the "Север" avatar, 'above' on
       // "Юг" — every popover instance shares the same accessible name ("Иван обявява"), so the
       // one actually open is told apart by the placement the component itself stamps on it
       // (Popover.tsx's `data-placement`).
