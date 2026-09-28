@@ -168,6 +168,15 @@ describe('applyImport', () => {
       expect(result.roster.map((p) => p.id)).toEqual(['a', 'b', 'c', 'd']);
     });
 
+    it('strips a foreign photo id from an appended new player, keeping any emoji', () => {
+      const local = { roster: [], stats: [], match: null };
+      const data = payload([player('c', 'C', '🎉', 'foreign')]);
+
+      const result = applyImport(local, data, 'merge');
+
+      expect(result.roster).toEqual([{ id: 'c', name: 'C', emoji: '🎉', photo: null }]);
+    });
+
     it('skips stats records that already exist locally and appends new ones with remapped seats', () => {
       const existing = record('m1', ['a', 'b', 'c', 'd']);
       const local = {

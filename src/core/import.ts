@@ -79,7 +79,8 @@ export function applyImport(
       idMap.set(p.id, current.id);
       continue;
     }
-    roster.push(p);
+    // Photos never travel in 6a (F2): a brand-new player never gets a foreign photo id.
+    roster.push({ ...p, photo: null });
     idMap.set(p.id, p.id);
   }
 
