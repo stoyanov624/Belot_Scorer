@@ -270,6 +270,12 @@ test('share the match and import it into a second device, at the same score', as
   await importDialog.getByRole('button', { name: STRINGS.import.take, exact: true }).click();
   await expect(receiver).toHaveURL(/\/table$/);
 
+  // The coaster (src/features/table/Coaster.tsx) shows the imported match's own totals, not a
+  // fresh 0:0 — the take really landed with the sender's score.
+  const main = receiver.getByRole('main');
+  await expect(main.getByText('9', { exact: true })).toBeVisible();
+  await expect(main.getByText('7', { exact: true })).toBeVisible();
+
   await receiverContext.close();
   await senderContext.close();
 });
@@ -297,11 +303,26 @@ async function waitForPersistedMatch(page: Page): Promise<void> {
               open.onerror = () => resolve(false);
               open.onsuccess = () => {
                 const db = open.result;
+                // A bare `indexedDB.open('keyval-store')` CREATES an empty v1 database (with no
+                // `keyval` object store) if it doesn't exist yet, poisoning idb-keyval's own
+                // future upgrade; only read from it once the store idb-keyval actually creates
+                // is there.
+                if (!db.objectStoreNames.contains('keyval')) {
+                  db.close();
+                  resolve(false);
+                  return;
+                }
                 const get = db.transaction('keyval').objectStore('keyval').get('belot-state');
-                get.onerror = () => resolve(false);
+                get.onerror = () => {
+                  db.close();
+                  resolve(false);
+                };
                 get.onsuccess = () => {
                   const doc = get.result as { state?: { match?: unknown } } | undefined;
-                  resolve(Boolean(doc?.state && doc.state.match !== null));
+                  db.close();
+                  // `!= null`, not `!== null`: an absent `match` key reads back as `undefined`,
+                  // not `null`, and both mean "no match persisted yet".
+                  resolve(Boolean(doc?.state && doc.state.match != null));
                 };
               };
             }),
