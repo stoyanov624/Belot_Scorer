@@ -1,0 +1,19 @@
+<!-- biome-ignore lint/a11y/noSvgWithoutTitle: decorative app icon, not an inline image needing alt text -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    Colours from src/core/tokens.ts (pub theme, THEMES.pub), converted oklch -> sRGB hex:
+      bg oklch(0.19 0.03 50) -> #1f1007
+      a  oklch(0.8 0.14 80)  -> #edb345 (team-a)
+      b  oklch(0.72 0.15 32) -> #f47d67 (team-b)
+  -->
+  <rect width="512" height="512" rx="96" fill="#1f1007"/>
+  <g id="artwork">
+    <g transform="translate(88,66) scale(2.65)" fill="#edb345">
+      <path d="M50,10 C20,35 0,55 0,75 C0,90 15,100 30,100 C42,100 50,90 50,80 C50,90 58,100 70,100 C85,100 100,90 100,75 C100,55 80,35 50,10 Z"/>
+      <path d="M40,78 L60,78 L50,120 Z"/>
+    </g>
+    <g transform="translate(300,300) scale(1.15)" fill="#f47d67">
+      <path d="M50,90 C20,65 0,45 0,25 C0,10 15,0 30,0 C42,0 50,10 50,20 C50,10 58,0 70,0 C85,0 100,10 100,25 C100,45 80,65 50,90 Z"/>
+    </g>
+  </g>
+</svg>

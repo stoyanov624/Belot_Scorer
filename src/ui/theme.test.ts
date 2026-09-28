@@ -37,6 +37,24 @@ describe('theme', () => {
     expect(root.dataset.theme).toBe('casino');
   });
 
+  it('writes the theme color meta when present, and no-ops when it is missing', () => {
+    const meta = document.createElement('meta');
+    meta.setAttribute('name', 'theme-color');
+    document.head.appendChild(meta);
+
+    const store = makeStore();
+    const root = document.createElement('html');
+    syncTheme(store, root);
+    expect(meta.content).toBe(THEMES.pub.bg);
+
+    store.getState().updateSettings({ theme: 'night' });
+    expect(meta.content).toBe(THEMES.night.bg);
+
+    document.head.removeChild(meta);
+    // No meta element in the document: syncTheme must not throw.
+    expect(() => store.getState().updateSettings({ theme: 'home' })).not.toThrow();
+  });
+
   it('applies the default before hydration and the stored theme once hydration loads it', async () => {
     const kv = memoryKv();
     const saved = makeStore(kv);

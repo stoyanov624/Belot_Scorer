@@ -1,5 +1,6 @@
 import '@fontsource-variable/nunito';
 import './index.css';
+import { registerSW } from 'virtual:pwa-register';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
@@ -8,6 +9,9 @@ import { routes } from './app/routes';
 import { startPath } from './app/share-link';
 import { appStore, hydrateAppStore } from './store/instance';
 import { syncTheme } from './ui/theme';
+
+// autoUpdate needs no prompt UI: the new service worker takes over on its own.
+registerSW();
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root missing');
