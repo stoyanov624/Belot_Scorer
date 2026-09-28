@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
+import { STRINGS } from './src/core/strings.ts';
 
 // sRGB of the pub theme's bg, oklch(0.19 0.03 50) — src/core/tokens.ts (also in index.html's
 // static <meta name="theme-color">, since the manifest and the initial paint must agree).
@@ -19,7 +20,7 @@ export default defineConfig({
       manifest: {
         name: 'Белот',
         short_name: 'Белот',
-        description: 'Записва обявите и точките, докато вие играете.',
+        description: STRINGS.home.subtitle,
         lang: 'bg',
         start_url: '/',
         display: 'standalone',
