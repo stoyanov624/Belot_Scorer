@@ -17,7 +17,6 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 5: Screens
 
-- `saveError` never clears: decide whether a later successful write should hide the banner
 - `src/core/strings.ts`: no copy for `SaveDealError`'s `no-contract`/`match-ended` (the UI can't reach them today), and a failed save in the deal-end sheet is silent
 - `src/ui/Avatar.tsx`'s border is a fixed 3px; the prototype uses 2px at 48px (leaderboard) and 4px at 100px (end screen), both now wired — add a width option
 
@@ -31,7 +30,6 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - `scoreDeal`, `resolve`, `declPoints` and `leaderboard` still default `rules` to `DEFAULT_RULES`; every match path passes `match.rules` today, but dropping the defaults would stop a future caller silently scoring with the wrong rules (ADR 0009)
 - `src/features/table/DealEndSheet.tsx`: no UI tests for card-point parse edge cases (`abc`, `-3`, `017`, B above max)
 - `src/features/table/*`: the sheets repeat the 13/800 uppercase label class string; `src/routes/setup.tsx` repeats the `isDraftComplete` guard in `start` and `beginMatch`
-- The step-2 contract pill wraps below the title for «Без коз»/«Всичко коз» (and «Спатия» from deal 10) at 390px; a shorter pill (symbol only?) would keep it beside the title — product call
 
 ## Phase 5c: History and wrap
 

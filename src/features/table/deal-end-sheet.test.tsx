@@ -233,8 +233,9 @@ describe('DealEndSheet, step 2', () => {
     expect(sheet.getAttribute('aria-describedby')).toBe(
       within(sheet).getByText(S.hintColor(16)).id,
     );
-    const pill = within(sheet).getByRole('button', { name: 'Купа' });
-    expect(pill.textContent).toBe('♥Купа');
+    const pill = within(sheet).getByRole('button', { name: '♥ Купа' });
+    expect(pill.textContent).toBe('♥');
+    expect(pill.getAttribute('aria-label')).toBe('♥ Купа');
     // It opens another sheet (the contract sheet), and never wraps the title under it.
     expect(pill.getAttribute('aria-haspopup')).toBe('dialog');
     expect(
@@ -255,7 +256,7 @@ describe('DealEndSheet, step 2', () => {
     startMatch();
     const { onChangeContract } = renderSheet();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Купа' }));
+    await userEvent.click(screen.getByRole('button', { name: '♥ Купа' }));
 
     expect(onChangeContract).toHaveBeenCalledOnce();
   });

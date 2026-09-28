@@ -120,6 +120,25 @@ describe('app store persistence', () => {
     expect(set.mock.calls.length).toBeLessThanOrEqual(4);
   });
 
+  it('clears saveError once a write after a failure succeeds', async () => {
+    const kv = memoryKv();
+    let failing = false;
+    const set = vi.fn((key: string, value: unknown) =>
+      failing ? Promise.reject(new Error('quota')) : kv.set(key, value),
+    );
+    const store = make({ ...kv, set });
+    await store.persist.rehydrate();
+    failing = true;
+
+    store.getState().savePlayer({ id: null, name: 'Иво', emoji: null, photo: null });
+    await vi.waitFor(() => expect(store.getState().saveError).toBe(true));
+
+    failing = false;
+    store.getState().savePlayer({ id: null, name: 'Ани', emoji: null, photo: null });
+
+    await vi.waitFor(() => expect(store.getState().saveError).toBe(false));
+  });
+
   it('does not persist saveError or hydration', async () => {
     const kv = memoryKv();
     const store = make(kv);

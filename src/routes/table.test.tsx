@@ -392,7 +392,7 @@ describe('Deal-end sheet', () => {
 
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
     const points = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
-    await userEvent.click(within(points).getByRole('button', { name: 'Купа' }));
+    await userEvent.click(within(points).getByRole('button', { name: '♥ Купа' }));
 
     await waitFor(() =>
       expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull(),
@@ -413,7 +413,7 @@ describe('Deal-end sheet', () => {
     renderRoute('/table');
 
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
-    await userEvent.click(screen.getByRole('button', { name: 'Купа' }));
+    await userEvent.click(screen.getByRole('button', { name: '♥ Купа' }));
     // An overlay tap dismisses the contract sheet (happy-dom has no native Esc handling).
     await userEvent.click(screen.getByRole('dialog', { name: CS.title }));
 

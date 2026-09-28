@@ -18,7 +18,10 @@ export interface AppDeps {
   removePhoto: (id: string) => Promise<void>;
 }
 
-/** Runtime flags, never persisted. `saveError` turns true once a write to storage fails. */
+/**
+ * Runtime flags, never persisted. `saveError` turns true once a write to storage fails, and
+ * clears back to false once a later write succeeds.
+ */
 export interface RuntimeState {
   hydration: Hydration;
   saveError: boolean;
@@ -29,14 +32,16 @@ export type SetState = StoreApi<AppState>['setState'];
 export type GetState = StoreApi<AppState>['getState'];
 
 export function createAppStore(deps: AppDeps) {
-  // persist calls setItem on every setState and drops the promise, so failures are caught
-  // here. Only flip the flag once: its own setState writes again, which may fail again.
+  // persist calls setItem on every setState and drops the promise, so failures (and their
+  // recovery) are caught here. Only flip the flag when it actually changes: the setState it
+  // triggers writes again, which may succeed or fail again.
   const storage: PersistStorage<PersistedState> = {
     getItem: (name) => deps.storage.getItem(name),
     removeItem: (name) => deps.storage.removeItem(name),
     async setItem(name, value) {
       try {
         await deps.storage.setItem(name, value);
+        if (store.getState().saveError) store.setState({ saveError: false });
       } catch {
         if (!store.getState().saveError) store.setState({ saveError: true });
       }
