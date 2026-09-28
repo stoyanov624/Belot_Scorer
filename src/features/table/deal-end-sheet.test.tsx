@@ -60,7 +60,7 @@ const card = (name: string) => {
 
 const chipLabels = (el: HTMLElement) =>
   within(el)
-    .getAllByRole('button')
+    .getAllByRole('radio')
     .map((b) => b.textContent);
 
 describe('DealEndSheet, step 1', () => {
@@ -79,6 +79,8 @@ describe('DealEndSheet, step 1', () => {
       expect(within(c).getByText('Терца · 2')).toBeTruthy();
       expect(within(c).getByText(S.to)).toBeTruthy();
       expect(chipLabels(c)).toEqual(['9', '10', 'J', 'Q', 'K', 'A']);
+      // Each card's chips form their own radiogroup, named by the card's declaration label.
+      expect(within(c).getByRole('radiogroup', { name: 'Терца · 2' })).toBeTruthy();
     }
   });
 
@@ -92,12 +94,12 @@ describe('DealEndSheet, step 1', () => {
     expect(within(c).getByText(S.from)).toBeTruthy();
     expect(chipLabels(c)).toEqual(['Q', 'K', '10', 'A', '9', 'J']);
 
-    await userEvent.click(within(c).getByRole('button', { name: 'J' }));
+    await userEvent.click(within(c).getByRole('radio', { name: 'J' }));
 
     expect(current()[0]?.rank).toBe('J');
     expect(within(card('Мария')).getByText('Каре · 20')).toBeTruthy();
     expect(
-      within(card('Мария')).getByRole('button', { name: 'J' }).getAttribute('aria-pressed'),
+      within(card('Мария')).getByRole('radio', { name: 'J' }).getAttribute('aria-checked'),
     ).toBe('true');
   });
 
@@ -124,8 +126,8 @@ describe('DealEndSheet, step 1', () => {
     expect(screen.queryByText(S.counts)).toBeNull();
     expect(screen.queryByText(S.drops)).toBeNull();
 
-    await userEvent.click(within(card('Иван')).getByRole('button', { name: 'K' }));
-    await userEvent.click(within(card('Петър')).getByRole('button', { name: 'Q' }));
+    await userEvent.click(within(card('Иван')).getByRole('radio', { name: 'K' }));
+    await userEvent.click(within(card('Петър')).getByRole('radio', { name: 'Q' }));
 
     expect(within(card('Иван')).getByText(S.counts)).toBeTruthy();
     expect(within(card('Петър')).getByText(S.drops)).toBeTruthy();
@@ -151,16 +153,16 @@ describe('DealEndSheet, step 1', () => {
     declare([0, 'terca']);
     renderSheet();
 
-    const k = () => within(card('Иван')).getByRole('button', { name: 'K' });
-    expect(k().getAttribute('aria-pressed')).toBe('false');
+    const k = () => within(card('Иван')).getByRole('radio', { name: 'K' });
+    expect(k().getAttribute('aria-checked')).toBe('false');
 
     await userEvent.click(k());
     expect(current()[0]?.top).toBe('K');
-    expect(k().getAttribute('aria-pressed')).toBe('true');
+    expect(k().getAttribute('aria-checked')).toBe('true');
 
     await userEvent.click(k());
     expect(current()[0]?.top).toBe(null);
-    expect(k().getAttribute('aria-pressed')).toBe('false');
+    expect(k().getAttribute('aria-checked')).toBe('false');
   });
 
   it('"Отказ" closes the sheet and keeps the declarations with their tops and ranks', async () => {
@@ -168,8 +170,8 @@ describe('DealEndSheet, step 1', () => {
     declare([0, 'terca'], [1, 'kare']);
     const { onClose } = renderSheet();
 
-    await userEvent.click(within(card('Иван')).getByRole('button', { name: 'A' }));
-    await userEvent.click(within(card('Петър')).getByRole('button', { name: '9' }));
+    await userEvent.click(within(card('Иван')).getByRole('radio', { name: 'A' }));
+    await userEvent.click(within(card('Петър')).getByRole('radio', { name: '9' }));
     await userEvent.click(screen.getByRole('button', { name: S.cancel }));
 
     expect(onClose).toHaveBeenCalledOnce();

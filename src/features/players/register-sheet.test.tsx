@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AVATAR_EMOJI } from '../../core/avatars';
@@ -27,7 +27,7 @@ function upload() {
 /** True once no emoji is selected, i.e. the uploaded photo replaced the emoji. */
 const noEmojiSelected = () =>
   AVATAR_EMOJI.every(
-    (value) => screen.getByRole('button', { name: value }).getAttribute('aria-pressed') === 'false',
+    (value) => screen.getByRole('radio', { name: value }).getAttribute('aria-checked') === 'false',
   );
 
 describe('RegisterSheet', () => {
@@ -69,14 +69,21 @@ describe('RegisterSheet', () => {
     expect(appStore.getState().roster).toHaveLength(1);
   });
 
+  it('groups the emoji grid as a named radiogroup', () => {
+    render(<RegisterSheet open playerId={null} onClose={() => {}} />);
+
+    const group = screen.getByRole('radiogroup', { name: 'Смешна иконка' });
+    expect(within(group).getAllByRole('radio')).toHaveLength(AVATAR_EMOJI.length);
+  });
+
   it('lets the user pick an emoji, saved with the player', async () => {
     const onSaved = vi.fn();
     render(<RegisterSheet open playerId={null} onClose={() => {}} onSaved={onSaved} />);
 
     await userEvent.type(screen.getByRole('textbox', { name: 'Име или прякор' }), 'Иво');
-    const foxButton = screen.getByRole('button', { name: '🦊' });
+    const foxButton = screen.getByRole('radio', { name: '🦊' });
     await userEvent.click(foxButton);
-    expect(foxButton.getAttribute('aria-pressed')).toBe('true');
+    expect(foxButton.getAttribute('aria-checked')).toBe('true');
 
     await userEvent.click(screen.getByRole('button', { name: 'Запази' }));
 
@@ -178,7 +185,7 @@ describe('RegisterSheet', () => {
     const putSpy = vi.spyOn(photoStore, 'put');
 
     render(<RegisterSheet open playerId={null} onClose={() => {}} />);
-    const fox = screen.getByRole('button', { name: '🦊' });
+    const fox = screen.getByRole('radio', { name: '🦊' });
     await userEvent.click(fox);
     upload();
 
@@ -186,7 +193,7 @@ describe('RegisterSheet', () => {
     // Let the rejected crop settle.
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(putSpy).not.toHaveBeenCalled();
-    expect(fox.getAttribute('aria-pressed')).toBe('true');
+    expect(fox.getAttribute('aria-checked')).toBe('true');
   });
 
   it('discards an upload that finishes after an emoji was picked', async () => {
@@ -201,12 +208,12 @@ describe('RegisterSheet', () => {
     render(<RegisterSheet open playerId={null} onClose={() => {}} />);
     upload();
     await waitFor(() => expect(putSpy).toHaveBeenCalled());
-    const fox = screen.getByRole('button', { name: '🦊' });
+    const fox = screen.getByRole('radio', { name: '🦊' });
     await userEvent.click(fox);
 
     resolvePut('late');
     await waitFor(() => expect(removeSpy).toHaveBeenCalledWith('late'));
-    expect(fox.getAttribute('aria-pressed')).toBe('true');
+    expect(fox.getAttribute('aria-checked')).toBe('true');
   });
 
   it('closes without saving on cancel', async () => {

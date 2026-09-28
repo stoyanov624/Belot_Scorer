@@ -35,7 +35,7 @@ function saveHeartsDeal(cardPointsA: number) {
   if (!result.ok) throw new Error('saveDeal failed');
 }
 
-const seat = (name: string) => screen.getByRole('region', { name });
+const seat = (name: string) => screen.getByRole('group', { name });
 
 describe('Table', () => {
   it('shows the header line and deal number', () => {
@@ -75,12 +75,14 @@ describe('Table', () => {
     expect(screen.getByRole('dialog', { name: 'Атмосфера' })).toBeTruthy();
   });
 
-  it('shows the history count only once deals exist', () => {
+  it('shows the history count only once deals exist, as a hidden badge (name stays "История")', () => {
     startMatch();
     saveHeartsDeal(10);
     renderRoute('/table');
 
-    expect(screen.getByRole('link', { name: `${S.history} 1` })).toBeTruthy();
+    const link = screen.getByRole('link', { name: S.history });
+    const badge = within(link).getByText('1');
+    expect(badge.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('shows the four players at their seats', () => {
@@ -287,6 +289,32 @@ describe('Declarations popover', () => {
     }
   });
 
+  it('returns focus to the seat avatar after picking a declaration', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    renderRoute('/table');
+
+    const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
+    await userEvent.click(avatar);
+    const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 2' }));
+
+    expect(document.activeElement).toBe(avatar);
+  });
+
+  it('returns focus to the seat avatar after removing a declaration chip', async () => {
+    startMatch();
+    appStore.getState().setContract('hearts', 0);
+    appStore.getState().addDeclaration(0, 'terca');
+    renderRoute('/table');
+
+    const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
+    const chip = within(seat('Север')).getByRole('button', { name: S.removeDecl('Терца') });
+    await userEvent.click(chip);
+
+    expect(document.activeElement).toBe(avatar);
+  });
+
   it('has aria-haspopup and reflects the open state via aria-expanded', async () => {
     startMatch();
     appStore.getState().setContract('hearts', 0);
@@ -309,8 +337,8 @@ describe('Contract sheet', () => {
     await userEvent.click(screen.getByRole('button', { name: S.pickContract }));
     const sheet = screen.getByRole('dialog', { name: CS.title });
 
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Купа' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Иван' }));
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'Купа' }));
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'Иван' }));
     await userEvent.click(within(sheet).getByRole('button', { name: CS.done }));
 
     expect(appStore.getState().match?.contract).toBe('hearts');
@@ -325,8 +353,8 @@ describe('Contract sheet', () => {
 
     const sheet = screen.getByRole('dialog', { name: CS.title });
 
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Пика' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Гошо' }));
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'Пика' }));
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'Гошо' }));
     await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
 
     expect(appStore.getState().match?.contract).toBe('spades');
@@ -370,7 +398,7 @@ describe('Deal-end sheet', () => {
       expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull(),
     );
     const sheet = screen.getByRole('dialog', { name: CS.title });
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Без коз' }));
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'Без коз' }));
     await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
 
     expect(appStore.getState().match?.contract).toBe('nt');

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useId, useRef, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import { AVATAR_EMOJI, randomEmoji } from '../../core/avatars';
 import type { NameError } from '../../core/roster';
 import { STRINGS } from '../../core/strings';
@@ -6,6 +6,7 @@ import { photoStore, useAppStore } from '../../store/instance';
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { cx } from '../../ui/cx';
+import { nextRadioIndex } from '../../ui/radio-nav';
 import { Sheet } from '../../ui/Sheet';
 import { usePhotoUrl } from '../../ui/usePhotoUrl';
 
@@ -132,6 +133,22 @@ function RegisterForm({
     if (removePlayer(existing.id).ok) onDone();
   };
 
+  // Roving tabindex: the checked emoji, or the first one when a photo (no emoji) is selected.
+  const emojiTabStop = Math.max(
+    0,
+    AVATAR_EMOJI.findIndex((value) => !photo && emoji === value),
+  );
+  const onEmojiKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = nextRadioIndex(event, index, AVATAR_EMOJI.length);
+    if (next === null) return;
+    event.preventDefault();
+    const value = AVATAR_EMOJI[next];
+    if (value) pickEmoji(value);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+      [next]?.focus();
+  };
+
   return (
     <>
       <div className="flex items-center gap-3.5">
@@ -170,22 +187,29 @@ function RegisterForm({
         </button>
       </div>
 
-      <div className="grid grid-cols-6 gap-2">
-        {AVATAR_EMOJI.map((value) => (
-          <button
-            key={value}
-            type="button"
-            aria-label={value}
-            aria-pressed={!photo && emoji === value}
-            onClick={() => pickEmoji(value)}
-            className={cx(
-              'aspect-square rounded-2xl border-2 bg-s2 text-2xl transition-transform active:scale-95',
-              !photo && emoji === value ? 'border-team-a' : 'border-transparent',
-            )}
-          >
-            {value}
-          </button>
-        ))}
+      <div role="radiogroup" aria-label={S.icon} className="grid grid-cols-6 gap-2">
+        {AVATAR_EMOJI.map((value, index) => {
+          const selected = !photo && emoji === value;
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: ARIA radio pattern; native radio inputs can't be styled this way without extra markup
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={value}
+              tabIndex={index === emojiTabStop ? 0 : -1}
+              onClick={() => pickEmoji(value)}
+              onKeyDown={(event) => onEmojiKeyDown(event, index)}
+              className={cx(
+                'aspect-square rounded-2xl border-2 bg-s2 text-2xl transition-transform active:scale-95',
+                selected ? 'border-team-a' : 'border-transparent',
+              )}
+            >
+              {value}
+            </button>
+          );
+        })}
       </div>
 
       <input

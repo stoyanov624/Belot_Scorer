@@ -104,7 +104,10 @@ export function Table() {
               isDealer={showDealer && dealerSeat === seat}
               decls={match.current.filter((d) => d.seat === seat)}
               onAvatar={() => setOpenSeat((current) => (current === seat ? null : seat))}
-              onRemoveDecl={removeDeclaration}
+              onRemoveDecl={(id) => {
+                removeDeclaration(id);
+                anchors[seat].current?.focus();
+              }}
               anchorRef={anchors[seat]}
               declOpen={openSeat === seat}
               onCloseDecl={() => setOpenSeat(null)}
@@ -117,6 +120,7 @@ export function Table() {
               onPickDecl={(key) => {
                 addDeclaration(seat, key);
                 setOpenSeat(null);
+                anchors[seat].current?.focus();
               }}
             />
           );

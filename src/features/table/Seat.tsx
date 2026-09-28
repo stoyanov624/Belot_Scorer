@@ -65,8 +65,12 @@ export function Seat({
   onPickDecl,
 }: SeatProps) {
   const vertical = seat % 2 === 0;
+  // A <fieldset> is for form controls, not a general landmark group; this seat's
+  // avatar/name/declarations aren't a form.
   return (
+    // biome-ignore lint/a11y/useSemanticElements: see above
     <section
+      role="group"
       aria-label={STRINGS.seats[seat]}
       style={{ gridArea: AREA[seat] }}
       className={cx(

@@ -16,51 +16,51 @@ describe('ThemeSheet', () => {
     render(<ThemeSheet open onClose={onClose} />);
 
     expect(screen.getByRole('dialog', { name: 'Атмосфера' })).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Тема' })).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Маса' })).toBeTruthy();
+    expect(screen.getByRole('radiogroup', { name: 'Тема' })).toBeTruthy();
+    expect(screen.getByRole('radiogroup', { name: 'Маса' })).toBeTruthy();
   });
 
   it('displays 4 theme buttons with theme names: Кръчма, Вкъщи, Сукно, Късна нощ', () => {
     render(<ThemeSheet open onClose={() => {}} />);
-    const themeGroup = screen.getByRole('group', { name: 'Тема' });
+    const themeGroup = screen.getByRole('radiogroup', { name: 'Тема' });
 
-    expect(within(themeGroup).getByRole('button', { name: /Кръчма/ })).toBeTruthy();
-    expect(within(themeGroup).getByRole('button', { name: /Вкъщи/ })).toBeTruthy();
-    expect(within(themeGroup).getByRole('button', { name: /Сукно/ })).toBeTruthy();
-    expect(within(themeGroup).getByRole('button', { name: /Късна нощ/ })).toBeTruthy();
+    expect(within(themeGroup).getByRole('radio', { name: /Кръчма/ })).toBeTruthy();
+    expect(within(themeGroup).getByRole('radio', { name: /Вкъщи/ })).toBeTruthy();
+    expect(within(themeGroup).getByRole('radio', { name: /Сукно/ })).toBeTruthy();
+    expect(within(themeGroup).getByRole('radio', { name: /Късна нощ/ })).toBeTruthy();
   });
 
   it('displays 4 felt buttons with felt names: Дърво, Сукно, Покривка, Камък', () => {
     render(<ThemeSheet open onClose={() => {}} />);
-    const feltGroup = screen.getByRole('group', { name: 'Маса' });
+    const feltGroup = screen.getByRole('radiogroup', { name: 'Маса' });
 
-    expect(within(feltGroup).getByRole('button', { name: 'Дърво' })).toBeTruthy();
-    expect(within(feltGroup).getByRole('button', { name: 'Сукно' })).toBeTruthy();
-    expect(within(feltGroup).getByRole('button', { name: 'Покривка' })).toBeTruthy();
-    expect(within(feltGroup).getByRole('button', { name: 'Камък' })).toBeTruthy();
+    expect(within(feltGroup).getByRole('radio', { name: 'Дърво' })).toBeTruthy();
+    expect(within(feltGroup).getByRole('radio', { name: 'Сукно' })).toBeTruthy();
+    expect(within(feltGroup).getByRole('radio', { name: 'Покривка' })).toBeTruthy();
+    expect(within(feltGroup).getByRole('radio', { name: 'Камък' })).toBeTruthy();
   });
 
-  it('has "Кръчма" theme and "Дърво" felt with aria-pressed="true" by default', () => {
+  it('has "Кръчма" theme and "Дърво" felt with aria-checked="true" by default', () => {
     render(<ThemeSheet open onClose={() => {}} />);
 
-    const themeGroup = screen.getByRole('group', { name: 'Тема' });
-    const feltGroup = screen.getByRole('group', { name: 'Маса' });
+    const themeGroup = screen.getByRole('radiogroup', { name: 'Тема' });
+    const feltGroup = screen.getByRole('radiogroup', { name: 'Маса' });
 
     expect(
       within(themeGroup)
-        .getByRole('button', { name: /Кръчма/ })
-        .getAttribute('aria-pressed'),
+        .getByRole('radio', { name: /Кръчма/ })
+        .getAttribute('aria-checked'),
     ).toBe('true');
     expect(
-      within(feltGroup).getByRole('button', { name: 'Дърво' }).getAttribute('aria-pressed'),
+      within(feltGroup).getByRole('radio', { name: 'Дърво' }).getAttribute('aria-checked'),
     ).toBe('true');
   });
 
   it('clicks "Късна нощ" to set theme to "night"', async () => {
     render(<ThemeSheet open onClose={() => {}} />);
 
-    const themeGroup = screen.getByRole('group', { name: 'Тема' });
-    const nightButton = within(themeGroup).getByRole('button', { name: /Късна нощ/ });
+    const themeGroup = screen.getByRole('radiogroup', { name: 'Тема' });
+    const nightButton = within(themeGroup).getByRole('radio', { name: /Късна нощ/ });
 
     await userEvent.click(nightButton);
 
@@ -70,8 +70,8 @@ describe('ThemeSheet', () => {
   it('clicks "Камък" to set felt to "stone"', async () => {
     render(<ThemeSheet open onClose={() => {}} />);
 
-    const feltGroup = screen.getByRole('group', { name: 'Маса' });
-    const stoneButton = within(feltGroup).getByRole('button', { name: 'Камък' });
+    const feltGroup = screen.getByRole('radiogroup', { name: 'Маса' });
+    const stoneButton = within(feltGroup).getByRole('radio', { name: 'Камък' });
 
     await userEvent.click(stoneButton);
 
@@ -89,35 +89,35 @@ describe('ThemeSheet', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('updates aria-pressed when theme is changed', async () => {
+  it('updates aria-checked when theme is changed', async () => {
     render(<ThemeSheet open onClose={() => {}} />);
 
-    const themeGroup = screen.getByRole('group', { name: 'Тема' });
-    const pubButton = within(themeGroup).getByRole('button', { name: /Кръчма/ });
-    const nightButton = within(themeGroup).getByRole('button', { name: /Късна нощ/ });
+    const themeGroup = screen.getByRole('radiogroup', { name: 'Тема' });
+    const pubButton = within(themeGroup).getByRole('radio', { name: /Кръчма/ });
+    const nightButton = within(themeGroup).getByRole('radio', { name: /Късна нощ/ });
 
-    expect(pubButton.getAttribute('aria-pressed')).toBe('true');
-    expect(nightButton.getAttribute('aria-pressed')).toBe('false');
+    expect(pubButton.getAttribute('aria-checked')).toBe('true');
+    expect(nightButton.getAttribute('aria-checked')).toBe('false');
 
     await userEvent.click(nightButton);
 
-    expect(pubButton.getAttribute('aria-pressed')).toBe('false');
-    expect(nightButton.getAttribute('aria-pressed')).toBe('true');
+    expect(pubButton.getAttribute('aria-checked')).toBe('false');
+    expect(nightButton.getAttribute('aria-checked')).toBe('true');
   });
 
-  it('updates aria-pressed when felt is changed', async () => {
+  it('updates aria-checked when felt is changed', async () => {
     render(<ThemeSheet open onClose={() => {}} />);
 
-    const feltGroup = screen.getByRole('group', { name: 'Маса' });
-    const woodButton = within(feltGroup).getByRole('button', { name: 'Дърво' });
-    const stoneButton = within(feltGroup).getByRole('button', { name: 'Камък' });
+    const feltGroup = screen.getByRole('radiogroup', { name: 'Маса' });
+    const woodButton = within(feltGroup).getByRole('radio', { name: 'Дърво' });
+    const stoneButton = within(feltGroup).getByRole('radio', { name: 'Камък' });
 
-    expect(woodButton.getAttribute('aria-pressed')).toBe('true');
-    expect(stoneButton.getAttribute('aria-pressed')).toBe('false');
+    expect(woodButton.getAttribute('aria-checked')).toBe('true');
+    expect(stoneButton.getAttribute('aria-checked')).toBe('false');
 
     await userEvent.click(stoneButton);
 
-    expect(woodButton.getAttribute('aria-pressed')).toBe('false');
-    expect(stoneButton.getAttribute('aria-pressed')).toBe('true');
+    expect(woodButton.getAttribute('aria-checked')).toBe('false');
+    expect(stoneButton.getAttribute('aria-checked')).toBe('true');
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type KeyboardEvent, useId, useState } from 'react';
 import type { ContractKey, Declaration, Team } from '../../core/model';
 import { type Resolution, resolve } from '../../core/resolve';
 import {
@@ -15,6 +15,7 @@ import { useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
 import { cx } from '../../ui/cx';
+import { nextRadioIndex } from '../../ui/radio-nav';
 import { Sheet, SheetActions } from '../../ui/Sheet';
 import {
   calcRows,
@@ -386,6 +387,43 @@ function ResolveCard({
   onRank: (rank: NonNullable<Declaration['rank']>) => void;
 }) {
   const seq = isSequence(decl.key);
+  const labelId = useId();
+
+  const topOptions = validTops(decl.key);
+  // Not `indexOf`: `decl.top` is nullable, and the array's element type isn't.
+  const topTabStop = Math.max(
+    0,
+    // biome-ignore lint/complexity/useIndexOf: see above
+    topOptions.findIndex((top) => top === decl.top),
+  );
+  const onTopKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = nextRadioIndex(event, index, topOptions.length);
+    if (next === null) return;
+    event.preventDefault();
+    const top = topOptions[next];
+    if (top) onTop(top);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+      [next]?.focus();
+  };
+
+  // Not `indexOf`: `decl.rank` is nullable, and the array's element type isn't.
+  const rankTabStop = Math.max(
+    0,
+    // biome-ignore lint/complexity/useIndexOf: see above
+    KARE_RANKS.findIndex((rank) => rank === decl.rank),
+  );
+  const onRankKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = nextRadioIndex(event, index, KARE_RANKS.length);
+    if (next === null) return;
+    event.preventDefault();
+    const rank = KARE_RANKS[next];
+    if (rank) onRank(rank);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+      [next]?.focus();
+  };
+
   return (
     // Name and chips share a line when the sheet is wide enough (a laptop), halving the card's
     // height; on a phone the chips wrap below, as in mockup 07 (ADR 0012).
@@ -399,21 +437,38 @@ function ResolveCard({
           )}
         />
         <span className="min-w-0 flex-1 truncate font-bold">{name}</span>
-        <span className="font-black">{resolutionCardLabel(decl, rules)}</span>
+        <span id={labelId} className="font-black">
+          {resolutionCardLabel(decl, rules)}
+        </span>
       </div>
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div
+        role="radiogroup"
+        aria-labelledby={labelId}
+        className="flex flex-wrap items-center gap-1.5"
+      >
         <span className="min-w-6 text-[13px] font-bold text-muted">{seq ? S.to : S.from}</span>
         {seq
-          ? validTops(decl.key).map((top) => (
-              <Chip key={top} tone="sunken" selected={decl.top === top} onClick={() => onTop(top)}>
+          ? topOptions.map((top, index) => (
+              <Chip
+                key={top}
+                choice
+                tone="sunken"
+                selected={decl.top === top}
+                tabIndex={index === topTabStop ? 0 : -1}
+                onKeyDown={(event) => onTopKeyDown(event, index)}
+                onClick={() => onTop(top)}
+              >
                 {top}
               </Chip>
             ))
-          : KARE_RANKS.map((rank) => (
+          : KARE_RANKS.map((rank, index) => (
               <Chip
                 key={rank}
+                choice
                 tone="sunken"
                 selected={decl.rank === rank}
+                tabIndex={index === rankTabStop ? 0 : -1}
+                onKeyDown={(event) => onRankKeyDown(event, index)}
                 onClick={() => onRank(rank)}
               >
                 {rank}

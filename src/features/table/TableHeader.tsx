@@ -46,15 +46,19 @@ export function TableHeader({
         <Button size="sm" onClick={onTheme} className="shrink-0">
           {S.theme}
         </Button>
-        <PreloadLink to="/history" className={cx(buttonClass('secondary', 'sm'), 'shrink-0')}>
+        <PreloadLink
+          to="/history"
+          aria-label={S.history}
+          className={cx(buttonClass('secondary', 'sm'), 'shrink-0')}
+        >
           {S.history}
           {historyCount > 0 && (
-            <>
-              {' '}
-              <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-s3 px-1.5 text-xs">
-                {historyCount}
-              </span>
-            </>
+            <span
+              aria-hidden
+              className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-s3 px-1.5 text-xs"
+            >
+              {historyCount}
+            </span>
           )}
         </PreloadLink>
       </div>

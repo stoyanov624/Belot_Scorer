@@ -65,7 +65,7 @@ export function Component() {
         <section key={entry.no} className="flex flex-col gap-2.5 rounded-[20px] bg-s1 p-4">
           <div className="flex items-baseline justify-between gap-2.5">
             <div className="flex min-w-0 items-center gap-2">
-              <h3 className="flex-none text-base font-black">{S.deal(entry.no)}</h3>
+              <h2 className="flex-none text-base font-black">{S.deal(entry.no)}</h2>
               <p className="truncate text-[13px] font-extrabold text-muted">
                 <span aria-hidden className={cx(entry.red && 'text-suit-red')}>
                   {entry.contract.sym}

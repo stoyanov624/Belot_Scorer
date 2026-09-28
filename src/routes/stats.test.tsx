@@ -61,7 +61,7 @@ async function renderStats() {
 
 /** All row name headings, in the order the screen renders them. */
 function rowNames(): string[] {
-  return screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent ?? '');
+  return screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent ?? '');
 }
 
 describe('Leaderboard', () => {

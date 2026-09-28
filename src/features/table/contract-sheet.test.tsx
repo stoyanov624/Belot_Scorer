@@ -40,25 +40,35 @@ describe('ContractSheet', () => {
     render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
 
     for (const label of ['Спатия', 'Каро', 'Купа', 'Пика', 'Без коз', 'Всичко коз']) {
-      expect(screen.getByRole('button', { name: label })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: label })).toBeTruthy();
     }
-    const clubs = screen.getByRole('button', { name: 'Спатия' });
-    const diamonds = screen.getByRole('button', { name: 'Каро' });
-    const hearts = screen.getByRole('button', { name: 'Купа' });
+    const clubs = screen.getByRole('radio', { name: 'Спатия' });
+    const diamonds = screen.getByRole('radio', { name: 'Каро' });
+    const hearts = screen.getByRole('radio', { name: 'Купа' });
     expect(within(clubs).getByText('♣').className).not.toContain('text-suit-red');
     expect(within(diamonds).getByText('♦').className).toContain('text-suit-red');
     expect(within(hearts).getByText('♥').className).toContain('text-suit-red');
 
     for (const name of NAMES) {
-      expect(screen.getByRole('button', { name })).toBeTruthy();
+      expect(screen.getByRole('radio', { name })).toBeTruthy();
     }
+  });
+
+  it('groups the tiles and callers as named radiogroups', () => {
+    startMatch();
+    render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
+
+    const tiles = screen.getByRole('radiogroup', { name: S.title });
+    expect(within(tiles).getAllByRole('radio')).toHaveLength(6);
+    const callers = screen.getByRole('radiogroup', { name: S.caller });
+    expect(within(callers).getAllByRole('radio')).toHaveLength(4);
   });
 
   it("lays the callers out in 4 columns: avatar ringed in the seat's team colour above the name", () => {
     startMatch();
     render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
 
-    const buttons = NAMES.map((name) => screen.getByRole('button', { name }));
+    const buttons = NAMES.map((name) => screen.getByRole('radio', { name }));
     expect(buttons[0]?.parentElement?.className.split(' ')).toContain('grid-cols-4');
     buttons.forEach((button, seat) => {
       expect(button.className.split(' ')).toContain('flex-col');
@@ -80,11 +90,11 @@ describe('ContractSheet', () => {
     await userEvent.click(cta);
     expect(appStore.getState().match?.contract ?? null).toBe(null);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Купа' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Купа' }));
     // Still incomplete: no caller yet.
     expect(screen.getByRole('button', { name: S.pick })).toBeTruthy();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Иван' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Иван' }));
 
     const done = screen.getByRole('button', { name: S.done });
     expect(done.getAttribute('aria-disabled')).toBe('false');
@@ -100,8 +110,33 @@ describe('ContractSheet', () => {
     appStore.getState().setContract('spades', 2);
     render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
 
-    expect(screen.getByRole('button', { name: 'Пика' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Мария' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Пика' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Мария' }).getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('moves the contract selection and focus with ArrowRight, wrapping; a modified arrow does nothing', async () => {
+    startMatch();
+    render(<ContractSheet open mode="set" onClose={() => {}} onConfirmed={() => {}} />);
+
+    // Nothing picked yet: the first tile (Спатия) is the one tab stop.
+    const clubs = screen.getByRole('radio', { name: 'Спатия' });
+    clubs.focus();
+    expect(document.activeElement).toBe(clubs);
+
+    await userEvent.keyboard('{ArrowRight}');
+    const diamonds = screen.getByRole('radio', { name: 'Каро' });
+    expect(document.activeElement).toBe(diamonds);
+    expect(diamonds.getAttribute('aria-checked')).toBe('true');
+    expect(appStore.getState().match?.contract ?? null).toBe(null); // Not confirmed yet.
+
+    // Wraps from the last tile (Всичко коз) back to the first (Спатия): 6 tiles, one full cycle.
+    for (let i = 0; i < 5; i++) await userEvent.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(clubs);
+    expect(clubs.getAttribute('aria-checked')).toBe('true');
+
+    await userEvent.keyboard('{Meta>}{ArrowRight}{/Meta}');
+    expect(document.activeElement).toBe(clubs);
+    expect(clubs.getAttribute('aria-checked')).toBe('true');
   });
 
   it('shows the warning when "Без коз" is picked and declarations exist, and clears them on confirm', async () => {
@@ -114,7 +149,7 @@ describe('ContractSheet', () => {
 
     expect(screen.queryByText(S.ntWarning)).toBeNull();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Без коз' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Без коз' }));
 
     expect(screen.getByText(S.ntWarning)).toBeTruthy();
 
@@ -129,8 +164,8 @@ describe('ContractSheet', () => {
     const onConfirmed = vi.fn();
     render(<ContractSheet open mode="toPoints" onClose={() => {}} onConfirmed={onConfirmed} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Пика' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Гошо' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Пика' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Гошо' }));
 
     const cta = screen.getByRole('button', { name: S.toPoints });
     await userEvent.click(cta);

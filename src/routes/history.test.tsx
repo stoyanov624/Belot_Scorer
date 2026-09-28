@@ -115,8 +115,9 @@ describe('History', () => {
     buildHistory();
     await renderHistory();
 
-    const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
-    expect(headings).toEqual([S.deal(3), S.deal(2), S.deal(1)]);
+    // Deal cards and the in-progress card are all h2, one level under the page's h1.
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(headings).toEqual([S.inProgress(4), S.deal(3), S.deal(2), S.deal(1)]);
     expect(screen.getByText(wholeText('♠ Пика · Мария'))).toBeTruthy();
     expect(screen.getByText(wholeText('♥ Купа · Иван'))).toBeTruthy();
     expect(screen.getByText(wholeText('♣ Спатия · Петър'))).toBeTruthy();

@@ -70,6 +70,36 @@ describe('Chip', () => {
     render(<Chip>Терца</Chip>);
     expect(screen.getByRole('button', { name: 'Терца' }).hasAttribute('aria-pressed')).toBe(false);
   });
+
+  it('in choice mode exposes selection as role=radio + aria-checked, not aria-pressed', () => {
+    render(
+      <Chip choice selected>
+        Q
+      </Chip>,
+    );
+    const radio = screen.getByRole('radio', { name: 'Q' });
+    expect(radio.getAttribute('aria-checked')).toBe('true');
+    expect(radio.hasAttribute('aria-pressed')).toBe(false);
+    expect(screen.queryByRole('button', { name: 'Q' })).toBeNull();
+  });
+
+  it('reflects an unchecked choice chip', () => {
+    render(
+      <Chip choice selected={false}>
+        K
+      </Chip>,
+    );
+    expect(screen.getByRole('radio', { name: 'K' }).getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('sm chips extend the hit area to 44px without changing the visible size', () => {
+    render(<Chip size="sm">9</Chip>);
+    const classes = screen.getByRole('button', { name: '9' }).className.split(' ');
+    expect(classes).toContain('h-[26px]');
+    expect(classes).toContain('relative');
+    expect(classes).toContain('before:-inset-[9px]');
+    expect(classes).toContain("before:content-['']");
+  });
 });
 
 describe('Segmented', () => {
