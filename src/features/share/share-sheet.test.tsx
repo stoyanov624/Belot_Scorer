@@ -152,6 +152,9 @@ describe('ShareSheet', () => {
     const anchor = click.mock.instances[0] as HTMLAnchorElement;
     expect(anchor.download).toMatch(/^belot-\d{4}-\d{2}-\d{2}\.belot$/);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    // F11: the revoke is deferred a tick past click(), not synchronous; `userEvent.click`
+    // already flushes that tick, so by here it has run exactly once.
+    expect(revoke).toHaveBeenCalledTimes(1);
     expect(revoke).toHaveBeenCalledWith(objectUrl);
     expect(await screen.findByText(S.downloaded)).toBeTruthy();
   });

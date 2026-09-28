@@ -156,7 +156,9 @@ function ShareForm({
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    // Revoking synchronously right after click() can cancel the download on some browsers; a
+    // tick later the browser has already read the blob.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
     setStatus(S.downloaded);
   };
 

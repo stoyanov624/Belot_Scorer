@@ -16,7 +16,7 @@ import ImportSheet, { type ImportSheetProps } from './ImportSheet';
 
 // Only `readShared` is overridden per test (via `mockImplementationOnce`); every other export,
 // and every other test's calls to `readShared`, keep the real codec (`restoreMocks` in
-// vitest.config.ts resets it back to `actual.readShared` before each test).
+// vite.config.ts resets it back to `actual.readShared` before each test).
 vi.mock('../../share/codec', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../share/codec')>();
   return { ...actual, readShared: vi.fn(actual.readShared) };

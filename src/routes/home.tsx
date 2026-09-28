@@ -27,6 +27,12 @@ export function Home() {
   const [params, setParams] = useSearchParams();
   const pendingCode = params.get('import');
   const importSheetOpen = importOpen || pendingCode !== null;
+  // A lazy sheet stays mounted once it has ever opened, so closing it runs `dialog.close()`
+  // (exit animation, focus return) instead of unmounting the `<dialog>` outright (F9).
+  const [shareMounted, setShareMounted] = useState(false);
+  if (shareOpen && !shareMounted) setShareMounted(true);
+  const [importMounted, setImportMounted] = useState(false);
+  if (importSheetOpen && !importMounted) setImportMounted(true);
 
   return (
     <div className="flex flex-col gap-7 pt-12 pb-8">
@@ -92,7 +98,7 @@ export function Home() {
         onClose={() => setRegister(null)}
       />
       <ThemeSheet open={themeOpen} onClose={() => setThemeOpen(false)} />
-      {shareOpen && (
+      {shareMounted && (
         <Suspense fallback={null}>
           <ShareSheet
             open={shareOpen}
@@ -106,7 +112,7 @@ export function Home() {
           />
         </Suspense>
       )}
-      {importSheetOpen && (
+      {importMounted && (
         <Suspense fallback={null}>
           <ImportSheet
             open={importSheetOpen}

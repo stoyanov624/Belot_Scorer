@@ -45,6 +45,12 @@ export function Table() {
   const [endMatchOpen, setEndMatchOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  // A lazy sheet stays mounted once it has ever opened, so closing it runs `dialog.close()`
+  // (exit animation, focus return) instead of unmounting the `<dialog>` outright (F9).
+  const [shareMounted, setShareMounted] = useState(false);
+  if (shareOpen && !shareMounted) setShareMounted(true);
+  const [importMounted, setImportMounted] = useState(false);
+  if (importOpen && !importMounted) setImportMounted(true);
   // One plain statement per ref (React Compiler, see docs/Architecture/Overview.md).
   const northRef = useRef<HTMLButtonElement>(null);
   const eastRef = useRef<HTMLButtonElement>(null);
@@ -165,7 +171,7 @@ export function Table() {
           if (ended) navigate('/end', { replace: true });
         }}
       />
-      {shareOpen && (
+      {shareMounted && (
         <Suspense fallback={null}>
           <ShareSheet
             open={shareOpen}
@@ -179,7 +185,7 @@ export function Table() {
           />
         </Suspense>
       )}
-      {importOpen && (
+      {importMounted && (
         <Suspense fallback={null}>
           <ImportSheet open={importOpen} onClose={() => setImportOpen(false)} />
         </Suspense>
