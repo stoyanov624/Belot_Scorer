@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "bundle": "vite build && node scripts/bundle-check.mjs",
     "docs:check": "node scripts/check-doc-links.mjs",
     "icons": "node scripts/make-icons.mjs"
   },
