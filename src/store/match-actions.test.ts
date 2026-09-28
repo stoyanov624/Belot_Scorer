@@ -13,6 +13,7 @@ beforeEach(() => {
     storage: createDocumentStorage(memoryKv()),
     newId: () => `id${++n}`,
     now: () => 1000,
+    putPhoto: async () => 'ph1',
     removePhoto: async () => {},
   });
   for (const name of ['Иво', 'Мила', 'Петър', 'Ана']) {

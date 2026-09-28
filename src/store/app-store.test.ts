@@ -9,6 +9,7 @@ const make = (kv: Kv) =>
     storage: createDocumentStorage(kv),
     newId: () => 'id1',
     now: () => 1000,
+    putPhoto: async () => 'ph1',
     removePhoto: async () => {},
   });
 

@@ -17,6 +17,7 @@ export const appStore = createAppStore({
   storage: createDocumentStorage(idbKv()),
   newId,
   now: () => Date.now(),
+  putPhoto: (blob) => photoStore.put(blob),
   removePhoto: (id) => photoStore.remove(id),
 });
 

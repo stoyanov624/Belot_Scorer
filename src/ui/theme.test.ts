@@ -11,6 +11,7 @@ const makeStore = (kv = memoryKv()) =>
     storage: createDocumentStorage(kv),
     newId: () => 'id',
     now: () => 0,
+    putPhoto: async () => 'ph1',
     removePhoto: async () => {},
   });
 

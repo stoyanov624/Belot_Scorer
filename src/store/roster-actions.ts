@@ -4,6 +4,7 @@ import { EMPTY_STATE } from '../core/persisted';
 import { type NameError, removePlayer, upsertPlayer, validatePlayerName } from '../core/roster';
 import type { Settings } from '../core/settings';
 import type { SharePayload } from '../core/share';
+import { dataUrlToBlob } from '../share/photos';
 import type { AppDeps, GetState, SetState } from './app-store';
 
 export interface PlayerInput {
@@ -26,8 +27,12 @@ export interface RosterActions {
   resetData(): void;
   /** The leaderboard's reset: clears recorded match stats, nothing else. */
   clearStats(): void;
-  /** Applies shared data (ADR 0013). Replace also drops the photos of players that are gone. */
-  importShared(data: SharePayload, mode: ImportMode): ImportResult;
+  /**
+   * Applies shared data (ADR 0013). Resolves every embedded photo to a new local id through
+   * the photo store first, then drops the photos of local players the result roster no longer
+   * references.
+   */
+  importShared(data: SharePayload, mode: ImportMode): Promise<ImportResult>;
 }
 
 export function rosterActions(set: SetState, get: GetState, deps: AppDeps): RosterActions {
@@ -76,14 +81,42 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
       set({ stats: [] });
     },
 
-    importShared(data, mode) {
+    async importShared(data, mode) {
       const { roster, stats, match } = get();
-      const result = applyImport({ roster, stats, match }, data, mode);
-      set({ roster: result.roster, stats: result.stats, match: result.match });
-      if (mode === 'replace') {
-        const kept = new Set(result.roster.map((p) => p.photo));
-        for (const p of roster) if (p.photo && !kept.has(p.photo)) dropPhoto(p.photo);
+      const localPhotoIds = new Set(
+        roster.map((p) => p.photo).filter((id): id is string => id !== null),
+      );
+
+      // Resolve every distinct incoming photo id once: an embedded blob is saved as a NEW
+      // local id; otherwise it's kept only if a local player already owns it (a same-device
+      // share), else nulled. This is what makes applyImport's "any non-null incoming photo id
+      // is already valid locally" contract true.
+      const resolved = new Map<string, string | null>();
+      for (const p of data.roster) {
+        if (!p.photo || resolved.has(p.photo)) continue;
+        const dataUrl = data.photos?.[p.photo];
+        const blob = dataUrl ? dataUrlToBlob(dataUrl) : null;
+        resolved.set(
+          p.photo,
+          blob ? await deps.putPhoto(blob) : localPhotoIds.has(p.photo) ? p.photo : null,
+        );
       }
+      const resolvedData: SharePayload = {
+        ...data,
+        roster: data.roster.map((p) =>
+          p.photo ? { ...p, photo: resolved.get(p.photo) ?? null } : p,
+        ),
+      };
+
+      const result = applyImport({ roster, stats, match }, resolvedData, mode);
+      set({ roster: result.roster, stats: result.stats, match: result.match });
+
+      // Every mode can now change photo ids (an embedded photo resolves to a new one), so the
+      // gone-photo cleanup runs unconditionally; a photo-less merge keeps every old id, so
+      // nothing is dropped there.
+      const kept = new Set(result.roster.map((p) => p.photo));
+      for (const p of roster) if (p.photo && !kept.has(p.photo)) dropPhoto(p.photo);
+
       return result;
     },
   };

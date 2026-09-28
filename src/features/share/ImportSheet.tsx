@@ -126,27 +126,32 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     }
   };
 
-  const onMerge = () => {
+  const onMerge = async () => {
     if (!data) return;
-    finish(importShared(data, 'merge'));
+    finish(await importShared(data, 'merge'));
   };
 
-  const onTake = () => {
+  const onTake = async () => {
     if (!data) return;
     if (localMatch !== null && needsTakeConfirm(localMatch)) {
       setConfirmTotals(totals(localMatch));
       return;
     }
-    finish(importShared(data, 'take'));
+    finish(await importShared(data, 'take'));
   };
 
-  const onReplace = () => {
+  const onConfirmTake = async () => {
+    if (!data) return;
+    finish(await importShared(data, 'take'));
+  };
+
+  const onReplace = async () => {
     if (!data) return;
     if (!replaceArmed) {
       setReplaceArmed(true);
       return;
     }
-    finish(importShared(data, 'replace'));
+    finish(await importShared(data, 'replace'));
   };
 
   return (
@@ -193,18 +198,18 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <Button onClick={() => setConfirmTotals(null)}>{SETUP.replaceCancel}</Button>
-                <Button variant="danger" onClick={() => finish(importShared(data, 'take'))}>
+                <Button variant="danger" onClick={() => void onConfirmTake()}>
                   {SETUP.replaceConfirm}
                 </Button>
               </div>
             </>
           ) : (
             <>
-              <Button variant="primary" size="lg" onClick={onMerge}>
+              <Button variant="primary" size="lg" onClick={() => void onMerge()}>
                 {S.merge}
               </Button>
-              {data.match && <Button onClick={onTake}>{S.take}</Button>}
-              <Button variant="dangerText" onClick={onReplace}>
+              {data.match && <Button onClick={() => void onTake()}>{S.take}</Button>}
+              <Button variant="dangerText" onClick={() => void onReplace()}>
                 {replaceArmed ? S.replaceArmed : S.replace}
               </Button>
             </>

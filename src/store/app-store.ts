@@ -14,6 +14,7 @@ export interface AppDeps {
   storage: DocumentStorage;
   newId: () => string;
   now: () => number;
+  putPhoto: (blob: Blob) => Promise<string>;
   removePhoto: (id: string) => Promise<void>;
 }
 
