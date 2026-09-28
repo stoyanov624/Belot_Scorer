@@ -274,11 +274,50 @@ test('share the match and import it into a second device, at the same score', as
   await senderContext.close();
 });
 
+/**
+ * `persist` (zustand/middleware) calls `storage.setItem` on every `setState` and drops the
+ * promise (src/store/app-store.ts) — writing the just-started match to IndexedDB happens
+ * asynchronously, off the click that triggered it. A `page.reload()` right after `startMatch`'s
+ * last action can beat that write, hydrating from an empty document and landing on Home instead
+ * of resuming (ADR 0011 only kicks in once a match is actually persisted). Poll the real
+ * document instead of guessing at a timeout: idb-keyval's default store (database
+ * "keyval-store", object store "keyval") under the app's storage key (`STORAGE_KEY` in
+ * src/store/app-store.ts, "belot-state"), shaped `{ version, state: { roster, stats, match,
+ * settings } }` per src/core/persisted.ts's `PersistedStateSchema` — wait until `state.match`
+ * is there.
+ */
+async function waitForPersistedMatch(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            new Promise<boolean>((resolve) => {
+              const open = indexedDB.open('keyval-store');
+              open.onerror = () => resolve(false);
+              open.onsuccess = () => {
+                const db = open.result;
+                const get = db.transaction('keyval').objectStore('keyval').get('belot-state');
+                get.onerror = () => resolve(false);
+                get.onsuccess = () => {
+                  const doc = get.result as { state?: { match?: unknown } } | undefined;
+                  resolve(Boolean(doc?.state && doc.state.match !== null));
+                };
+              };
+            }),
+        ),
+      { timeout: 5000 },
+    )
+    .toBe(true);
+}
+
 test('reloading mid-match resumes straight to the table', async ({ page }) => {
   await page.goto('/');
   await registerPlayers(page, PLAYERS);
   await startMatch(page, PLAYERS);
 
+  // See waitForPersistedMatch: avoids racing the store's own async persistence write.
+  await waitForPersistedMatch(page);
   await page.reload();
 
   await expect(page).toHaveURL(/\/table$/);
