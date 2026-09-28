@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { resumePath } from '../../app/resume';
 import { type ImportResult, needsTakeConfirm } from '../../core/import';
@@ -48,30 +48,39 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   // then quickly link B) can never overwrite a faster later one.
   const requestId = useRef(0);
 
-  const show = useCallback((next: SharePayload) => {
+  const show = (next: SharePayload) => {
     setData(next);
     setError(null);
     setDone(null);
     setReplaceArmed(false);
     setConfirmTotals(null);
-  }, []);
+  };
 
-  const fail = useCallback((message: string) => {
+  const fail = (message: string) => {
     setData(null);
     setError(message);
-  }, []);
+  };
 
   // Reads a code the app was opened with, once, as soon as the sheet opens, through the same
-  // token guard as `onRead` and `onFile`.
+  // token guard as `onRead` and `onFile`. Inlined rather than calling `show`/`fail` directly, so
+  // the effect doesn't depend on functions that change identity on every render.
   useEffect(() => {
     if (!initialCode) return;
     const token = ++requestId.current;
     void readShared(initialCode).then((result) => {
       if (token !== requestId.current) return;
-      if (result.ok) show(result.data);
-      else fail(S.badCode);
+      if (result.ok) {
+        setData(result.data);
+        setError(null);
+        setDone(null);
+        setReplaceArmed(false);
+        setConfirmTotals(null);
+      } else {
+        setData(null);
+        setError(S.badCode);
+      }
     });
-  }, [initialCode, show, fail]);
+  }, [initialCode]);
 
   const onRead = async () => {
     const token = ++requestId.current;

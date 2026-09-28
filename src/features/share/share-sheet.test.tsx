@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Seats } from '../../core/model';
@@ -31,11 +31,17 @@ function seedRoster(names: readonly string[]): string[] {
   });
 }
 
+// A seeded LCG (Numerical Recipes constants), so the per-player suffixes below — and with them
+// the QR part count this file asserts on — are identical on every run.
+let lcgState = 0x2545f491;
+function nextLcgByte(): number {
+  lcgState = (Math.imul(lcgState, 1664525) + 1013904223) >>> 0;
+  return (lcgState >>> 24) & 0xff;
+}
+
 /** A per-player suffix random enough that deflate can't shrink the roster below the QR limit. */
 function randomSuffix(): string {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return Array.from({ length: 16 }, () => nextLcgByte().toString(16).padStart(2, '0')).join('');
 }
 
 /** Seeds the four players and starts a match with them seated N, E, S, W. */
@@ -60,13 +66,14 @@ function renderSheet(props: Partial<ShareSheetProps> = {}) {
 }
 
 describe('ShareSheet', () => {
-  it('shows the title, summary and a QR code for scope "all", with no scope switch', async () => {
+  it('shows the title, summary and a QR code for scope "all", with only that one scope option', async () => {
     seedRoster(NAMES);
     renderSheet();
 
     expect(screen.getByRole('dialog', { name: S.title })).toBeTruthy();
     expect(screen.getByText('4 играчи и 0 мача от класацията.')).toBeTruthy();
-    expect(screen.queryByRole('radiogroup', { name: S.scopeLabel })).toBeNull();
+    const group = screen.getByRole('radiogroup', { name: S.scopeLabel });
+    expect(within(group).getAllByRole('radio')).toHaveLength(1);
     expect(await screen.findByRole('img', { name: S.qrAlt })).toBeTruthy();
   });
 

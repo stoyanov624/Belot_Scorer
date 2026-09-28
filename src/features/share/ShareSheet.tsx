@@ -160,11 +160,18 @@ function ShareForm({
     setStatus(S.downloaded);
   };
 
+  // The switch always shows (mockup 15, prototype ~583); with no match to offer, only the
+  // first option ("Играчи + класация") appears.
+  const scopeOptions = allowMatch ? S.scopes : S.scopes.slice(0, 1);
+
   return (
     <>
-      {allowMatch && (
-        <Segmented label={S.scopeLabel} options={S.scopes} value={scope} onChange={onScopeChange} />
-      )}
+      <Segmented
+        label={S.scopeLabel}
+        options={scopeOptions}
+        value={scope}
+        onChange={onScopeChange}
+      />
 
       <QrBlock build={build} frame={frame} />
 
@@ -180,10 +187,10 @@ function ShareForm({
       )}
 
       <SheetActions className="grid grid-cols-[1fr_1.6fr] gap-2.5">
-        <Button size="lg" onClick={onClose}>
+        <Button size="bar" onClick={onClose}>
           {S.close}
         </Button>
-        <Button variant="primary" size="lg" onClick={onImport}>
+        <Button variant="primary" size="bar" onClick={onImport}>
           {S.toImport}
         </Button>
       </SheetActions>
@@ -212,7 +219,7 @@ function QrBlock({ build, frame }: { build: Build | null; frame: number }) {
 
   return (
     <div className="flex flex-none flex-col items-center gap-2">
-      <div className="flex size-[220px] items-center justify-center rounded-[20px] bg-white p-3">
+      <div className="flex size-[220px] items-center justify-center rounded-[20px] bg-[#fff] p-3">
         {src && (
           <img
             src={src}
