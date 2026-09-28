@@ -9,8 +9,10 @@ import {
 } from '../../core/share';
 import { STRINGS } from '../../core/strings';
 import { encodeShare, shareFileName } from '../../share/codec';
-import { useAppStore } from '../../store/instance';
+import { attachPhotos } from '../../share/photos';
+import { photoStore, useAppStore } from '../../store/instance';
 import { Button } from '../../ui/Button';
+import { cx } from '../../ui/cx';
 import { Segmented } from '../../ui/Segmented';
 import { Sheet, SheetActions } from '../../ui/Sheet';
 import { shareSummary } from './copy';
@@ -90,6 +92,9 @@ function ShareForm({
   const [build, setBuild] = useState<Build | null>(null);
   const [frame, setFrame] = useState(0);
   const [status, setStatus] = useState<string | null>(null);
+  // Only "Изпрати файл" reads this; the link/QR build above always keeps `withPhotos` false
+  // (link and QR stay photo-free, per the checkbox's own label).
+  const [photos, setPhotos] = useState(false);
 
   // Builds the link and QR images for the current scope; a stale result from a slower encode
   // (an older scope, or one from before the sheet closed) is dropped by the `active` flag.
@@ -138,7 +143,9 @@ function ShareForm({
 
   const onFile = async () => {
     if (!build) return;
-    const file = new File([JSON.stringify(build.payload)], shareFileName(Date.now()), {
+    let data = buildPayload({ roster, stats, match }, scope, Date.now(), photos);
+    if (photos) data = await attachPhotos(data, (id) => photoStore.get(id));
+    const file = new File([JSON.stringify(data)], shareFileName(Date.now()), {
       type: 'application/json',
     });
     if (navigator.canShare?.({ files: [file] })) {
@@ -181,6 +188,24 @@ function ShareForm({
         <Button onClick={() => void onCopy()}>{S.copyLink}</Button>
         <Button onClick={() => void onFile()}>{S.sendFile}</Button>
       </div>
+
+      <button
+        type="button"
+        aria-pressed={photos}
+        onClick={() => setPhotos((current) => !current)}
+        className="flex flex-none items-center gap-2.5 bg-transparent px-0 py-1 text-left text-sm font-bold text-text"
+      >
+        <span
+          aria-hidden
+          className={cx(
+            'flex size-6 flex-none items-center justify-center rounded-lg border-2 border-team-a text-sm font-black',
+            photos && 'bg-team-a text-on',
+          )}
+        >
+          {photos && '✓'}
+        </span>
+        {S.photos}
+      </button>
 
       {status && (
         <p role="status" className="text-sm font-extrabold text-team-a">

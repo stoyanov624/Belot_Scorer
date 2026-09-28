@@ -257,6 +257,7 @@ export const STRINGS = {
     preparing: 'Подготвям…',
     copyLink: 'Копирай линк',
     sendFile: 'Изпрати файл',
+    photos: 'Включи снимките във файла (линкът и QR са без снимки)',
     copied: 'Линкът е копиран.',
     downloaded: 'Файлът е изтеглен.',
     close: 'Затвори',

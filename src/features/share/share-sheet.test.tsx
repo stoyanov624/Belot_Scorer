@@ -3,8 +3,10 @@ import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Seats } from '../../core/model';
+import type { SharePayload } from '../../core/share';
 import { STRINGS } from '../../core/strings';
-import { appStore } from '../../store/instance';
+import { readShared } from '../../share/codec';
+import { appStore, photoStore } from '../../store/instance';
 import { resetApp } from '../../test/app';
 import ShareSheet, { type ShareSheetProps } from './ShareSheet';
 
@@ -177,6 +179,89 @@ describe('ShareSheet', () => {
     expect(arg.files).toHaveLength(1);
     expect(arg.files[0]).toBeInstanceOf(File);
     expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('shows the photos checkbox unticked on open, resets on reopen, and toggles the tick', async () => {
+    seedRoster(NAMES);
+    renderSheet();
+    await screen.findByRole('img', { name: S.qrAlt });
+
+    const checkbox = screen.getByRole('button', { name: S.photos });
+    expect(checkbox.getAttribute('aria-pressed')).toBe('false');
+    expect(checkbox.textContent).toBe(S.photos);
+
+    await userEvent.click(checkbox);
+    expect(checkbox.getAttribute('aria-pressed')).toBe('true');
+    expect(checkbox.textContent).toBe(`✓${S.photos}`);
+  });
+
+  it('sends a file with all-null roster photos and no photos key when the checkbox is unticked', async () => {
+    seedRoster(NAMES);
+    let file: File | undefined;
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      file = blob as File;
+      return 'blob:share-file';
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderSheet();
+    await screen.findByRole('img', { name: S.qrAlt });
+
+    await userEvent.click(screen.getByRole('button', { name: S.sendFile }));
+
+    expect(file).toBeDefined();
+    const data = JSON.parse(await (file as File).text()) as SharePayload;
+    expect(data.roster.every((p) => p.photo === null)).toBe(true);
+    expect(data.photos).toBeUndefined();
+  });
+
+  it('ticked, with a seeded photo: embeds it in the file and leaves the link/QR photo-free', async () => {
+    // fake-indexeddb doesn't round-trip through the happy-dom environment this file uses, so
+    // the photo blob is stubbed rather than actually written through `photoStore.put`.
+    const photoId = 'photo1';
+    const blob = new Blob(['x'], { type: 'image/jpeg' });
+    vi.spyOn(photoStore, 'get').mockImplementation(async (id) =>
+      id === photoId ? blob : undefined,
+    );
+    const ids = seedRoster(NAMES);
+    const firstId = ids[0] as string;
+    const updated = appStore
+      .getState()
+      .savePlayer({ id: firstId, name: NAMES[0], emoji: null, photo: photoId });
+    if (!updated.ok) throw new Error('setup failed');
+
+    let file: File | undefined;
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      file = blob as File;
+      return 'blob:share-file';
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+    renderSheet();
+    await screen.findByRole('img', { name: S.qrAlt });
+
+    await userEvent.click(screen.getByRole('button', { name: S.photos }));
+    await userEvent.click(screen.getByRole('button', { name: S.sendFile }));
+
+    expect(file).toBeDefined();
+    const data = JSON.parse(await (file as File).text()) as SharePayload;
+    const player = data.roster.find((p) => p.id === firstId);
+    expect(player?.photo).toBe(photoId);
+    expect(data.photos?.[photoId]).toMatch(/^data:image\/jpeg;base64,/);
+
+    // The link built for the same session still carries no photos, whatever the checkbox says.
+    await userEvent.click(screen.getByRole('button', { name: S.copyLink }));
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const link = writeText.mock.calls[0]?.[0] as string;
+    const code = link.split('#belot=')[1] as string;
+    const decoded = await readShared(code);
+    expect(decoded.ok).toBe(true);
+    if (decoded.ok) {
+      expect(decoded.data.roster.every((p) => p.photo === null)).toBe(true);
+      expect(decoded.data.photos).toBeUndefined();
+    }
   });
 
   it('calls onImport for "Внос от друг телефон" and onClose for "Затвори"', async () => {
