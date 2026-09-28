@@ -4,6 +4,9 @@
  * Budgets ensure fast load: entry ≤105kB gz (app code),
  * CSS ≤10kB gz (styles), lazy chunks ≤50kB gz (features),
  * total JS ≤210kB gz (all parsed/executed).
+ *
+ * kB here is decimal (÷1000), matching Vite's own build output (its "kB" column is also
+ * decimal), not the binary kiB (÷1024) `readFileSync`'s byte counts would otherwise suggest.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
@@ -30,13 +33,13 @@ for (const file of files) {
   const path = join(assetsDir, file);
   const raw = readFileSync(path);
   const gz = gzipSync(raw);
-  const rawKb = (raw.length / 1024).toFixed(2);
-  const gzKb = (gz.length / 1024).toFixed(2);
+  const rawKb = (raw.length / 1000).toFixed(2);
+  const gzKb = (gz.length / 1000).toFixed(2);
 
   results.push({ file, rawKb, gzKb });
 
   if (file.endsWith('.js')) {
-    totalJsGz += gz.length / 1024;
+    totalJsGz += gz.length / 1000;
     const isEntry = /^index-.*\.js$/.test(file);
     const limit = isEntry ? BUDGETS.entry : BUDGETS.chunk;
 

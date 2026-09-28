@@ -39,6 +39,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // Workbox's default globPatterns covers only {js,css,html}, missing the app font
+        // (dist/assets/nunito-*.woff2) and the icons — an offline cold start would lose them.
+        globPatterns: ['**/*.{js,css,html,woff2,png,svg,webmanifest}'],
       },
     }),
   ],
