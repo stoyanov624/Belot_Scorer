@@ -82,49 +82,59 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
     },
 
     async importShared(data, mode) {
-      const { roster, stats, match } = get();
-      const localPhotoIds = new Set(
-        roster.map((p) => p.photo).filter((id): id is string => id !== null),
-      );
-
-      // Resolve every distinct incoming photo id once: an embedded blob is saved as a NEW
-      // local id; otherwise it's kept only if a local player already owns it (a same-device
-      // share), else nulled. This is what makes applyImport's "any non-null incoming photo id
-      // is already valid locally" contract true.
-      const keepOrNull = (id: string) => (localPhotoIds.has(id) ? id : null);
-      const resolved = new Map<string, string | null>();
+      // Resolve every incoming photo, one `putPhoto` call PER PLAYER (never per payload id): an
+      // embedded blob is saved as a brand-new local id for each player that carries it, so no
+      // two players ever end up sharing a photo id (ADR 0013). An id with no embedded blob
+      // always resolves to null — a same-device share loses nothing, since applyImport's
+      // null-keeps-local rule preserves the real owner's photo untouched. This is what makes
+      // applyImport's "any non-null incoming photo id is already valid locally" contract true.
+      // None of this touches store state, so it's safe to run concurrently with another call.
+      const blobCache = new Map<string, Blob | null>();
+      const createdIds: string[] = [];
+      const resolvedRoster: SharePayload['roster'] = [];
       for (const p of data.roster) {
-        if (!p.photo || resolved.has(p.photo)) continue;
-        const dataUrl = data.photos?.[p.photo];
-        const blob = dataUrl ? dataUrlToBlob(dataUrl) : null;
-        if (!blob) {
-          resolved.set(p.photo, keepOrNull(p.photo));
+        if (!p.photo) {
+          resolvedRoster.push(p);
           continue;
         }
-        // A failed photo write costs that photo, not the import: fall back to the same
-        // outcome as a missing blob instead of letting the rejection escape importShared (an
-        // orphaned write attempt is no worse than the write never happening).
+        let blob = blobCache.get(p.photo);
+        if (blob === undefined) {
+          const dataUrl = data.photos?.[p.photo];
+          blob = dataUrl ? dataUrlToBlob(dataUrl) : null;
+          blobCache.set(p.photo, blob);
+        }
+        if (!blob) {
+          resolvedRoster.push({ ...p, photo: null });
+          continue;
+        }
+        // A failed photo write costs that photo, not the import: fall back to null instead of
+        // letting the rejection escape importShared (an orphaned write attempt is no worse than
+        // the write never happening).
         try {
-          resolved.set(p.photo, await deps.putPhoto(blob));
+          const newId = await deps.putPhoto(blob);
+          createdIds.push(newId);
+          resolvedRoster.push({ ...p, photo: newId });
         } catch {
-          resolved.set(p.photo, keepOrNull(p.photo));
+          resolvedRoster.push({ ...p, photo: null });
         }
       }
-      const resolvedData: SharePayload = {
-        ...data,
-        roster: data.roster.map((p) =>
-          p.photo ? { ...p, photo: resolved.get(p.photo) ?? null } : p,
-        ),
-      };
+      const resolvedData: SharePayload = { ...data, roster: resolvedRoster };
 
+      // Re-read state fresh, after every await above: a concurrent import (or any other state
+      // change) during the resolution loop must not be clobbered by a stale snapshot.
+      const { roster, stats, match } = get();
       const result = applyImport({ roster, stats, match }, resolvedData, mode);
       set({ roster: result.roster, stats: result.stats, match: result.match });
 
       // Every mode can now change photo ids (an embedded photo resolves to a new one), so the
       // gone-photo cleanup runs unconditionally; a photo-less merge keeps every old id, so
-      // nothing is dropped there.
+      // nothing is dropped there. Also drop any photo this run created via putPhoto that the
+      // result roster doesn't reference (e.g. two incoming players linking by name onto one
+      // local player: only one of their two new blobs ends up kept) — those ids leak as orphan
+      // blobs otherwise.
       const kept = new Set(result.roster.map((p) => p.photo));
       for (const p of roster) if (p.photo && !kept.has(p.photo)) dropPhoto(p.photo);
+      for (const id of createdIds) if (!kept.has(id)) dropPhoto(id);
 
       return result;
     },

@@ -410,7 +410,7 @@ describe('importShared', () => {
     expect(putPhotoBlobs).toHaveLength(0);
   });
 
-  it('merge: keeps a payload photo id already owned locally when no blob is embedded (same-device share)', async () => {
+  it('merge: nulls a payload photo id with no embedded blob even when a local player already owns it (same-device share)', async () => {
     const { savePlayer, importShared } = store.getState();
     const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
     if (!p0.ok) throw new Error('savePlayer failed');
@@ -428,7 +428,7 @@ describe('importShared', () => {
 
     expect(store.getState().roster).toEqual([
       { id: p0.id, name: 'Иван', emoji: null, photo: 'ph1' },
-      { id: 'ext1', name: 'Нов Играч', emoji: null, photo: 'ph1' },
+      { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
     ]);
     expect(putPhotoBlobs).toHaveLength(0);
     expect(removed).toEqual([]);
@@ -464,7 +464,7 @@ describe('importShared', () => {
     expect(result.addedMatches).toBe(0);
   });
 
-  it('merge: dedupes a payload photo id shared by two imported players, calling putPhoto once', async () => {
+  it('merge: stores an embedded blob once per player, so two imported players sharing one payload photo id get two distinct local ids', async () => {
     const { importShared } = store.getState();
 
     const imported = {
@@ -483,8 +483,88 @@ describe('importShared', () => {
     await importShared(imported, 'merge');
 
     const roster = store.getState().roster;
-    expect(putPhotoBlobs).toHaveLength(1);
-    expect(roster.find((p) => p.id === 'ext1')?.photo).toBe('phL1');
-    expect(roster.find((p) => p.id === 'ext2')?.photo).toBe('phL1');
+    expect(putPhotoBlobs).toHaveLength(2);
+    const photo1 = roster.find((p) => p.id === 'ext1')?.photo;
+    const photo2 = roster.find((p) => p.id === 'ext2')?.photo;
+    expect(photo1).toBe('phL1');
+    expect(photo2).toBe('phL2');
+    expect(photo1).not.toBe(photo2);
+  });
+
+  it("take: resolves an embedded photo overwriting a local player's photo, dropping the old blob", async () => {
+    const { savePlayer, importShared } = store.getState();
+    const p0 = savePlayer({ id: null, name: 'Иван', emoji: null, photo: 'ph1' });
+    if (!p0.ok) throw new Error('savePlayer failed');
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: p0.id, name: 'Иван', emoji: null, photo: 'remote1' }],
+      stats: [],
+      match: null,
+      photos: { remote1: 'data:image/png;base64,aGVsbG8=' },
+    };
+
+    const result = await importShared(imported, 'take');
+
+    expect(store.getState().roster).toEqual([
+      { id: p0.id, name: 'Иван', emoji: null, photo: 'phL1' },
+    ]);
+    expect(removed).toEqual(['ph1']);
+    expect(result.players).toBe(1);
+  });
+
+  it('a double invocation resolves coherently: the later-finishing call wins, and every orphaned created photo is dropped', async () => {
+    const puts: Blob[] = [];
+    let n = 0;
+    const first = deferred();
+    const localStore = createAppStore({
+      storage: createDocumentStorage(memoryKv()),
+      newId: () => `id${++n}`,
+      now: () => 1000,
+      putPhoto: async (blob) => {
+        puts.push(blob);
+        if (puts.length === 1) return first.promise;
+        return `phL${puts.length}`;
+      },
+      removePhoto: async (id) => {
+        removed.push(id);
+      },
+    });
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: 'ext1', name: 'Нов', emoji: null, photo: 'remote1' }],
+      stats: [],
+      match: null,
+      photos: { remote1: 'data:image/png;base64,aGVsbG8=' },
+    };
+
+    const call1 = localStore.getState().importShared(imported, 'merge');
+    const call2 = localStore.getState().importShared(imported, 'merge');
+
+    await call2;
+    expect(localStore.getState().roster).toEqual([
+      { id: 'ext1', name: 'Нов', emoji: null, photo: 'phL2' },
+    ]);
+
+    first.resolve('phL1');
+    await call1;
+
+    expect(localStore.getState().roster).toEqual([
+      { id: 'ext1', name: 'Нов', emoji: null, photo: 'phL1' },
+    ]);
+    expect(removed).toEqual(['phL2']);
   });
 });
+
+function deferred(): { promise: Promise<string>; resolve: (value: string) => void } {
+  let resolve!: (value: string) => void;
+  const promise = new Promise<string>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
