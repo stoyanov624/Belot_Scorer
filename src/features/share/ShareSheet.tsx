@@ -151,10 +151,13 @@ function ShareForm({
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: STRINGS.appName });
-      } catch {
-        // The user cancelled the share sheet; no fallback and no status.
+        return;
+      } catch (error) {
+        // A user cancel (AbortError) returns silently; any other rejection (e.g. Safari's
+        // expired user activation after the awaited attachPhotos, which rejects with
+        // NotAllowedError) falls through to the download below instead of being swallowed.
+        if (error instanceof DOMException && error.name === 'AbortError') return;
       }
-      return;
     }
     const url = URL.createObjectURL(file);
     const anchor = document.createElement('a');

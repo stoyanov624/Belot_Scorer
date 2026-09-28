@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Seats } from '../../core/model';
@@ -159,6 +159,46 @@ describe('ShareSheet', () => {
     expect(revoke).toHaveBeenCalledTimes(1);
     expect(revoke).toHaveBeenCalledWith(objectUrl);
     expect(await screen.findByText(S.downloaded)).toBeTruthy();
+  });
+
+  it('falls through to the download when Web Share rejects with anything but a user cancel', async () => {
+    seedRoster(NAMES);
+    const share = vi.fn().mockRejectedValue(new DOMException('x', 'NotAllowedError'));
+    const canShare = vi.fn().mockReturnValue(true);
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+    Object.defineProperty(navigator, 'canShare', { value: canShare, configurable: true });
+    const objectUrl = 'blob:share-file';
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue(objectUrl);
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderSheet();
+    await screen.findByRole('img', { name: S.qrAlt });
+
+    await userEvent.click(screen.getByRole('button', { name: S.sendFile }));
+
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(S.downloaded)).toBeTruthy();
+  });
+
+  it('shows no download and no status when Web Share rejects with an AbortError (user cancel)', async () => {
+    seedRoster(NAMES);
+    const share = vi.fn().mockRejectedValue(new DOMException('x', 'AbortError'));
+    const canShare = vi.fn().mockReturnValue(true);
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+    Object.defineProperty(navigator, 'canShare', { value: canShare, configurable: true });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderSheet();
+    await screen.findByRole('img', { name: S.qrAlt });
+
+    await userEvent.click(screen.getByRole('button', { name: S.sendFile }));
+    await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(click).not.toHaveBeenCalled();
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('shares the file through Web Share when canShare allows it, with no status', async () => {
