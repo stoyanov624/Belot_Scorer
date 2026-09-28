@@ -1,6 +1,6 @@
 # Phase 6a: Share and Import (link, QR display, file, paste) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Move data between phones with no server. «Сподели» builds a link, one or more QR codes and a `.belot` file. «Внос» reads a pasted link or code, a chosen file, or a `#belot=` link that opens the app, previews the data, and merges it, takes over the shared match, or replaces everything.
 
@@ -97,7 +97,7 @@
   - `qrTexts(link: string, code: string, sid: string): string[]`
   - `QR_LINK_MAX = 1400`, `QR_CHUNK = 1100`
 
-- [ ] **Step 1: Write the failing tests** in `src/core/share.test.ts`:
+- [x] **Step 1: Write the failing tests** in `src/core/share.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -187,9 +187,9 @@ describe('shareLink and qrTexts', () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm vitest run src/core/share.test.ts`. Expected: FAIL (module not found).
+- [x] **Step 2: Run** `pnpm vitest run src/core/share.test.ts`. Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement** `src/core/share.ts`:
+- [x] **Step 3: Implement** `src/core/share.ts`:
 
 ```ts
 import { z } from 'zod';
@@ -251,9 +251,9 @@ export function qrTexts(link: string, code: string, sid: string): string[] {
 }
 ```
 
-- [ ] **Step 4: Run** `pnpm vitest run src/core/share.test.ts`, then `pnpm check`. Expected: PASS.
+- [x] **Step 4: Run** `pnpm vitest run src/core/share.test.ts`, then `pnpm check`. Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(core): share payload v2, code extraction and QR texts`.
+- [x] **Step 5: Commit** `feat(core): share payload v2, code extraction and QR texts`.
 
 ---
 
@@ -271,7 +271,7 @@ export function qrTexts(link: string, code: string, sid: string): string[] {
   - `interface ImportResult { roster: Player[]; stats: MatchRecord[]; match: Match | null; players: number; addedMatches: number; tookMatch: boolean }`
   - `needsTakeConfirm(local: Match | null): boolean`, which is true when the local match is `playing` with ≥ 1 saved deal
 
-- [ ] **Step 1: Write the failing tests** in `src/core/import.test.ts`. Cover every rule, and assert whole results:
+- [x] **Step 1: Write the failing tests** in `src/core/import.test.ts`. Cover every rule, and assert whole results:
   - **Merge by id:** the imported name and emoji win, and the local photo is kept when the imported photo is null.
   - **Merge by id, name collision:** the imported name equals another local player's name, so the local name is kept.
   - **Merge by name:** `'  иван '` matches local `'Иван'`. The ids are remapped, so an imported stats record's seats point at the local id, and the local player is unchanged.
@@ -288,9 +288,9 @@ export function qrTexts(link: string, code: string, sid: string): string[] {
     - a playing match with a deal → true (build one with `setContract` + `saveDeal` from `./match`)
     - an ended match → false
 
-- [ ] **Step 2: Run** `pnpm vitest run src/core/import.test.ts`. Expected: FAIL.
+- [x] **Step 2: Run** `pnpm vitest run src/core/import.test.ts`. Expected: FAIL.
 
-- [ ] **Step 3: Implement** `src/core/import.ts`:
+- [x] **Step 3: Implement** `src/core/import.ts`:
 
 ```ts
 import type { Match, MatchRecord, Player, Seats } from './model';
@@ -373,7 +373,7 @@ export function applyImport(
 }
 ```
 
-- [ ] **Step 4: Write `docs/adr/0013-import-merge-take-replace.md`.**
+- [x] **Step 4: Write `docs/adr/0013-import-merge-take-replace.md`.**
   - **Context:** DATA_MODEL §4's merge rules and the prototype's `applyImport`.
   - **Decisions:**
     - By-id update keeps the local name when it would duplicate another player's name.
@@ -386,9 +386,9 @@ export function applyImport(
     - A by-name link can merge two different real people who share a name; that's accepted, as in the spec.
   - List the ADR in `docs/Home.md` after 0012.
 
-- [ ] **Step 5: Run** `pnpm vitest run src/core/import.test.ts`, `pnpm docs:check`, then `pnpm check`. Expected: PASS.
+- [x] **Step 5: Run** `pnpm vitest run src/core/import.test.ts`, `pnpm docs:check`, then `pnpm check`. Expected: PASS.
 
-- [ ] **Step 6: Commit** `feat(core): import merge, take and replace with id remap`.
+- [x] **Step 6: Commit** `feat(core): import merge, take and replace with id remap`.
 
 ---
 
@@ -406,7 +406,7 @@ export function applyImport(
   - `parseSharedFile(text: string): { ok: true; data: SharePayload } | { ok: false }`
   - `shareFileName(at: number): string`, e.g. `belot-2026-09-27.belot` (local date)
 
-- [ ] **Step 1: Write the failing tests** (node environment, which has `CompressionStream`):
+- [x] **Step 1: Write the failing tests** (node environment, which has `CompressionStream`):
   - A round trip through `encodeShare` → `readShared` returns the same payload, and the code starts with `z` and matches `/^[zj][A-Za-z0-9_-]+$/`.
   - With `CompressionStream` removed (`vi.stubGlobal('CompressionStream', undefined)`), the code starts with `j` and still round-trips.
   - Compressed data is shorter than the `j` form for a 20-player payload.
@@ -417,9 +417,9 @@ export function applyImport(
     - rejects `JSON.stringify({ app: 'other' })`
   - `shareFileName(new Date(2026, 8, 27, 23, 30).getTime())` is `'belot-2026-09-27.belot'` (local date).
 
-- [ ] **Step 2: Run** `pnpm vitest run src/share/codec.test.ts`. Expected: FAIL.
+- [x] **Step 2: Run** `pnpm vitest run src/share/codec.test.ts`. Expected: FAIL.
 
-- [ ] **Step 3: Implement** `src/share/codec.ts`:
+- [x] **Step 3: Implement** `src/share/codec.ts`:
 
 ```ts
 import { type SharePayload, SharePayloadSchema } from '../core/share';
@@ -484,9 +484,9 @@ export function shareFileName(at: number): string {
 ```
 
 
-- [ ] **Step 4: Run** `pnpm vitest run src/share/codec.test.ts`, then `pnpm check`. Expected: PASS. `src/share` is a new platform folder. Add it to the layer table in `docs/Architecture/Overview.md`, with a mermaid node "src/share<br/>codec" → Core. It may import core only.
+- [x] **Step 4: Run** `pnpm vitest run src/share/codec.test.ts`, then `pnpm check`. Expected: PASS. `src/share` is a new platform folder. Add it to the layer table in `docs/Architecture/Overview.md`, with a mermaid node "src/share<br/>codec" → Core. It may import core only.
 
-- [ ] **Step 5: Commit** `feat(share): payload codec with deflate-raw and base64url`.
+- [x] **Step 5: Commit** `feat(share): payload codec with deflate-raw and base64url`.
 
 ---
 
@@ -499,15 +499,15 @@ export function shareFileName(at: number): string {
 - Consumes: `applyImport`, `ImportMode`, `ImportResult` (Task 2), `SharePayload` (Task 1).
 - Produces: `importShared(data: SharePayload, mode: ImportMode): ImportResult` on the store. It sets `roster`, `stats` and `match` in one `set`. It never confirms anything; the UI checks `needsTakeConfirm` first.
 
-- [ ] **Step 1: Write the failing tests** (store built as in the existing `roster-actions.test.ts`, with `removed` photo ids):
+- [x] **Step 1: Write the failing tests** (store built as in the existing `roster-actions.test.ts`, with `removed` photo ids):
   - Merge adds a new player and a new record. The store's roster, stats and returned counts match.
   - Take sets `match` to the remapped imported match.
   - Replace drops the photos of local players whose ids are gone (`removed` equals those photo ids). It doesn't drop the photo of a player kept by id. It sets `match` to the imported match or `null`.
   - Merge never drops photos.
 
-- [ ] **Step 2: Run the test.** Expected: FAIL.
+- [x] **Step 2: Run the test.** Expected: FAIL.
 
-- [ ] **Step 3: Implement.** Add to `RosterActions`:
+- [x] **Step 3: Implement.** Add to `RosterActions`:
 
 ```ts
   /** Applies shared data (ADR 0013). Replace also drops the photos of players that are gone. */
@@ -529,9 +529,9 @@ and in `rosterActions`:
     },
 ```
 
-- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [x] **Step 4: Run** `pnpm check`. Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(store): import shared data`.
+- [x] **Step 5: Commit** `feat(store): import shared data`.
 
 ---
 
@@ -548,7 +548,7 @@ and in `rosterActions`:
   - `importLines(data: SharePayload): string[]`
   - `importDone(result: ImportResult): string`
 
-- [ ] **Step 1: Add the copy.** It's verbatim from the prototype's view model (~1299–1351, and markup ~575–640):
+- [x] **Step 1: Add the copy.** It's verbatim from the prototype's view model (~1299–1351, and markup ~575–640):
 
 ```ts
   share: {
@@ -603,7 +603,7 @@ and in `rosterActions`:
 
   Mark the two "Not in the handoff" keys in `docs/Status.md` under Open product questions (Task 9 does the vault; note them now in the report).
 
-- [ ] **Step 2: Write failing tests** for the helpers (node env), asserting exact strings:
+- [x] **Step 2: Write failing tests** for the helpers (node env), asserting exact strings:
   - `shareSummary('match', 4, 0)` → `summaryMatch`; `shareSummary('all', 5, 2)` → `'5 играчи и 2 мача от класацията.'`.
   - `importLines`:
     - The players line joins names with `', '`.
@@ -613,7 +613,7 @@ and in `rosterActions`:
     - With `{ players: 4, addedMatches: 0, tookMatch: true }` → `'Готово: 4 играчи, мачът продължава тук.'`.
     - With `{ players: 5, addedMatches: 2, tookMatch: false }` → `'Готово: 5 играчи, 2 мача в класацията.'`.
 
-- [ ] **Step 3: Implement** `src/features/share/copy.ts` with core `totals` from `src/core/match.ts`. Run the tests and `pnpm check`. Commit `feat(share): share and import copy`.
+- [x] **Step 3: Implement** `src/features/share/copy.ts` with core `totals` from `src/core/match.ts`. Run the tests and `pnpm check`. Commit `feat(share): share and import copy`.
 
 ---
 
@@ -633,7 +633,7 @@ and in `rosterActions`:
   - `qrDataUrl(text: string): string | null`, a GIF data URL at cell size 6 with margin 0, or null when the text doesn't fit a QR.
   - `ShareSheet` props `{ open: boolean; onClose: () => void; defaultScope: ShareScope; allowMatch: boolean; onImport: () => void }`. It is default-exported for `lazy()`, and `onImport` means "close me and open import".
 
-- [ ] **Step 1: `qr.ts` with tests.**
+- [x] **Step 1: `qr.ts` with tests.**
 
 ```ts
 import qrcode from 'qrcode-generator';
@@ -655,7 +655,7 @@ export function qrDataUrl(text: string): string | null {
   - A short link gives a string starting `data:image/gif;base64,`.
   - `'x'.repeat(5000)` gives `null`.
 
-- [ ] **Step 2: Write the failing sheet tests** (`share-sheet.test.tsx`, happy-dom). Render `ShareSheet` directly with `open` in a small wrapper; seed the store through actions.
+- [x] **Step 2: Write the failing sheet tests** (`share-sheet.test.tsx`, happy-dom). Render `ShareSheet` directly with `open` in a small wrapper; seed the store through actions.
   - **Scope `all`:**
     - Shows «Сподели», the summary `'4 играчи и 0 мача от класацията.'`, and after `findBy` an `img` named «QR код».
     - The Segmented «Какво да се сподели» is absent when `allowMatch` is false.
@@ -672,7 +672,7 @@ export function qrDataUrl(text: string): string | null {
     - With `canShare` returning true, `navigator.share` gets `{ files: [File], title: 'Белот' }` and no status shows.
   - **«Внос от друг телефон»** calls `onImport`; «Затвори» calls `onClose`.
 
-- [ ] **Step 3: Implement `ShareSheet.tsx`.** Follow mockup 15 and prototype markup ~575–605.
+- [x] **Step 3: Implement `ShareSheet.tsx`.** Follow mockup 15 and prototype markup ~575–605.
   - `Sheet` titled `S.title`, with the summary as the subtitle.
   - A `Segmented` with `S.scopes` (label `S.scopeLabel`), only when `allowMatch`. Scope state starts at `defaultScope` and resets each time the sheet opens (content mounts only while open).
   - **Build:**
@@ -694,15 +694,15 @@ export function qrDataUrl(text: string): string | null {
   - **`SheetActions`:** «Затвори» (secondary) + «Внос от друг телефон» (primary), grid `1fr 1.6fr`.
   - No photo checkbox (6b).
 
-- [ ] **Step 4: Wire it.**
+- [x] **Step 4: Wire it.**
   - **Home:** «Сподели / Внос» is enabled and opens `ShareSheet` (`defaultScope: 'all'`, `allowMatch: match?.status === 'playing'`), loaded with `const ShareSheet = lazy(() => import('../features/share/ShareSheet'))` inside `<Suspense fallback={null}>`, rendered only while open.
   - **Table:** «Сподели» in `TableHeader` is enabled and gets an `onShare` prop. `table.tsx` owns `shareOpen` (`defaultScope: 'match'`, `allowMatch: true`), lazy the same way.
   - For now `onImport` closes the share sheet and does nothing else. Task 7 opens the import sheet.
   - Update the existing tests that assert the share buttons are disabled (`grep -rn "S.share\|home.share\|table.share" src --include=*.test.tsx`).
 
-- [ ] **Step 5: Run** the tests and `pnpm check`. Expected: PASS. Confirm with `pnpm build` that `qrcode-generator` sits in a lazy chunk, not the entry chunk: grep `dist/assets/index-*.js` for `createDataURL` and expect no match.
+- [x] **Step 5: Run** the tests and `pnpm check`. Expected: PASS. Confirm with `pnpm build` that `qrcode-generator` sits in a lazy chunk, not the entry chunk: grep `dist/assets/index-*.js` for `createDataURL` and expect no match.
 
-- [ ] **Step 6: Commit** `feat(share): share sheet with link, QR and file`.
+- [x] **Step 6: Commit** `feat(share): share sheet with link, QR and file`.
 
 ---
 
@@ -722,7 +722,7 @@ export function qrDataUrl(text: string): string | null {
   - `resumePath` (`src/app/resume.ts`)
 - Produces: `ImportSheet` props `{ open: boolean; onClose: () => void; initialCode?: string | null }`, default-exported for `lazy()`. When `initialCode` is set, it's read as soon as the sheet opens.
 
-- [ ] **Step 1: Write the failing tests** (`import-sheet.test.tsx`). Build real codes with `encodeShare(buildPayload(...))` from a second, fake data set.
+- [x] **Step 1: Write the failing tests** (`import-sheet.test.tsx`). Build real codes with `encodeShare(buildPayload(...))` from a second, fake data set.
   - Shows «Внос», the intro, «или», the textarea (label «Линк или код», placeholder) and «Прочети линка».
   - **Reading:**
     - Pasting a text with no code and pressing «Прочети линка» shows «Не открих код в текста.».
@@ -740,7 +740,7 @@ export function qrDataUrl(text: string): string | null {
     - With a local playing match with a saved deal: it shows an inline confirmation instead of applying. The body is `STRINGS.setup.replaceBody(a, b)` with the local totals, with «Започни нов мач» / «Отказ». «Отказ» returns to the preview with the store unchanged; «Започни нов мач» applies and navigates.
   - **`initialCode`:** a valid code shows the preview without pressing anything.
 
-- [ ] **Step 2: Implement `ImportSheet.tsx`.** Follow mockup 16 and prototype markup ~607–638.
+- [x] **Step 2: Implement `ImportSheet.tsx`.** Follow mockup 16 and prototype markup ~607–638.
   - The intro is the `Sheet` subtitle.
   - **Paste area:**
     - «или» (13/800 uppercase muted).
@@ -759,14 +759,14 @@ export function qrDataUrl(text: string): string | null {
   - **`SheetActions`:** «Затвори» (secondary), full width.
   - **`initialCode`:** read in an effect on open, with an `active` flag.
 
-- [ ] **Step 3: Wire it.**
+- [x] **Step 3: Wire it.**
   - Home and table own an `importOpen` state and render the lazy `ImportSheet` while it's open.
   - The share sheet's `onImport` becomes `() => { setShareOpen(false); setImportOpen(true); }`, so the sheets are sequenced.
   - Add a Home test: open «Сподели / Внос» → «Внос от друг телефон» → the import sheet shows and the share sheet is gone.
 
-- [ ] **Step 4: Run** the tests and `pnpm check`. Expected: PASS.
+- [x] **Step 4: Run** the tests and `pnpm check`. Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(share): import sheet with paste, file, merge, take and replace`.
+- [x] **Step 5: Commit** `feat(share): import sheet with paste, file, merge, take and replace`.
 
 ---
 
@@ -780,14 +780,14 @@ export function qrDataUrl(text: string): string | null {
 - Consumes: `extractCode` (Task 1), `ImportSheet` `initialCode` (Task 7).
 - Produces: `startPath(location: { pathname: string; hash: string }, match: Match | null): string | null`. It returns `/?import=<code>` when the hash holds `belot=<code>`, `resumePath(match)` when the pathname is `/`, and `null` otherwise.
 
-- [ ] **Step 1: Write the failing tests** for `startPath`:
+- [x] **Step 1: Write the failing tests** for `startPath`:
   - hash `#belot=zAB` at `/` → `/?import=zAB`, even with a playing match (import wins over resume)
   - hash `#belot=zAB` at `/table` → `/?import=zAB`
   - no hash at `/` with a playing match → `/table`
   - no hash at `/stats` → `null`
   - an empty `#belot=` → falls back to the resume rule
 
-- [ ] **Step 2: Implement.** `src/app/share-link.ts`:
+- [x] **Step 2: Implement.** `src/app/share-link.ts`:
 
 ```ts
 import { extractCode } from '../core/share';
@@ -816,17 +816,17 @@ export function startPath(location: { pathname: string; hash: string }, match: M
   - On close, clear it with `setParams({}, { replace: true })`.
   - Keep `importOpen` for the manual path; the sheet is open when `importOpen || pendingCode !== null`.
 
-- [ ] **Step 3: Add a Home test.** `renderRoute('/?import=' + code)` shows the import preview. Closing it leaves the URL at `/` with no search.
+- [x] **Step 3: Add a Home test.** `renderRoute('/?import=' + code)` shows the import preview. Closing it leaves the URL at `/` with no search.
 
-- [ ] **Step 4: Run** `pnpm check`. Expected: PASS.
+- [x] **Step 4: Run** `pnpm check`. Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(share): open import from a #belot= link`.
+- [x] **Step 5: Commit** `feat(share): open import from a #belot= link`.
 
 ---
 
 ### Task 9: Browser check and vault update (controller)
 
-- [ ] **Step 1: Browser check at 390×844 and 1280×720.** Use two isolated browser contexts: two Playwright pages on different ports of the dev server, each with its own IndexedDB. Seed through the real UI only.
+- [x] **Step 1: Browser check at 390×844 and 1280×720.** Use two isolated browser contexts: two Playwright pages on different ports of the dev server, each with its own IndexedDB. Seed through the real UI only.
   1. On A, register 4 players, play 2 deals, and open «Сподели» on the table. Compare with mockup 15: the QR shows, and «Копирай линк» gives a link.
   2. On B (empty), open the link. The import sheet opens with the preview and the hash is cleared. «Добави и продължи мача тук» lands on `/table` with the same score and deal number.
   3. On B, with the match playing and a saved deal, import again with take. The confirmation shows.
@@ -834,7 +834,7 @@ export function startPath(location: { pathname: string; hash: string }, match: M
   5. «Изпрати файл» downloads `belot-YYYY-MM-DD.belot`. Choosing it in B's «Избери файл» shows the preview. Compare with mockup 16.
   6. Replace needs two presses and ends with the imported data only.
   7. The console has no errors except the favicon 404.
-- [ ] **Step 2: Update the vault.**
+- [x] **Step 2: Update the vault.**
   - **Status:**
     - Done: 6a.
     - Next: the 6b plan (camera scanner, multi-part assembly, photos in the file).

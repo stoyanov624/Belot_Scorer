@@ -38,11 +38,23 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - Heading levels skip: history's deal cards and the leaderboard rows are `h3` directly under the `h1` (history's `h2` appears only while a deal is in progress)
 - `src/core/strings.ts`'s «Копие е запазено» in `recovery.body` overstates it slightly: `backUp` swallows write failures and keeps an older existing backup instead of the new bad document
 
-## Phase 6: Share & import
+## Phase 6a: Share & import
 
-- Payload v2, codec, link, multi-part QR, scanner, `.belot` file, merge/continue/replace ([ADR 0005](adr/0005-share-format-v2-no-prototype-compat.md))
+- `norm` (trimmed bg-locale lowercase) is duplicated in `src/core/import.ts` and `src/core/roster.ts`
+- `src/core/import.test.ts`: `players` never asserted for `take`; `src/routes/setup.tsx` could reuse `needsTakeConfirm`
+- `src/share/codec.ts`: no direct `readShared` unknown-prefix test; the `as BlobPart` cast has no explaining comment; no size cap on decompression (a crafted link can expand ~1000:1)
+- `src/features/share/share-sheet.test.tsx`: the 900 ms QR-cycling test mixes fake timers with real async and is delicate
+- Home's import close path (`params.has('import')` guard) is untested
+- Replacing from the table with a no-match payload redirects before the «Готово…» message is seen
+- «Изпрати файл» falls back to download when `canShare` rejects the `.belot` extension (Chrome Android); iOS may grey out `.belot` in the file picker because of the `accept` filter — verify on a real iPhone in 6b and drop `accept` if so
+- CONTEXT.md says a shared match "continues"; the code says `take`/`tookMatch` — align the vocabulary
+- The import sheet's «или» and its intro mention scanning before 6b ships the scanner
+
+## Phase 6b: Scanner & photos
+
+- Camera QR scanner (back camera, `facingMode: environment`), multi-part `BELOT|sid|i|n|chunk` assembly with «Прочетени k от n части»
+- «Включи снимките във файла» — the `.belot` file carries photo data; import saves it to the photo store (revisits ADR 0013's "photos never travel")
 - Export the `belot-state.backup` document after a failed load
-- Share «Текущия мач» payload must carry `match.rules` ([ADR 0009](adr/0009-match-snapshots-rules.md))
 
 ## Phase 7: PWA & polish
 

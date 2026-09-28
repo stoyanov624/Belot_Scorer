@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-26 at commit 7c73b35._ Current state only; history lives in git.
+_Last updated: 2026-09-28 at commit 63ad766._ Current state only; history lives in git.
 
 ## Done
 
@@ -22,14 +22,25 @@ _Last updated: 2026-09-26 at commit 7c73b35._ Current state only; history lives 
   - A real-browser check at 390×844 matched mockups 10–13: a best-of-3 series played through the UI, the leave flow with reload, the leaderboard reset, and recovery from a corrupt stored document (the backup was kept).
 
 - Laptop fit ([ADR 0012](adr/0012-scale-with-viewport-height.md)): the table, end screen and setup fit a laptop browser window without scrolling, down to 650px tall. The sheets' action buttons stay visible, and the resolve cards take one line each on wide sheets. Portrait phones are unchanged.
+- Phase 6a: share and import by link, QR and file ([plan](superpowers/plans/2026-09-27-phase-6a-share-and-import.md), [ADR 0013](adr/0013-import-merge-take-replace.md)). Data moves between devices with no server.
+  - Core: `src/core/share.ts` (payload v2 per [ADR 0005](adr/0005-share-format-v2-no-prototype-compat.md), `extractCode`, `shareLink`, `qrTexts` with 1400/1100 QR chunking) and `src/core/import.ts` (`applyImport` — merge/take/replace with a two-pass id remap so a rename can't seat one player twice; photos never travel in 6a; `needsTakeConfirm`).
+  - Platform: `src/share/codec.ts` (deflate-raw + base64url, `z`/`j` prefixes; `.belot` files are plain JSON).
+  - Store: `importShared` (replace also drops photo blobs no longer referenced).
+  - UI, all lazy-loaded: `src/features/share/` — `ShareSheet` (scope switch, QR with white quiet-zone frame, multi-part «Част i от n» cycling at 900 ms, «Копирай линк» via Web Share/clipboard, «Изпрати файл» via Web Share/download) and `ImportSheet` (paste/file, «Намерено» preview, merge / take with an ADR 0011-style confirmation / two-press replace). Opened from Home («Сподели / Внос») and the table («Сподели»); a `#belot=` link opens import directly (`startPath`, hash cleared).
+  - A two-context browser check verified the link, file, take, confirm, replace and multi-part QR flows end to end; console clean.
 
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/routes`, covered by tests.
 
 ## Next
 
-- Phase 6 (share and import): write its plan; see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
+- Phase 6b: camera QR scanner, multi-part assembly, photos in the `.belot` file; see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
 
 ## Open product questions
+
+- **Share/import (Phase 6a):**
+  - Copy not in the handoff — confirm: «Какво да се сподели» (the scope switch's accessible name), «Линк или код» (the paste field's), «QR код» (the QR image's alt).
+  - Home offers «Текущия мач» whenever a match is playing; the prototype offers that scope only from the table/end/history screens. Confirm ([ADR 0013](adr/0013-import-merge-take-replace.md) area).
+  - Import keeps the local photo and drops the imported emoji when both exist (photos never travel in 6a, ADR 0013). Confirm.
 
 - **Copy not in the handoff:** the note shown instead of «Изтрий играча» for a seated player (placeholder text is live in `src/core/strings.ts`'s `register.inMatch`), and the accessible labels of the team-name fields — confirm the wording.
 - **Copy not in the handoff (Phase 5c, ADR 0006):** confirm the wording of:
@@ -48,5 +59,4 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 - `saveError` stays true until `resetData` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md)).
 - No favicon (404 in the browser console).
 - Deal-end sheet: typed card points, the capot toggle and the open step aren't persisted across a reload (the contract, declarations and their resolution are).
-- «Сподели» on the table and «Сподели / Внос» on Home are disabled until Phase 6.
 - An untracked `package-lock.json` sits in the repo root. It isn't the project's (pnpm is used), so don't commit it.
