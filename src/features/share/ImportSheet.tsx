@@ -1,9 +1,10 @@
+import type Scanner from 'qr-scanner';
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { resumePath } from '../../app/resume';
 import { type ImportResult, needsTakeConfirm } from '../../core/import';
 import { totals } from '../../core/match';
-import { extractCode, type SharePayload } from '../../core/share';
+import { extractCode, readScanText, type ScanProgress, type SharePayload } from '../../core/share';
 import { STRINGS } from '../../core/strings';
 import { parseSharedFile, readShared } from '../../share/codec';
 import { useAppStore } from '../../store/instance';
@@ -48,6 +49,16 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   // then quickly link B) can never overwrite a faster later one.
   const requestId = useRef(0);
 
+  const [scanning, setScanning] = useState(false);
+  // `{ got, total }` while a multi-part scan is being collected; null before the first part
+  // and once a scan finishes, stops or fails.
+  const [scanProgress, setScanProgress] = useState<{ got: number; total: number } | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scannerRef = useRef<Scanner | null>(null);
+  // The multi-part session collected so far (Task 1's reducer state); reset whenever scanning
+  // (re)starts.
+  const scanSession = useRef<ScanProgress | null>(null);
+
   const show = (next: SharePayload) => {
     setData(next);
     setError(null);
@@ -56,10 +67,14 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     setConfirmTotals(null);
   };
 
-  const fail = (message: string) => {
+  // Frozen at mount (`useRef`, not `useCallback`, which nothing here uses): `fail` only ever
+  // touches stable setters, so one instance is correct forever and — unlike a plain `const` —
+  // its identity never changes on an unrelated render, so the scanning effect below can depend
+  // on it without restarting the camera on every keystroke elsewhere in the sheet.
+  const fail = useRef((message: string) => {
     setData(null);
     setError(message);
-  };
+  }).current;
 
   // Reads a code the app was opened with, once, as soon as the sheet opens, through the same
   // token guard as `onRead` and `onFile`. Inlined rather than calling `show`/`fail` directly, so
@@ -82,13 +97,11 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     });
   }, [initialCode]);
 
-  const onRead = async () => {
+  // The guarded read path shared by pasting, the `#belot=` startup code and a completed scan:
+  // bumps the token first, so a slower earlier read can never overwrite a faster later one.
+  // Frozen at mount for the same reason as `fail` above.
+  const readCode = useRef(async (code: string) => {
     const token = ++requestId.current;
-    const code = extractCode(text);
-    if (!code) {
-      fail(S.noCode);
-      return;
-    }
     const result = await readShared(code);
     if (token !== requestId.current) return;
     if (!result.ok) {
@@ -96,6 +109,16 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
       return;
     }
     show(result.data);
+  }).current;
+
+  const onRead = async () => {
+    const code = extractCode(text);
+    if (!code) {
+      ++requestId.current;
+      fail(S.noCode);
+      return;
+    }
+    await readCode(code);
   };
 
   const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +136,79 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     }
     show(result.data);
   };
+
+  // One cleanup path for the scanner instance, used by the stop button, a decoded code, a
+  // failed `start()` and the effect's own cleanup (leaving scan mode or unmounting the sheet).
+  // Frozen at mount for the same reason as `fail` above.
+  const stopScanner = useRef(() => {
+    const instance = scannerRef.current;
+    if (!instance) return;
+    instance.stop();
+    instance.destroy();
+    scannerRef.current = null;
+  }).current;
+
+  const startScan = () => {
+    scanSession.current = null;
+    setScanProgress(null);
+    setScanning(true);
+  };
+
+  const stopScan = () => {
+    stopScanner();
+    setScanning(false);
+    setScanProgress(null);
+  };
+
+  // Starts the camera once the video element is mounted (rendered as part of `scanning`, so
+  // the ref is already populated by the time this effect runs). `qr-scanner` loads lazily,
+  // keeping it out of the sheet's initial chunk.
+  useEffect(() => {
+    if (!scanning) return;
+    let cancelled = false;
+
+    const run = async () => {
+      const video = videoRef.current;
+      if (!video) return;
+      const { default: QrScanner } = await import('qr-scanner');
+      if (cancelled) return;
+
+      const onResult = (result: { data: string }) => {
+        const step = readScanText(result.data, scanSession.current);
+        if (step.kind === 'code') {
+          stopScanner();
+          setScanning(false);
+          setScanProgress(null);
+          void readCode(step.code);
+        } else if (step.kind === 'progress') {
+          scanSession.current = step.progress;
+          setScanProgress({ got: step.progress.parts.size, total: step.progress.total });
+        }
+      };
+
+      const instance = new QrScanner(video, onResult, {
+        returnDetailedScanResult: true,
+        preferredCamera: 'environment',
+        onDecodeError: () => {},
+      });
+      scannerRef.current = instance;
+      try {
+        await instance.start();
+      } catch {
+        if (cancelled) return;
+        stopScanner();
+        setScanning(false);
+        setScanProgress(null);
+        fail(S.cameraError);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+      stopScanner();
+    };
+  }, [scanning, fail, readCode, stopScanner]);
 
   const finish = (result: ImportResult) => {
     setDone(importDone(result));
@@ -156,6 +252,30 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   return (
     <>
+      {scanning ? (
+        <>
+          <div className="relative aspect-square w-full max-w-[320px] self-center overflow-hidden rounded-3xl bg-black">
+            <video ref={videoRef} playsInline muted className="size-full object-cover" />
+            <div
+              aria-hidden
+              className="absolute inset-[18%] rounded-[20px] border-[3px] border-team-a"
+            />
+            {scanProgress && scanProgress.total > 1 && (
+              <p className="absolute inset-x-0 bottom-3 text-center text-[14px] font-black text-[#fff]">
+                {S.scanned(scanProgress.got, scanProgress.total)}
+              </p>
+            )}
+          </div>
+          <Button variant="secondary" size="sm" onClick={stopScan}>
+            {S.stop}
+          </Button>
+        </>
+      ) : (
+        <Button variant="primary" size="md" onClick={startScan}>
+          {S.scan}
+        </Button>
+      )}
+
       <p className="text-[13px] font-extrabold uppercase tracking-[0.06em] text-muted">{S.or}</p>
       <textarea
         aria-label={S.pasteLabel}

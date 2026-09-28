@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,6 +23,36 @@ vi.mock('../../share/codec', async (importOriginal) => {
   return { ...actual, readShared: vi.fn(actual.readShared) };
 });
 
+// A fake `qr-scanner`: every `new QrScanner(...)` is recorded in `scanner.instances`, and its
+// `onDecode` is exposed so a test can feed it a scanned result. `start()` rejects when
+// `scanner.failStart` is set, to exercise the camera-denied path.
+const scanner = vi.hoisted(() => ({
+  instances: [] as Array<{
+    onDecode: (r: { data: string }) => void;
+    start: ReturnType<typeof vi.fn>;
+    stop: ReturnType<typeof vi.fn>;
+    destroy: ReturnType<typeof vi.fn>;
+  }>,
+  failStart: false,
+}));
+vi.mock('qr-scanner', () => ({
+  default: class {
+    start = vi.fn(() =>
+      scanner.failStart ? Promise.reject(new Error('denied')) : Promise.resolve(),
+    );
+    stop = vi.fn();
+    destroy = vi.fn();
+    constructor(_v: HTMLVideoElement, onDecode: (r: { data: string }) => void) {
+      scanner.instances.push({
+        onDecode,
+        start: this.start,
+        stop: this.stop,
+        destroy: this.destroy,
+      });
+    }
+  },
+}));
+
 const S = STRINGS.import;
 const SETUP = STRINGS.setup;
 
@@ -36,6 +67,8 @@ function deferred<T>() {
 
 beforeEach(() => {
   resetApp();
+  scanner.instances = [];
+  scanner.failStart = false;
 });
 
 function fakePlayer(id: string, name: string): Player {
@@ -89,6 +122,13 @@ function seedRoster(names: readonly string[]): string[] {
     if (!result.ok) throw new Error(`setup failed for ${name}`);
     return result.id;
   });
+}
+
+/** The most recently created mock `QrScanner` instance; throws if the camera never started. */
+function lastScannerInstance() {
+  const instance = scanner.instances.at(-1);
+  if (!instance) throw new Error('no scanner instance was created');
+  return instance;
 }
 
 /** Renders the sheet in its own memory router, so `useNavigate` works in isolation. */
@@ -348,5 +388,124 @@ describe('ImportSheet', () => {
     renderSheet({ initialCode: code });
 
     expect(await screen.findByText(S.found)).toBeTruthy();
+  });
+
+  describe('camera scanning', () => {
+    it('shows the scan button; pressing it opens the camera and hides the button', async () => {
+      renderSheet();
+      expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
+
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+
+      expect(screen.queryByRole('button', { name: S.scan })).toBeNull();
+      expect(await screen.findByRole('button', { name: S.stop })).toBeTruthy();
+    });
+
+    it('still supports pasting a link while the scan button is shown', async () => {
+      const { code } = await codeFor({ roster: FAKE_ROSTER, stats: [], match: null }, 'all');
+      renderSheet();
+      expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
+
+      await userEvent.type(screen.getByRole('textbox', { name: S.pasteLabel }), code);
+      await userEvent.click(screen.getByRole('button', { name: S.read }));
+
+      expect(await screen.findByText(S.found)).toBeTruthy();
+    });
+
+    it('stops and destroys the scanner, leaves scanning mode and shows the preview for a decoded link', async () => {
+      const { code } = await codeFor({ roster: FAKE_ROSTER, stats: [], match: null }, 'all');
+      const link = `http://x/#belot=${code}`;
+      renderSheet();
+
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(1));
+      const instance = lastScannerInstance();
+
+      act(() => {
+        instance.onDecode({ data: link });
+      });
+
+      expect(await screen.findByText(S.found)).toBeTruthy();
+      expect(instance.stop).toHaveBeenCalled();
+      expect(instance.destroy).toHaveBeenCalled();
+      expect(screen.queryByRole('button', { name: S.stop })).toBeNull();
+      expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
+    });
+
+    it('shows the multi-part overlay across three parts and completes on the last one', async () => {
+      const { code } = await codeFor({ roster: FAKE_ROSTER, stats: [], match: null }, 'all');
+      const n = 3;
+      const size = Math.ceil(code.length / n);
+      const part1 = `BELOT|abcd|1|${n}|${code.slice(0, size)}`;
+      const part2 = `BELOT|abcd|2|${n}|${code.slice(size, size * 2)}`;
+      const part3 = `BELOT|abcd|3|${n}|${code.slice(size * 2)}`;
+      renderSheet();
+
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(1));
+      const instance = lastScannerInstance();
+
+      act(() => {
+        instance.onDecode({ data: part1 });
+      });
+      expect(await screen.findByText(S.scanned(1, 3))).toBeTruthy();
+
+      act(() => {
+        instance.onDecode({ data: part2 });
+      });
+      expect(await screen.findByText(S.scanned(2, 3))).toBeTruthy();
+
+      act(() => {
+        instance.onDecode({ data: part3 });
+      });
+
+      expect(await screen.findByText(S.found)).toBeTruthy();
+      expect(instance.stop).toHaveBeenCalled();
+      expect(instance.destroy).toHaveBeenCalled();
+    });
+
+    it('shows the camera error and returns to scan-off when the camera fails to start', async () => {
+      scanner.failStart = true;
+      renderSheet();
+
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+
+      expect(await screen.findByText(S.cameraError)).toBeTruthy();
+      expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
+      expect(screen.queryByRole('button', { name: S.stop })).toBeNull();
+    });
+
+    it('stops and destroys the scanner on "Спри камерата", back to scan-off, no error', async () => {
+      renderSheet();
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(1));
+      const instance = lastScannerInstance();
+
+      await userEvent.click(screen.getByRole('button', { name: S.stop }));
+
+      expect(instance.stop).toHaveBeenCalled();
+      expect(instance.destroy).toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
+      expect(screen.queryByText(S.cameraError)).toBeNull();
+    });
+
+    it('destroys the scanner when the sheet closes mid-scan', async () => {
+      function Wrapper() {
+        const [open, setOpen] = useState(true);
+        return <ImportSheet open={open} onClose={() => setOpen(false)} initialCode={null} />;
+      }
+      const router = createMemoryRouter([{ path: '*', Component: Wrapper }], {
+        initialEntries: ['/'],
+      });
+      render(<RouterProvider router={router} />);
+
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(1));
+      const instance = lastScannerInstance();
+
+      await userEvent.click(screen.getByRole('button', { name: S.close }));
+
+      expect(instance.destroy).toHaveBeenCalled();
+    });
   });
 });

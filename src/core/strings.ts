@@ -269,6 +269,10 @@ export const STRINGS = {
     title: 'Внос',
     intro:
       'Сканирайте QR кода от другия телефон, поставете линк или изберете файл. Работи и в браузър на компютър с камера.',
+    scan: '📷 Сканирай QR код',
+    stop: 'Спри камерата',
+    scanned: (k: number, n: number) => `Прочетени ${k} от ${n} части`,
+    cameraError: 'Няма достъп до камерата. Разрешете го или поставете линка ръчно.',
     or: 'или',
     placeholder: 'https://…#belot=…',
     // Not in the handoff: the accessible name of the paste field.
