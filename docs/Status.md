@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-28 at commit 63ad766._ Current state only; history lives in git.
+_Last updated: 2026-09-28 at commit 1b1548a._ Current state only; history lives in git.
 
 ## Done
 
@@ -29,12 +29,18 @@ _Last updated: 2026-09-28 at commit 63ad766._ Current state only; history lives 
   - UI, all lazy-loaded: `src/features/share/` — `ShareSheet` (scope switch, QR with white quiet-zone frame, multi-part «Част i от n» cycling at 900 ms, «Копирай линк» via Web Share/clipboard, «Изпрати файл» via Web Share/download) and `ImportSheet` (paste/file, «Намерено» preview, merge / take with an ADR 0011-style confirmation / two-press replace). Opened from Home («Сподели / Внос») and the table («Сподели»); a `#belot=` link opens import directly (`startPath`, hash cleared).
   - A two-context browser check verified the link, file, take, confirm, replace and multi-part QR flows end to end; console clean.
 - Team-name verb agreement (product owner, 2026-09-28): «Ние»/«Вие» conjugate the copy in first/second person plural («Ние печелим», «Вие черпите», «изкарахме», «взимаме», «не записваме»); custom team names keep the handoff's third person. Deviates from the handoff's fixed forms; matching is trimmed and case-insensitive (`src/core/strings.ts`).
+- Phase 6b: camera scanner and photos in the file ([plan](superpowers/plans/2026-09-28-phase-6b-scanner-and-photos.md)). Phase 6 is complete — data moves by link, QR (single and multi-part), camera scan and `.belot` file.
+  - Core: `readScanText` in `share.ts` assembles `BELOT|sid|i|n|chunk` scans purely (any order, duplicates, session restarts); the payload's optional `photos` map (id → data URL) and `buildPayload(..., withPhotos)`.
+  - Platform/store: `src/share/photos.ts` (`attachPhotos`, `dataUrlToBlob`); async `importShared` resolves embedded photos into the photo store under fresh local ids before `applyImport` — no two players ever share a photo id, an unresolvable id becomes null, and a failed photo write costs that photo, not the import ([ADR 0013](adr/0013-import-merge-take-replace.md)).
+  - Share sheet: the handoff's «Включи снимките във файла (линкът и QR са без снимки)» checkbox — file-only, link/QR stay photo-free.
+  - Import sheet: «📷 Сканирай QR код» (`qr-scanner@1.4.2`, loaded on press), the aiming-frame video square, «Прочетени k от n части», «Спри камерата», and the handoff's camera error.
+  - Browser-checked: a photo travelled A→B through the file end to end (data URL in the file, a fresh blob in B's store, the avatar renders); the scanner started on a fake camera and stopped cleanly.
 
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/routes`, covered by tests.
 
 ## Next
 
-- Phase 6b: camera QR scanner, multi-part assembly, photos in the `.belot` file; see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
+- Phase 7 (PWA & polish): write its plan; see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
 
 ## Open product questions
 
@@ -55,6 +61,8 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 
 ## Known gaps
 
+- Real-device QR scanning is untested: the camera needs HTTPS (or localhost), so a phone-to-phone scan waits for a deployment; the iOS file picker may also grey out `.belot` (the `accept` filter) — both need a test on real phones.
+- Component tests can't round-trip the photo store: fake-indexeddb doesn't survive this repo's happy-dom test environment, so sheet tests stub `photoStore` (see `register-sheet.test.tsx` and `share-sheet.test.tsx` for the pattern).
 - On a portrait phone, setup scrolls (+143px at 390×844), as does the end screen (+20px), and the table header's button row scrolls sideways since «← Начало» was added.
 
 - `saveError` stays true until `resetData` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md)).

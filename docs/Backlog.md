@@ -48,12 +48,17 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 - Replacing from the table with a no-match payload redirects before the «Готово…» message is seen
 - «Изпрати файл» falls back to download when `canShare` rejects the `.belot` extension (Chrome Android); iOS may grey out `.belot` in the file picker because of the `accept` filter — verify on a real iPhone in 6b and drop `accept` if so
 - CONTEXT.md says a shared match "continues"; the code says `take`/`tookMatch` — align the vocabulary
-- The import sheet's «или» and its intro mention scanning before 6b ships the scanner
 
 ## Phase 6b: Scanner & photos
 
-- Camera QR scanner (back camera, `facingMode: environment`), multi-part `BELOT|sid|i|n|chunk` assembly with «Прочетени k от n части»
-- «Включи снимките във файла» — the `.belot` file carries photo data; import saves it to the photo store (revisits ADR 0013's "photos never travel")
+- `src/store/roster-actions.ts`: ~40 lines of photo resolution sit in `importShared`; a `resolvePhotos(data, localIds, put)` in `src/share/photos.ts` would keep the store thin and test on its own
+- `src/features/share/ImportSheet.tsx`: a paste/file read succeeding while the camera runs leaves it scanning — a later decoded frame replaces the preview mid-choice; stop the scanner when a preview appears
+- The camera error renders in the sheet's generic error slot below the paste area; the prototype puts it beside the scan button — product call
+- «Спри камерата» is 44px (`sm`); the prototype says 48px, a size the Button scale lacks
+- `src/share/photos.ts` near-duplicates `codec.ts`'s binary-string helpers; `dataUrlToBlob` accepts any MIME type (an `image/` check is cheap); the regex capture-tuple casts in `share.ts`/`photos.ts` bypass `noUncheckedIndexedAccess`
+- `src/core/import.test.ts`: replace mode lacks a photo+emoji-both-set incoming fixture; no fixture uses an emoji-only local player
+- `src/features/players/RegisterSheet.tsx`: the in-component `import('./crop-photo')` makes the React Compiler skip RegisterForm (harmless today; hoist like the scanner's loader to restore memoization)
+- The import sheet's effect-local `stop()`/guarded-read duplicate `stopScanner`/`readCode` (kept for compiler-independence; unify if it grows)
 - Export the `belot-state.backup` document after a failed load
 
 ## Phase 7: PWA & polish

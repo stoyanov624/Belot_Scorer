@@ -1,6 +1,6 @@
 # Phase 6b: Camera Scanner and Photos in the File Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Finish Phase 6: «📷 Сканирай QR код» in the import sheet reads single and multi-part QR codes with the back camera, and «Включи снимките във файла» carries the players' photos inside the `.belot` file, which import saves into the photo store.
 
@@ -47,7 +47,7 @@
   - `readScanText(text: string, progress: ScanProgress | null): ScanStep`
 - Consumes: `extractCode` (already in `share.ts`).
 
-- [ ] **Step 1: Write the failing tests** (append to `share.test.ts`):
+- [x] **Step 1: Write the failing tests** (append to `share.test.ts`):
 
 ```ts
 describe('readScanText', () => {
@@ -96,9 +96,9 @@ describe('readScanText', () => {
 });
 ```
 
-- [ ] **Step 2: Run** `pnpm vitest run src/core/share.test.ts`. Expected: FAIL (`readScanText` not exported).
+- [x] **Step 2: Run** `pnpm vitest run src/core/share.test.ts`. Expected: FAIL (`readScanText` not exported).
 
-- [ ] **Step 3: Implement** in `share.ts`:
+- [x] **Step 3: Implement** in `share.ts`:
 
 ```ts
 /** A multi-part QR session being collected: `BELOT|sid|i|n|chunk` parts seen so far. */
@@ -145,8 +145,8 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
 }
 ```
 
-- [ ] **Step 4: Run the file's tests, then `pnpm check`.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(core): assemble multi-part QR scans`.
+- [x] **Step 4: Run the file's tests, then `pnpm check`.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(core): assemble multi-part QR scans`.
 
 ---
 
@@ -162,7 +162,7 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
   - `applyImport` (contract change): any non-null incoming `photo` is a photo id that is ALREADY valid on this device (the store guarantees it, Task 3). A non-null imported photo wins and drops the emoji; a null imported photo keeps the local one as in 6a.
 - Consumes: nothing new.
 
-- [ ] **Step 1: Failing tests.**
+- [x] **Step 1: Failing tests.**
   - `share.test.ts`:
     - `buildPayload(state, 'all', 1, true)` keeps `roster[i].photo` ids; without the flag they're null (existing tests must stay green).
     - `SharePayloadSchema` accepts a payload with `photos: { ph1: 'data:image/jpeg;base64,AAAA' }` and one without.
@@ -174,15 +174,15 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
     - Replace: imported non-null wins; null keeps the local photo of a player kept by id.
     - The "never both photo and emoji" tests still pass for every path.
 
-- [ ] **Step 2: Run both test files.** Expected: FAIL.
+- [x] **Step 2: Run both test files.** Expected: FAIL.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
   - `share.ts`: add the optional `photos` field to the schema; `buildPayload` takes `withPhotos = false` and maps `photo: withPhotos ? p.photo : null`.
   - `import.ts`: in pass 1 (by-id) `photo: p.photo ?? current.photo` with `emoji` null when the kept photo is non-null, else the imported emoji; in pass 2 by-name, when `p.photo` is non-null replace the local player's photo (`{ ...current, photo: p.photo, emoji: null }`), else leave untouched; append pushes `{ ...p, emoji: p.photo ? null : p.emoji }`; replace `photo: p.photo ?? localById.get(p.id)?.photo ?? null` with the same emoji rule.
   - `docs/adr/0013-import-merge-take-replace.md`: replace the 6a photo bullet with: photos travel only in the `.belot` file (6b); the store resolves embedded photos to new local ids and strips unresolvable ids before `applyImport`, so core trusts non-null ids; a non-null imported photo wins and drops the emoji; a null one keeps the local photo.
 
-- [ ] **Step 4: Run the tests and `pnpm check`, then `pnpm docs:check`.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(core): photos in the file payload win on import`.
+- [x] **Step 4: Run the tests and `pnpm check`, then `pnpm docs:check`.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(core): photos in the file payload win on import`.
 
 ---
 
@@ -204,17 +204,17 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
     4. Drop every old local photo id no longer referenced by the result roster (the 6a replace-only cleanup now runs for every mode — in a photo-less merge nothing changes, so nothing is dropped).
 - Consumes: `SharePayload.photos` (Task 2), `PhotoStore.put/get` (`src/storage/photos.ts`).
 
-- [ ] **Step 1: Failing tests.**
+- [x] **Step 1: Failing tests.**
   - `photos.test.ts` (node env): `attachPhotos` embeds a blob as a data URL and leaves `photos` off when no ids; a missing blob nulls that player's photo; `dataUrlToBlob` round-trips bytes and type with `attachPhotos`'s output, and returns null for `'nope'` and `'data:;base64,***'`.
   - `roster-actions.test.ts` (extend the existing harness with a `putPhoto` fake that records blobs and returns `phL1`, `phL2`, …):
     - Import with `photos`: the merged player's photo is the NEW local id, the blob landed in the fake store, and the overwritten old local blob id is in `removed`.
     - A payload photo id with no entry in `photos` and no local owner → the player lands with `photo: null`.
     - A photo-less merge still drops nothing.
     - The existing replace-cleanup tests stay green with the awaited call.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Base64 without `FileReader` (works in node and happy-dom): encode via `new Uint8Array(await blob.arrayBuffer())` → binary string → `btoa`; decode via `atob` → `Uint8Array` → `new Blob([bytes as BlobPart], { type })` (comment the cast — TS DOM lib quirk, see `codec.ts`). Update every `importShared` caller (`ImportSheet` already awaits inside async handlers; fix its type if needed).
-- [ ] **Step 4: `pnpm check`.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(share): embed and ingest photos through the photo store`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** Base64 without `FileReader` (works in node and happy-dom): encode via `new Uint8Array(await blob.arrayBuffer())` → binary string → `btoa`; decode via `atob` → `Uint8Array` → `new Blob([bytes as BlobPart], { type })` (comment the cast — TS DOM lib quirk, see `codec.ts`). Update every `importShared` caller (`ImportSheet` already awaits inside async handlers; fix its type if needed).
+- [x] **Step 4: `pnpm check`.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(share): embed and ingest photos through the photo store`.
 
 ---
 
@@ -227,14 +227,14 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
 - Produces: `STRINGS.share.photos = 'Включи снимките във файла (линкът и QR са без снимки)'`.
 - Consumes: `buildPayload(..., withPhotos)` (Task 2), `attachPhotos` (Task 3), `photoStore` (`src/store/instance.ts`).
 
-- [ ] **Step 1: Failing tests.**
+- [x] **Step 1: Failing tests.**
   - The checkbox renders unticked on open (reset with the rest of the form state), toggles its ✓ mark, and has the exact label.
   - «Изпрати файл» unticked: the downloaded JSON has all-null roster photos and no `photos` key (parse the Blob handed to `File`).
   - Ticked, with a seeded player photo (`savePlayer` with a photo id and `photoStore.put`'s kv faked — or stub `photoStore.get` per the file's mock patterns): the JSON's roster keeps the id and `photos` holds its data URL.
   - The link and QR stay photo-free: «Копирай линк» after ticking still yields a code whose payload has null photos (decode with `readShared` in the test).
-- [ ] **Step 2: Implement.** Prototype ~598: a borderless `<button type="button">` row — a 24px `rounded-lg border-2 border-team-a` box (filled `bg-team-a text-on` with ✓ when on) + the 14/700 label, left-aligned, placed under the copy/file buttons as in mockup 15. State lives in `ShareForm`, so it resets on reopen. Only `onFile` consults it: `let data = buildPayload(state, scope, Date.now(), photos); if (photos) data = await attachPhotos(data, (id) => photoStore.get(id));`. The build effect (link/QR) keeps `withPhotos` false.
-- [ ] **Step 3: Run the file's tests, then `pnpm check`.** Expected: PASS.
-- [ ] **Step 4: Commit** `feat(share): photos checkbox for the .belot file`.
+- [x] **Step 2: Implement.** Prototype ~598: a borderless `<button type="button">` row — a 24px `rounded-lg border-2 border-team-a` box (filled `bg-team-a text-on` with ✓ when on) + the 14/700 label, left-aligned, placed under the copy/file buttons as in mockup 15. State lives in `ShareForm`, so it resets on reopen. Only `onFile` consults it: `let data = buildPayload(state, scope, Date.now(), photos); if (photos) data = await attachPhotos(data, (id) => photoStore.get(id));`. The build effect (link/QR) keeps `withPhotos` false.
+- [x] **Step 3: Run the file's tests, then `pnpm check`.** Expected: PASS.
+- [x] **Step 4: Commit** `feat(share): photos checkbox for the .belot file`.
 
 ---
 
@@ -247,7 +247,7 @@ export function readScanText(text: string, progress: ScanProgress | null): ScanS
 - Produces: `STRINGS.import.scan/stop/scanned(k, n)/cameraError` (Global Constraints has the exact texts).
 - Consumes: `readScanText`, `ScanProgress` (Task 1); `readShared`; the sheet's existing `show`/`fail`/`requestId` read path.
 
-- [ ] **Step 1: Failing tests.** Mock the library once at the top:
+- [x] **Step 1: Failing tests.** Mock the library once at the top:
 
 ```ts
 const scanner = vi.hoisted(() => ({
@@ -274,24 +274,24 @@ vi.mock('qr-scanner', () => ({
   - «Спри камерата» stops and destroys, back to scan-off, no error.
   - Closing the sheet mid-scan (the content unmounts) destroys the scanner (`destroy` called).
   - The paste flow still works while the scan button is shown.
-- [ ] **Step 2: Implement.** Per the prototype ~610–619 and mockup 16:
+- [x] **Step 2: Implement.** Per the prototype ~610–619 and mockup 16:
   - Scan-off: the primary 56px scan button sits above «или» (`Button variant="primary"` with a matching size).
   - Scan-on replaces the button with: a square `relative aspect-square w-full max-w-[320px] self-center overflow-hidden rounded-3xl bg-black` holding `<video playsInline muted class="size-full object-cover">`, an `absolute inset-[18%] rounded-[20px] border-[3px] border-team-a` aiming frame (aria-hidden), and — only while collecting parts — an absolute bottom strip `text-[#fff]` 14/900 centred with `S.scanned(k, n)`; below it «Спри камерата» (secondary, 48px).
   - Start: `const { default: QrScanner } = await import('qr-scanner');` then `new QrScanner(video, onResult, { returnDetailedScanResult: true, preferredCamera: 'environment', onDecodeError: () => {} })` and `await s.start()`; a rejection destroys it, sets the camera error via the existing error state and leaves scanning mode.
   - `onResult({ data })` runs the Task 1 reducer against a `useRef<ScanProgress | null>`; `'code'` → stop+destroy, leave scanning, feed the code through the same guarded read path as `initialCode`/`onRead`; `'progress'` → update a `{ got, total }` state; `'ignored'` → nothing.
   - Lifecycle: the scanner instance lives in a ref; one cleanup used by the stop button, the success path, the error path and the effect cleanup on unmount. Hooks stay top-level; the dynamic `import()` keeps the library out of the sheet's initial chunk.
-- [ ] **Step 3: Run the tests, then `pnpm check`.** Then `pnpm build` and confirm `qr-scanner` is outside the entry chunk: `grep -l "No QR code found" dist/assets/*.js` must not match `index-*.js`. Remove `dist/`.
-- [ ] **Step 4: Commit** `feat(share): camera QR scanner in the import sheet`.
+- [x] **Step 3: Run the tests, then `pnpm check`.** Then `pnpm build` and confirm `qr-scanner` is outside the entry chunk: `grep -l "No QR code found" dist/assets/*.js` must not match `index-*.js`. Remove `dist/`.
+- [x] **Step 4: Commit** `feat(share): camera QR scanner in the import sheet`.
 
 ---
 
 ### Task 6: Browser check and vault update (controller)
 
-- [ ] **Step 1: Browser check** (Playwright at 390×844, two ports as two devices):
+- [x] **Step 1: Browser check** (Playwright at 390×844, two ports as two devices):
   1. Photos round trip: on A register a player with an uploaded photo (a tiny generated PNG), share the file with the checkbox ticked, import it on B (merge) — B's Home shows the photo avatar; B's photo store holds a new blob. Untick → the file carries no `photos` key.
   2. Scanner UI without a camera: pressing «📷 Сканирай QR код» in the headless browser shows the camera error and returns to scan-off. (Real decoding is covered by unit tests; a phone-to-phone scan needs real hardware — note it for the product owner's testing.)
   3. The paste and file flows still work; console clean except the favicon 404.
-- [ ] **Step 2: Vault.**
+- [x] **Step 2: Vault.**
   - **Status:** 6b done (Phase 6 complete — the app shares by link, QR, scanner and file with photos); next: Phase 7 (PWA & polish); open questions: none new (the scanner copy is verbatim from the handoff); note that real-device scanning and the iOS `.belot` accept filter still need a phone test.
   - **Backlog:** delete the 6b lines (scanner, photos, «или»); keep the iOS accept-filter line, rewritten as a phone-test item; add anything deferred by reviews.
   - **Architecture/Overview:** the share bullet gains the scanner (pure `readScanText` + `qr-scanner` in the lazy chunk) and the photo pipeline (`attachPhotos`/ingestion via `putPhoto`).
