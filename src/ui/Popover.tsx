@@ -26,9 +26,30 @@ export function Popover({ open, onClose, anchor, placement, label, children }: P
     const canTogglePopover =
       typeof card.showPopover === 'function' && typeof card.hidePopover === 'function';
     if (!open) {
-      if (canTogglePopover && card.matches(':popover-open')) card.hidePopover();
-      return;
+      if (!canTogglePopover || !card.matches(':popover-open')) return;
+      // Caller-driven close (the browser's own light dismiss already hid it natively, and
+      // `matches` above is then false): play the exit animation, then hide. Reopening mid-close
+      // (this effect's cleanup) cancels it cleanly, same pattern as Sheet.
+      card.setAttribute('data-closing', '');
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        card.removeAttribute('data-closing');
+        card.hidePopover();
+      };
+      const onAnimationEnd = (event: AnimationEvent) => {
+        if (event.animationName === 'pop-out') finish();
+      };
+      card.addEventListener('animationend', onAnimationEnd);
+      const fallback = setTimeout(finish, 250);
+      return () => {
+        card.removeEventListener('animationend', onAnimationEnd);
+        clearTimeout(fallback);
+        if (!done) card.removeAttribute('data-closing');
+      };
     }
+    card.removeAttribute('data-closing');
     if (canTogglePopover && !card.matches(':popover-open')) card.showPopover();
     if (!target) return;
     const { top, left } = popoverPosition(

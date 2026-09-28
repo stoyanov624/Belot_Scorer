@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { buildPayload } from '../core/share';
@@ -46,7 +46,7 @@ describe('Home', () => {
     await userEvent.type(screen.getByRole('textbox', { name: 'Име или прякор' }), 'Иво');
     await userEvent.click(screen.getByRole('button', { name: 'Запази' }));
 
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.getByText('Иво')).toBeTruthy();
   });
 
@@ -129,7 +129,7 @@ describe('Home', () => {
 
     await userEvent.click(screen.getByRole('button', { name: STRINGS.import.close }));
 
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(router.state.location.pathname).toBe('/');
     expect(router.state.location.search).toBe('');
   });

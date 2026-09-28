@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { totals } from '../core/match';
@@ -76,7 +76,7 @@ describe('Setup', () => {
 
     await pickSeat(/Север/, 'Иво');
 
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.getByRole('button', { name: /Север.*Иво/ })).toBeTruthy();
   });
 
@@ -102,7 +102,7 @@ describe('Setup', () => {
     await userEvent.type(screen.getByRole('textbox', { name: 'Име или прякор' }), 'Нина');
     await userEvent.click(screen.getByRole('button', { name: 'Запази' }));
 
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.getByRole('button', { name: /Юг.*Нина/ })).toBeTruthy();
     expect(appStore.getState().roster.some((p) => p.name === 'Нина')).toBe(true);
   });
@@ -215,7 +215,7 @@ describe('Setup', () => {
 
     // "Отказ" keeps the old match untouched.
     await userEvent.click(screen.getByRole('button', { name: S.replaceCancel }));
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(appStore.getState().match).toEqual(before);
 
     // "Започни нов мач" replaces it and goes to the table.

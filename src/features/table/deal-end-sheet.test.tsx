@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ContractKey, DeclKey, Seat, Seats } from '../../core/model';
 import { STRINGS } from '../../core/strings';
@@ -421,5 +422,31 @@ describe('DealEndSheet, step 2', () => {
 
     expect(screen.getByRole('dialog', { name: S.resolveTitle })).toBeTruthy();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("freezes the title at the saved deal's number while the sheet animates closed", async () => {
+    startMatch();
+    // Mirrors the table route: onSaved flips `open` to false, the sheet then animates closed
+    // while `match.games.length` has already moved on to the next deal.
+    function Harness() {
+      const [open, setOpen] = useState(true);
+      return (
+        <DealEndSheet
+          open={open}
+          onClose={() => setOpen(false)}
+          onChangeContract={() => {}}
+          onSaved={() => setOpen(false)}
+        />
+      );
+    }
+    render(<Harness />);
+
+    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.click(screen.getByRole('button', { name: S.save }));
+
+    expect(appStore.getState().match?.games).toHaveLength(1);
+    const sheet = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(sheet.hasAttribute('data-closing')).toBe(true);
+    expect(within(sheet).getByRole('heading', { name: S.pointsTitle(1) })).toBeTruthy();
   });
 });

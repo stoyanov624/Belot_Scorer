@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { BestOf, Seats } from '../core/model';
@@ -333,7 +333,8 @@ describe('Contract sheet', () => {
     expect(appStore.getState().match?.caller).toBe(3);
     // The deal-end sheet follows; with no sequences it starts at the points step.
     expect(screen.getByRole('dialog', { name: DS.pointsTitle(1) })).toBeTruthy();
-    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    // The contract sheet is sequenced, not stacked: it's animating closed underneath.
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
   });
 });
 
@@ -349,11 +350,11 @@ describe('Deal-end sheet', () => {
 
     const sheet = screen.getByRole('dialog', { name: DS.resolveTitle });
     expect(within(sheet).getAllByRole('listitem')).toHaveLength(2);
-    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
 
     await userEvent.click(within(sheet).getByRole('button', { name: DS.cancel }));
 
-    expect(screen.queryByRole('dialog', { name: DS.resolveTitle })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: DS.resolveTitle })).toBeNull());
   });
 
   it('changes the contract from step 2: contract sheet in toPoints mode, then back to step 2', async () => {
@@ -365,13 +366,15 @@ describe('Deal-end sheet', () => {
     const points = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
     await userEvent.click(within(points).getByRole('button', { name: 'Купа' }));
 
-    expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull(),
+    );
     const sheet = screen.getByRole('dialog', { name: CS.title });
     await userEvent.click(within(sheet).getByRole('button', { name: 'Без коз' }));
     await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
 
     expect(appStore.getState().match?.contract).toBe('nt');
-    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
     const again = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
     expect(within(again).getByText(DS.hintNt(13))).toBeTruthy();
   });
@@ -386,7 +389,7 @@ describe('Deal-end sheet', () => {
     // An overlay tap dismisses the contract sheet (happy-dom has no native Esc handling).
     await userEvent.click(screen.getByRole('dialog', { name: CS.title }));
 
-    expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
     expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
     expect(appStore.getState().match?.contract).toBe('hearts');
   });
@@ -400,7 +403,10 @@ describe('Deal-end sheet', () => {
     await userEvent.type(screen.getByLabelText('Ние'), '10');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
 
-    expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull();
+    // The sheet's title freezes at "1" (the saved deal) while it animates closed.
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: DS.pointsTitle(1) })).toBeNull(),
+    );
     expect(screen.getByText('Раздаване 2')).toBeTruthy();
     expect(screen.getByText('10')).toBeTruthy();
     expect(screen.getByText('6')).toBeTruthy();

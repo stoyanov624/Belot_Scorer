@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Seats } from '../../core/model';
@@ -60,7 +60,7 @@ describe('Clear sheet', () => {
 
     expect(appStore.getState().match?.contract).toBe(null);
     expect(appStore.getState().match?.current).toEqual([]);
-    expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull());
   });
 
   it('closes on "Отказ" without touching the deal', async () => {
@@ -75,7 +75,7 @@ describe('Clear sheet', () => {
 
     expect(appStore.getState().match?.contract).toBe('hearts');
     expect(appStore.getState().match?.current).toHaveLength(1);
-    expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull());
   });
 
   it('has no undo button with no saved deals', async () => {
@@ -102,7 +102,7 @@ describe('Clear sheet', () => {
 
     expect(appStore.getState().match?.games).toEqual([]);
     expect(appStore.getState().match?.hang).toBe(0);
-    expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: CLEAR.title })).toBeNull());
   });
 });
 
@@ -126,7 +126,7 @@ describe('End-match sheet', () => {
     const sheet = screen.getByRole('dialog', { name: END.title });
     await userEvent.click(within(sheet).getByRole('button', { name: END.keep }));
 
-    expect(screen.queryByRole('dialog', { name: END.title })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: END.title })).toBeNull());
     expect(appStore.getState().match?.status).toBe('playing');
   });
 

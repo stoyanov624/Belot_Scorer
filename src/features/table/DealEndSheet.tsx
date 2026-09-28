@@ -52,19 +52,25 @@ export function DealEndSheet({ open, onClose, onChangeContract, onSaved }: DealE
   const match = useAppStore((s) => s.match);
   // null = the step this opening starts at. Reset on open (not on close, so the title holds
   // still while the sheet animates out); set during render, React's "adjust state on a prop
-  // change" pattern, rather than in an effect.
+  // change" pattern, rather than in an effect. `dealNumber` snapshots the deal count the same
+  // way: a save bumps `match.games.length` immediately, but the sheet is still animating closed
+  // (ADR 0008's exit transition), so the title must keep naming the deal that was just saved.
   const [chosen, setChosen] = useState<Step | null>(null);
+  const [dealNumber, setDealNumber] = useState((match?.games.length ?? 0) + 1);
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setChosen(null);
+    if (open) {
+      setChosen(null);
+      setDealNumber((match?.games.length ?? 0) + 1);
+    }
   }
 
   const start: Step = match?.current.some(needsResolving) ? 'decls' : 'points';
   const step = chosen ?? start;
   const contract = match?.contract ?? null;
   const points = step === 'points';
-  const title = points ? S.pointsTitle((match?.games.length ?? 0) + 1) : S.resolveTitle;
+  const title = points ? S.pointsTitle(dealNumber) : S.resolveTitle;
   const subtitle = points ? contract && match && pointsHint(contract, match.rules) : S.resolveHint;
 
   return (

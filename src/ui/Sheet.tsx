@@ -45,8 +45,37 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+    if (open) {
+      if (!dialog.open) dialog.showModal();
+      dialog.removeAttribute('data-closing');
+      return;
+    }
+    // Esc/backdrop already closed the dialog natively (dialog.open is false by the time this
+    // effect runs): nothing to animate. Otherwise the caller closed it (backdrop tap → onClose →
+    // caller flips `open`, or any other caller-driven close): play the exit animation, then close.
+    if (!dialog.open) return;
+    dialog.setAttribute('data-closing', '');
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      dialog.removeAttribute('data-closing');
+      dialog.close();
+    };
+    const onAnimationEnd = (event: AnimationEvent) => {
+      if (event.animationName === 'sheet-out') finish();
+    };
+    dialog.addEventListener('animationend', onAnimationEnd);
+    // Fallback for reduced motion (animation: none, no animationend) and any environment that
+    // never fires the event.
+    const fallback = setTimeout(finish, 250);
+    return () => {
+      dialog.removeEventListener('animationend', onAnimationEnd);
+      clearTimeout(fallback);
+      // Reopened mid-close (this cleanup runs before the effect above re-enters the `open`
+      // branch): drop the marker so the dialog doesn't look like it's still closing.
+      if (!done) dialog.removeAttribute('data-closing');
+    };
   }, [open]);
 
   return (

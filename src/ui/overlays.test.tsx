@@ -85,7 +85,7 @@ describe('Sheet', () => {
     expect(screen.getByRole('dialog', { name: 'T' }).getAttribute('aria-describedby')).toBe(null);
   });
 
-  it('closes when the open prop turns false', () => {
+  it('holds the dialog open with data-closing until the exit animation ends, then closes it', () => {
     const { rerender } = render(
       <Sheet open onClose={() => {}} title="T">
         <p>body</p>
@@ -96,7 +96,99 @@ describe('Sheet', () => {
         <p>body</p>
       </Sheet>,
     );
-    expect((screen.getByRole('dialog', { hidden: true }) as HTMLDialogElement).open).toBe(false);
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    expect(dialog.hasAttribute('data-closing')).toBe(true);
+
+    act(() => {
+      dialog.dispatchEvent(new AnimationEvent('animationend', { animationName: 'sheet-out' }));
+    });
+
+    expect(dialog.open).toBe(false);
+    expect(dialog.hasAttribute('data-closing')).toBe(false);
+  });
+
+  it('falls back to closing after 250ms when no matching animationend arrives (reduced motion)', () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = render(
+        <Sheet open onClose={() => {}} title="T">
+          <p>body</p>
+        </Sheet>,
+      );
+      rerender(
+        <Sheet open={false} onClose={() => {}} title="T">
+          <p>body</p>
+        </Sheet>,
+      );
+      const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+      expect(dialog.open).toBe(true);
+
+      act(() => {
+        vi.advanceTimersByTime(249);
+      });
+      expect(dialog.open).toBe(true);
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(dialog.open).toBe(false);
+      expect(dialog.hasAttribute('data-closing')).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels the closing phase and ends up open, undecorated, when reopened mid-close', () => {
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.hasAttribute('data-closing')).toBe(true);
+
+    rerender(
+      <Sheet open onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+
+    expect(dialog.open).toBe(true);
+    expect(dialog.hasAttribute('data-closing')).toBe(false);
+
+    // A late animationend from the cancelled closing phase must not close the reopened dialog.
+    act(() => {
+      dialog.dispatchEvent(new AnimationEvent('animationend', { animationName: 'sheet-out' }));
+    });
+    expect(dialog.open).toBe(true);
+  });
+
+  it('does not call onClose during the animated, programmatic close', () => {
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <Sheet open onClose={onClose} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={onClose} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+
+    act(() => {
+      dialog.dispatchEvent(new AnimationEvent('animationend', { animationName: 'sheet-out' }));
+    });
+
+    expect(dialog.open).toBe(false);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('calls onClose on an overlay tap, not on a tap inside the panel', async () => {
@@ -205,6 +297,56 @@ describe('Popover', () => {
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
     await toggle(screen.getByRole('dialog', { name: 'A обявява', hidden: true }), 'closed');
     expect(screen.getByRole('status').textContent).toBe('B');
+  });
+
+  // happy-dom has no Popover API, so the component's own show/hide calls are unreachable; stub
+  // them on the rendered card to exercise the closing phase (mirrors the Sheet's, with pop-out).
+  it('plays pop-out then hides the popover on a caller-driven close', () => {
+    const anchor = createRef<HTMLButtonElement>();
+    const { rerender } = render(
+      <>
+        <button ref={anchor} type="button">
+          Иво
+        </button>
+        <Popover open onClose={() => {}} anchor={anchor} placement="below" label="Иво обявява">
+          <p>Белот</p>
+        </Popover>
+      </>,
+    );
+    const card = screen.getByRole('dialog', { name: 'Иво обявява' }) as HTMLDivElement;
+    const hidePopover = vi.fn();
+    Object.assign(card, {
+      showPopover: vi.fn(),
+      hidePopover,
+      matches: (selector: string) => selector === ':popover-open',
+    });
+
+    rerender(
+      <>
+        <button ref={anchor} type="button">
+          Иво
+        </button>
+        <Popover
+          open={false}
+          onClose={() => {}}
+          anchor={anchor}
+          placement="below"
+          label="Иво обявява"
+        >
+          <p>Белот</p>
+        </Popover>
+      </>,
+    );
+
+    expect(card.hasAttribute('data-closing')).toBe(true);
+    expect(hidePopover).not.toHaveBeenCalled();
+
+    act(() => {
+      card.dispatchEvent(new AnimationEvent('animationend', { animationName: 'pop-out' }));
+    });
+
+    expect(card.hasAttribute('data-closing')).toBe(false);
+    expect(hidePopover).toHaveBeenCalledOnce();
   });
 
   // happy-dom has no Popover API (no showPopover/hidePopover, no ToggleEvent), so light dismiss
