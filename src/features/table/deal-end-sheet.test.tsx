@@ -283,7 +283,7 @@ describe('DealEndSheet, step 2', () => {
     expect(calcRow(S.rows.decls)).toEqual([S.rows.decls, '0', '0']);
     expect(calcRow(S.rows.total)).toEqual([S.rows.total, '10', '6']);
     expect(calcRow(S.rows.match)).toEqual([S.rows.match, '10', '6']);
-    expect(verdictBox()?.textContent).toBe('Ние изкараха играта.');
+    expect(verdictBox()?.textContent).toBe('Ние изкарахме играта.');
     expect(verdictBox()?.getAttribute('data-verdict')).toBe('ok');
   });
 
@@ -302,7 +302,7 @@ describe('DealEndSheet, step 2', () => {
 
     await userEvent.type(inputA(), '10');
 
-    expect(verdictBox()?.textContent).toBe('Вътре! Ние взимат всички 16 точки.');
+    expect(verdictBox()?.textContent).toBe('Вътре! Ние взимаме всички 16 точки.');
     expect(verdictBox()?.getAttribute('data-verdict')).toBe('inside');
     expect(verdictBox()?.className).toContain('bg-team-b');
     expect(verdictBox()?.className).toContain('text-on');
@@ -315,7 +315,7 @@ describe('DealEndSheet, step 2', () => {
     await userEvent.type(inputA(), '8');
 
     expect(verdictBox()?.textContent).toBe(
-      'Висяща: Ние не записват, 8 т. висят за следващото раздаване.',
+      'Висяща: Ние не записваме, 8 т. висят за следващото раздаване.',
     );
     expect(verdictBox()?.getAttribute('data-verdict')).toBe('hang');
     expect(verdictBox()?.className).toContain('bg-s3');

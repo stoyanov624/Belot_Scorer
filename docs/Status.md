@@ -28,6 +28,7 @@ _Last updated: 2026-09-28 at commit 63ad766._ Current state only; history lives 
   - Store: `importShared` (replace also drops photo blobs no longer referenced).
   - UI, all lazy-loaded: `src/features/share/` — `ShareSheet` (scope switch, QR with white quiet-zone frame, multi-part «Част i от n» cycling at 900 ms, «Копирай линк» via Web Share/clipboard, «Изпрати файл» via Web Share/download) and `ImportSheet` (paste/file, «Намерено» preview, merge / take with an ADR 0011-style confirmation / two-press replace). Opened from Home («Сподели / Внос») and the table («Сподели»); a `#belot=` link opens import directly (`startPath`, hash cleared).
   - A two-context browser check verified the link, file, take, confirm, replace and multi-part QR flows end to end; console clean.
+- Team-name verb agreement (product owner, 2026-09-28): «Ние»/«Вие» conjugate the copy in first/second person plural («Ние печелим», «Вие черпите», «изкарахме», «взимаме», «не записваме»); custom team names keep the handoff's third person. Deviates from the handoff's fixed forms; matching is trimmed and case-insensitive (`src/core/strings.ts`).
 
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/routes`, covered by tests.
 

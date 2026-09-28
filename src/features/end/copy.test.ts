@@ -41,6 +41,24 @@ function playAWinningDeals(m: Match): Match {
 }
 
 describe('endSummary', () => {
+  // The verb agrees with the team name: «Ние» speaks in first person, «Вие» in second,
+  // and any custom name keeps the handoff's third person (product owner, 2026-09-28).
+  it('conjugates for the winner «Вие» and custom team names', () => {
+    let m = fresh(1);
+    m = playAWinningDeals(m);
+    m = endMatch(m);
+
+    const flipped = (t: Team) => (t === 'A' ? 'Вие' : 'Ние');
+    expect(endSummary(m, playerName, flipped).title).toBe('Вие печелите');
+    expect(endSummary(m, playerName, flipped).pays).toBe('🍻 Ние черпим следващия рунд');
+
+    const custom = (t: Team) => (t === 'A' ? 'Столетниците' : 'миЕ');
+    expect(endSummary(m, playerName, custom).title).toBe('Столетниците печелят');
+    // Case-insensitive: a lowercase «ние» still conjugates.
+    const lower = (t: Team) => (t === 'A' ? ' ние ' : 'Вие');
+    expect(endSummary(m, playerName, lower).title).toBe(' ние  печелим');
+  });
+
   it('reports a single match won by team A', () => {
     let m = fresh(1);
     m = playAWinningDeals(m);
@@ -49,9 +67,9 @@ describe('endSummary', () => {
 
     expect(s.line).toBe('Край на мача · 2 раздавания');
     expect(s.winner).toBe('A');
-    expect(s.title).toBe('Ние печелят');
+    expect(s.title).toBe('Ние печелим');
     expect(s.winnerNames).toBe('Иван и Мария');
-    expect(s.pays).toBe('🍻 Вие черпят следващия рунд');
+    expect(s.pays).toBe('🍻 Вие черпите следващия рунд');
     expect(s.isSeries).toBe(false);
     expect(s.totals).toEqual({ A: 22, B: 12 });
     expect(s.decls).toEqual({ A: 2, B: 0 });
@@ -65,7 +83,7 @@ describe('endSummary', () => {
     const s = endSummary(m, playerName, teamName);
 
     expect(s.line).toBe('Край на мач 1 · 2 раздавания');
-    expect(s.title).toBe('Ние печелят мача');
+    expect(s.title).toBe('Ние печелим мача');
     expect(s.isSeries).toBe(true);
     expect(s.seriesOver).toBe(false);
     expect(s.nextNo).toBe(2);
@@ -81,7 +99,7 @@ describe('endSummary', () => {
     m2 = endMatch(m2); // series becomes A:2, B:0 — decided
 
     const s = endSummary(m2, playerName, teamName);
-    expect(s.title).toBe('Ние печелят серията');
+    expect(s.title).toBe('Ние печелим серията');
     expect(s.seriesOver).toBe(true);
     expect(s.series).toEqual({ A: 2, B: 0 });
     expect(s.line).toBe('Край на мач 2 · 2 раздавания');

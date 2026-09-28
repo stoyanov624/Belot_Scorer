@@ -204,7 +204,12 @@ describe('dealVerdict', () => {
       { contract: 'clubs', caller: 0, decls: [], cardPointsA: 10, capo: null, hang: 0 },
       DEFAULT_RULES,
     );
-    expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe('Ние изкараха играта.');
+    expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe('Ние изкарахме играта.');
+    // A custom team name keeps the handoff's third person (product owner, 2026-09-28).
+    const custom = (t: Team) => (t === 'A' ? 'Столетниците' : 'Вие');
+    expect(dealVerdict(score, 0, null, 0, custom, DEFAULT_RULES)).toBe(
+      'Столетниците изкараха играта.',
+    );
   });
 
   it('reports an inside deal', () => {
@@ -213,7 +218,7 @@ describe('dealVerdict', () => {
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe(
-      'Вътре! Вие взимат всички 16 точки.',
+      'Вътре! Вие взимате всички 16 точки.',
     );
   });
 
@@ -223,7 +228,7 @@ describe('dealVerdict', () => {
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe(
-      'Висяща: Ние не записват, 8 т. висят за следващото раздаване.',
+      'Висяща: Ние не записваме, 8 т. висят за следващото раздаване.',
     );
   });
 
@@ -233,7 +238,7 @@ describe('dealVerdict', () => {
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 8, teamName, DEFAULT_RULES)).toBe(
-      'Ние изкараха играта. +8 висящи за Ние.',
+      'Ние изкарахме играта. +8 висящи за Ние.',
     );
   });
 
@@ -243,7 +248,7 @@ describe('dealVerdict', () => {
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, 'A', 0, teamName, DEFAULT_RULES)).toBe(
-      'Капо за Ние (+9). Ние изкараха играта. С капо мачът не може да приключи — играе се още едно раздаване.',
+      'Капо за Ние (+9). Ние изкарахме играта. С капо мачът не може да приключи — играе се още едно раздаване.',
     );
   });
 });

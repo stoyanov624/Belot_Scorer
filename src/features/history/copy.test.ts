@@ -106,7 +106,7 @@ describe('historyEntries', () => {
   });
 
   it('notes an inside deal', () => {
-    expect(entries.find((e) => e.no === 3)?.notes).toBe('Вътре — Ние не записват');
+    expect(entries.find((e) => e.no === 3)?.notes).toBe('Вътре — Ние не записваме');
   });
 
   it('notes a hanging deal', () => {

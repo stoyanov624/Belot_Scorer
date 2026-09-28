@@ -1,3 +1,22 @@
+/**
+ * The verb agrees with the team name: «Ние» speaks in first person plural, «Вие» in second,
+ * and any other name keeps the handoff's third person. Deviates from the handoff's fixed
+ * «печелят»/«черпят»/… (product owner, 2026-09-28). Matching is trimmed and case-insensitive.
+ */
+type TeamPerson = 'we' | 'you' | 'they';
+const teamPerson = (team: string): TeamPerson => {
+  const t = team.trim().toLocaleLowerCase('bg');
+  return t === 'ние' ? 'we' : t === 'вие' ? 'you' : 'they';
+};
+type Conjugation = Record<TeamPerson, string>;
+const agree = (team: string, forms: Conjugation) => forms[teamPerson(team)];
+
+const WIN: Conjugation = { we: 'печелим', you: 'печелите', they: 'печелят' };
+const PAY: Conjugation = { we: 'черпим', you: 'черпите', they: 'черпят' };
+const MADE: Conjugation = { we: 'изкарахме', you: 'изкарахте', they: 'изкараха' };
+const TAKE: Conjugation = { we: 'взимаме', you: 'взимате', they: 'взимат' };
+const NO_SCORE: Conjugation = { we: 'не записваме', you: 'не записвате', they: 'не записват' };
+
 /** Bulgarian UI copy. Core returns codes; the UI looks the words up here. */
 export const STRINGS = {
   appName: 'Белот',
@@ -145,10 +164,10 @@ export const STRINGS = {
       totalNt: 'Общо ×2',
       match: 'В мача',
     },
-    made: (team: string) => `${team} изкараха играта.`,
-    inside: (team: string, n: number) => `Вътре! ${team} взимат всички ${n} точки.`,
+    made: (team: string) => `${team} ${agree(team, MADE)} играта.`,
+    inside: (team: string, n: number) => `Вътре! ${team} ${agree(team, TAKE)} всички ${n} точки.`,
     hang: (team: string, n: number) =>
-      `Висяща: ${team} не записват, ${n} т. висят за следващото раздаване.`,
+      `Висяща: ${team} ${agree(team, NO_SCORE)}, ${n} т. висят за следващото раздаване.`,
     hangTo: (n: number, team: string) => ` +${n} висящи за ${team}.`,
     capoNote: (team: string, bonus: number, text: string) =>
       `Капо за ${team} (+${bonus}). ${text} С капо мачът не може да приключи — играе се още едно раздаване.`,
@@ -182,17 +201,17 @@ export const STRINGS = {
     runningTotal: (a: number, b: number) => `Общо след раздаването: ${a} : ${b}`,
     empty: 'Още няма приключени раздавания.',
     capo: (team: string) => `Капо за ${team}`,
-    inside: (team: string) => `Вътре — ${team} не записват`,
+    inside: (team: string) => `Вътре — ${team} ${agree(team, NO_SCORE)}`,
     hang: 'Висяща',
     hangTo: (team: string) => `Висящите отиват при ${team}`,
   },
   end: {
     line: (deals: number) => `Край на мача · ${deals} раздавания`,
     lineSeries: (matchNo: number, deals: number) => `Край на мач ${matchNo} · ${deals} раздавания`,
-    wins: (team: string) => `${team} печелят`,
-    winsMatch: (team: string) => `${team} печелят мача`,
-    winsSeries: (team: string) => `${team} печелят серията`,
-    pays: (team: string) => `🍻 ${team} черпят следващия рунд`,
+    wins: (team: string) => `${team} ${agree(team, WIN)}`,
+    winsMatch: (team: string) => `${team} ${agree(team, WIN)} мача`,
+    winsSeries: (team: string) => `${team} ${agree(team, WIN)} серията`,
+    pays: (team: string) => `🍻 ${team} ${agree(team, PAY)} следващия рунд`,
     tie: 'Равенство',
     series: (format: string) => `Серия · ${format}`,
     decls: (team: string) => `Обяви ${team}`,

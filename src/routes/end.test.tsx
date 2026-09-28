@@ -73,9 +73,9 @@ describe('Match end', () => {
       await setUp();
 
       expect(screen.getByText('Край на мача · 1 раздавания')).toBeTruthy();
-      expect(screen.getByRole('heading', { name: 'Ние печелят' })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'Ние печелим' })).toBeTruthy();
       expect(screen.getByText('Иван и Мария')).toBeTruthy();
-      expect(screen.getByText('🍻 Вие черпят следващия рунд')).toBeTruthy();
+      expect(screen.getByText('🍻 Вие черпите следващия рунд')).toBeTruthy();
       expect(screen.getByText('10')).toBeTruthy();
       expect(screen.getByText('6')).toBeTruthy();
       expect(screen.getByText(S.decls('Ние'))).toBeTruthy();
@@ -123,10 +123,10 @@ describe('Match end', () => {
       return renderEnd();
     }
 
-    it('shows "Ние печелят мача" and the series card, with next/history/stop buttons', async () => {
+    it('shows "Ние печелим мача" and the series card, with next/history/stop buttons', async () => {
       await setUp();
 
-      expect(screen.getByRole('heading', { name: 'Ние печелят мача' })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'Ние печелим мача' })).toBeTruthy();
       expect(screen.getByText('Серия · 2 от 3')).toBeTruthy();
       expect(screen.getByText('1 : 0')).toBeTruthy();
       expect(screen.getByRole('button', { name: S.next(2) })).toBeTruthy();
@@ -157,7 +157,7 @@ describe('Match end', () => {
   });
 
   describe('a series match, decided', () => {
-    it('shows "Ние печелят серията" with the home/history/rematch buttons', async () => {
+    it('shows "Ние печелим серията" with the home/history/rematch buttons', async () => {
       lowerTargetScore();
       startMatch(3);
       playWinningDeal(); // 1:0
@@ -165,7 +165,7 @@ describe('Match end', () => {
       playWinningDeal(); // 2:0, decides a best-of-3
       await renderEnd();
 
-      expect(screen.getByRole('heading', { name: 'Ние печелят серията' })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'Ние печелим серията' })).toBeTruthy();
       expect(screen.getByRole('button', { name: S.home })).toBeTruthy();
       expect(screen.getByRole('link', { name: S.history })).toBeTruthy();
       expect(screen.getByRole('button', { name: S.rematch })).toBeTruthy();
@@ -180,7 +180,7 @@ describe('Match end', () => {
 
       expect(screen.getByRole('heading', { name: S.tie })).toBeTruthy();
       expect(screen.queryByText(STRINGS.end.names('Иван', 'Мария'))).toBeNull();
-      expect(screen.queryByText('🍻 Вие черпят следващия рунд')).toBeNull();
+      expect(screen.queryByText('🍻 Вие черпите следващия рунд')).toBeNull();
     });
   });
 
