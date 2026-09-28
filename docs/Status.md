@@ -47,7 +47,7 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 
 ## Next
 
-- v1 is done. Next: deploy over HTTPS (needed for the camera and installability on phones), then React Native (see the handover document).
+- v1 is done. Next: deploy over HTTPS (needed for the camera and installability on phones), then React Native — start from the [handover document](React%20Native%20handover.md).
 
 ## Open product questions
 

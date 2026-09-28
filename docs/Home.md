@@ -67,3 +67,5 @@ The design handoff is final: its Bulgarian copy is used verbatim. Where the spec
 ## How to keep this current
 
 The rules are in the "Keep the vault current" section of `CLAUDE.md` at the repo root. At the end of a session, run `/handoff` in Claude Code.
+
+- [React Native handover](React%20Native%20handover.md)
