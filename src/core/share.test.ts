@@ -7,6 +7,8 @@ import {
   extractCode,
   QR_CHUNK,
   qrTexts,
+  readScanText,
+  type ScanProgress,
   SharePayloadSchema,
   shareLink,
 } from './share';
@@ -111,5 +113,66 @@ describe('shareLink and qrTexts', () => {
     expect(texts[0]).toBe(`BELOT|k3f9|1|3|${code.slice(0, QR_CHUNK)}`);
     expect(texts[2]).toBe(`BELOT|k3f9|3|3|${code.slice(QR_CHUNK * 2)}`);
     expect(texts.map((t) => t.split('|')[4]).join('')).toBe(code);
+  });
+});
+
+describe('readScanText', () => {
+  const part = (sid: string, i: number, n: number, chunk: string) =>
+    `BELOT|${sid}|${i}|${n}|${chunk}`;
+
+  it('returns the code from a scanned link or bare code, ignoring progress', () => {
+    expect(readScanText('https://x.app/#belot=zAbc', null)).toEqual({ kind: 'code', code: 'zAbc' });
+    const p = readScanText(part('k3f9', 1, 2, 'zAA'), null);
+    expect(readScanText('  jQQ  ', p.kind === 'progress' ? p.progress : null)).toEqual({
+      kind: 'code',
+      code: 'jQQ',
+    });
+  });
+
+  it('collects parts by sid, in any order, and joins them 1..n', () => {
+    const s1 = readScanText(part('k3f9', 2, 3, 'BBB'), null);
+    expect(s1).toEqual({
+      kind: 'progress',
+      progress: { sid: 'k3f9', total: 3, parts: new Map([[2, 'BBB']]) },
+    });
+    const s2 = readScanText(part('k3f9', 3, 3, 'CCC'), (s1 as { progress: ScanProgress }).progress);
+    expect(s2.kind).toBe('progress');
+    const s3 = readScanText(part('k3f9', 1, 3, 'zAA'), (s2 as { progress: ScanProgress }).progress);
+    expect(s3).toEqual({ kind: 'code', code: 'zAABBBCCC' });
+  });
+
+  it('ignores duplicates and keeps the progress', () => {
+    const s1 = readScanText(part('k3f9', 1, 2, 'zAA'), null);
+    const s2 = readScanText(part('k3f9', 1, 2, 'zAA'), (s1 as { progress: ScanProgress }).progress);
+    expect(s2).toEqual(s1);
+  });
+
+  it('a part from a different session (sid or total) restarts the collection', () => {
+    const s1 = readScanText(part('k3f9', 1, 3, 'zAA'), null);
+    const s2 = readScanText(part('m001', 1, 2, 'zXX'), (s1 as { progress: ScanProgress }).progress);
+    expect(s2).toEqual({
+      kind: 'progress',
+      progress: { sid: 'm001', total: 2, parts: new Map([[1, 'zXX']]) },
+    });
+    const s3 = readScanText(part('k3f9', 1, 2, 'zAA'), (s1 as { progress: ScanProgress }).progress);
+    expect((s3 as { progress: ScanProgress }).progress.total).toBe(2);
+  });
+
+  it('ignores junk, malformed parts and out-of-range indexes', () => {
+    const s1 = readScanText(part('k3f9', 1, 2, 'zAA'), null);
+    const progress = (s1 as { progress: ScanProgress }).progress;
+    for (const text of [
+      'hello',
+      'BELOT|x|1|2',
+      part('k3f9', 0, 2, 'zAA'),
+      part('k3f9', 3, 2, 'zAA'),
+      'BELOT|k3f9|1|2|***',
+    ]) {
+      expect(readScanText(text, progress)).toEqual({ kind: 'ignored' });
+    }
+  });
+
+  it('a single-part session completes at once', () => {
+    expect(readScanText(part('k3f9', 1, 1, 'zAll'), null)).toEqual({ kind: 'code', code: 'zAll' });
   });
 });

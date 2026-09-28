@@ -72,3 +72,46 @@ export function qrTexts(link: string, code: string, sid: string): string[] {
     (_, i) => `BELOT|${sid}|${i + 1}|${n}|${code.slice(i * QR_CHUNK, (i + 1) * QR_CHUNK)}`,
   );
 }
+
+/** A multi-part QR session being collected: `BELOT|sid|i|n|chunk` parts seen so far. */
+export interface ScanProgress {
+  sid: string;
+  total: number;
+  parts: ReadonlyMap<number, string>;
+}
+
+export type ScanStep =
+  | { kind: 'code'; code: string }
+  | { kind: 'progress'; progress: ScanProgress }
+  | { kind: 'ignored' };
+
+const PART = /^BELOT\|(\w+)\|(\d+)\|(\d+)\|([A-Za-z0-9_-]+)$/;
+
+/**
+ * One scanned text against the collection so far (DATA_MODEL §4): a link or bare code wins
+ * outright; a part joins its session (a different sid or total restarts it); anything else
+ * is ignored. Returns the full code once every part is in.
+ */
+export function readScanText(text: string, progress: ScanProgress | null): ScanStep {
+  const code = extractCode(text);
+  if (code) return { kind: 'code', code };
+
+  const m = text.match(PART);
+  if (!m) return { kind: 'ignored' };
+  const [, sid, iRaw, nRaw, chunk] = m as unknown as [string, string, string, string, string];
+  const i = Number(iRaw);
+  const total = Number(nRaw);
+  if (i < 1 || i > total) return { kind: 'ignored' };
+
+  const same = progress !== null && progress.sid === sid && progress.total === total;
+  if (same && progress.parts.has(i)) return { kind: 'progress', progress };
+  const parts = new Map(same ? progress.parts : []);
+  parts.set(i, chunk);
+
+  if (parts.size === total) {
+    let joined = '';
+    for (let k = 1; k <= total; k++) joined += parts.get(k) as string;
+    return { kind: 'code', code: joined };
+  }
+  return { kind: 'progress', progress: { sid, total, parts } };
+}
