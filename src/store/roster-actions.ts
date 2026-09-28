@@ -91,15 +91,24 @@ export function rosterActions(set: SetState, get: GetState, deps: AppDeps): Rost
       // local id; otherwise it's kept only if a local player already owns it (a same-device
       // share), else nulled. This is what makes applyImport's "any non-null incoming photo id
       // is already valid locally" contract true.
+      const keepOrNull = (id: string) => (localPhotoIds.has(id) ? id : null);
       const resolved = new Map<string, string | null>();
       for (const p of data.roster) {
         if (!p.photo || resolved.has(p.photo)) continue;
         const dataUrl = data.photos?.[p.photo];
         const blob = dataUrl ? dataUrlToBlob(dataUrl) : null;
-        resolved.set(
-          p.photo,
-          blob ? await deps.putPhoto(blob) : localPhotoIds.has(p.photo) ? p.photo : null,
-        );
+        if (!blob) {
+          resolved.set(p.photo, keepOrNull(p.photo));
+          continue;
+        }
+        // A failed photo write costs that photo, not the import: fall back to the same
+        // outcome as a missing blob instead of letting the rejection escape importShared (an
+        // orphaned write attempt is no worse than the write never happening).
+        try {
+          resolved.set(p.photo, await deps.putPhoto(blob));
+        } catch {
+          resolved.set(p.photo, keepOrNull(p.photo));
+        }
       }
       const resolvedData: SharePayload = {
         ...data,

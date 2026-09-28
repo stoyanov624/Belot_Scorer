@@ -433,4 +433,58 @@ describe('importShared', () => {
     expect(putPhotoBlobs).toHaveLength(0);
     expect(removed).toEqual([]);
   });
+
+  it('merge: a failed photo write degrades that photo instead of failing the import', async () => {
+    const localStore = createAppStore({
+      storage: createDocumentStorage(memoryKv()),
+      newId: () => 'id1',
+      now: () => 1000,
+      putPhoto: async () => {
+        throw new Error('quota exceeded');
+      },
+      removePhoto: async () => {},
+    });
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [{ id: 'ext1', name: 'Нов Играч', emoji: null, photo: 'remote1' }],
+      stats: [],
+      match: null,
+      photos: { remote1: 'data:image/png;base64,aGVsbG8=' },
+    };
+
+    const result = await localStore.getState().importShared(imported, 'merge');
+
+    expect(localStore.getState().roster).toEqual([
+      { id: 'ext1', name: 'Нов Играч', emoji: null, photo: null },
+    ]);
+    expect(result.players).toBe(1);
+    expect(result.addedMatches).toBe(0);
+  });
+
+  it('merge: dedupes a payload photo id shared by two imported players, calling putPhoto once', async () => {
+    const { importShared } = store.getState();
+
+    const imported = {
+      app: 'belot' as const,
+      v: 2 as const,
+      at: 2000,
+      roster: [
+        { id: 'ext1', name: 'Първи', emoji: null, photo: 'remote1' },
+        { id: 'ext2', name: 'Втори', emoji: null, photo: 'remote1' },
+      ],
+      stats: [],
+      match: null,
+      photos: { remote1: 'data:image/png;base64,aGVsbG8=' },
+    };
+
+    await importShared(imported, 'merge');
+
+    const roster = store.getState().roster;
+    expect(putPhotoBlobs).toHaveLength(1);
+    expect(roster.find((p) => p.id === 'ext1')?.photo).toBe('phL1');
+    expect(roster.find((p) => p.id === 'ext2')?.photo).toBe('phL1');
+  });
 });
