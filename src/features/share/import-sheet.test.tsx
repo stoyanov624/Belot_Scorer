@@ -406,9 +406,9 @@ describe('ImportSheet', () => {
       await userEvent.click(screen.getByRole('button', { name: S.scan }));
       await waitFor(() => expect(scanner.instances).toHaveLength(1));
 
-      // Typing re-renders `ImportForm` for unrelated `text` state; the scanning effect's own
-      // helpers (`fail`, `readCode`, `stopScanner`) must keep the identity the compiler gives
-      // them, or this would tear the camera down and start a fresh one.
+      // Typing re-renders `ImportForm` for unrelated `text` state; the scanning effect depends
+      // only on the primitive `scanning`, so an unrelated render must not tear the camera down
+      // and start a fresh one.
       await userEvent.type(screen.getByRole('textbox', { name: S.pasteLabel }), 'not a code');
 
       expect(scanner.instances).toHaveLength(1);
@@ -480,7 +480,7 @@ describe('ImportSheet', () => {
       expect(instance.destroy).toHaveBeenCalled();
     });
 
-    it('shows the camera error and returns to scan-off when the camera fails to start', async () => {
+    it('shows the camera error and returns to scan-off when the camera fails to start, clearing on a retry that succeeds', async () => {
       scanner.failStart = true;
       renderSheet();
 
@@ -489,6 +489,13 @@ describe('ImportSheet', () => {
       expect(await screen.findByText(S.cameraError)).toBeTruthy();
       expect(screen.getByRole('button', { name: S.scan })).toBeTruthy();
       expect(screen.queryByRole('button', { name: S.stop })).toBeNull();
+
+      scanner.failStart = false;
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(2));
+
+      expect(screen.queryByText(S.cameraError)).toBeNull();
+      expect(screen.getByRole('button', { name: S.stop })).toBeTruthy();
     });
 
     it('stops and destroys the scanner on "Спри камерата", back to scan-off, no error', async () => {

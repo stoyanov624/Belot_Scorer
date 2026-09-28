@@ -15,6 +15,13 @@ import { importDone, importLines } from './copy';
 const S = STRINGS.import;
 const SETUP = STRINGS.setup;
 
+// `qr-scanner` loads lazily, keeping it out of the sheet's initial chunk. Hoisted to module
+// scope rather than called inline in the effect below: a dynamic `import()` expression inside a
+// component body is exactly what makes the React Compiler bail out of memoizing that component
+// (confirmed against babel-plugin-react-compiler's own diagnostics); calling a module-scope
+// function that returns the import keeps the component compiler-friendly.
+const loadScanner = () => import('qr-scanner');
+
 export interface ImportSheetProps {
   open: boolean;
   onClose: () => void;
@@ -55,6 +62,8 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   const [scanProgress, setScanProgress] = useState<{ got: number; total: number } | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<Scanner | null>(null);
+  // A double tap on merge/take/confirm/replace must not fire `importShared` twice.
+  const importing = useRef(false);
   // The multi-part session collected so far (Task 1's reducer state); reset whenever scanning
   // (re)starts.
   const scanSession = useRef<ScanProgress | null>(null);
@@ -132,8 +141,8 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     show(result.data);
   };
 
-  // One cleanup path for the scanner instance, used by the stop button, a decoded code, a
-  // failed `start()` and the effect's own cleanup (leaving scan mode or unmounting the sheet).
+  // The stop button's cleanup path for the scanner instance. The scanning effect below has its
+  // own local `stop`, so this one now serves only the stop button.
   const stopScanner = () => {
     const instance = scannerRef.current;
     if (!instance) return;
@@ -145,6 +154,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   const startScan = () => {
     scanSession.current = null;
     setScanProgress(null);
+    setError(null);
     setScanning(true);
   };
 
@@ -155,14 +165,11 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
   };
 
   // Starts the camera once the video element is mounted (rendered as part of `scanning`, so
-  // the ref is already populated by the time this effect runs). `qr-scanner` loads lazily,
-  // keeping it out of the sheet's initial chunk — but a dynamic `import()` is exactly what
-  // makes the React Compiler bail out of memoizing this whole component (confirmed with the
-  // compiler's own diagnostics), so `fail`/`readCode`/`stopScanner` above can't be trusted to
-  // keep a stable identity here the way `show` can elsewhere in this file. Rather than depend
-  // on them, this effect stays self-contained — its own local `stop` and its own guarded-read
-  // tail — exactly like the `initialCode` effect above does for the same reason, so it only
-  // ever depends on `scanning` itself and never restarts the camera on an unrelated render.
+  // the ref is already populated by the time this effect runs). This effect stays
+  // self-contained — its own local `stop` and its own guarded-read tail, mirroring the
+  // `initialCode` effect above — so it depends only on the primitive `scanning` and never
+  // restarts the camera on an unrelated render, independent of whatever identity the compiler
+  // does or doesn't give the component's other functions.
   useEffect(() => {
     if (!scanning) return;
     let cancelled = false;
@@ -178,7 +185,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     const run = async () => {
       const video = videoRef.current;
       if (!video) return;
-      const { default: QrScanner } = await import('qr-scanner');
+      const { default: QrScanner } = await loadScanner();
       if (cancelled) return;
 
       const onResult = (result: { data: string }) => {
@@ -244,39 +251,56 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     }
   };
 
+  // `importShared` never throws (a failed photo write degrades that photo instead), so the busy
+  // flag is cleared right after the await rather than in a `finally` — a `try`/`finally` is
+  // exactly the kind of construct that bails the React Compiler out of memoizing this component
+  // (confirmed against babel-plugin-react-compiler's own diagnostics, same as W4's dynamic
+  // `import()` fix above).
   const onMerge = async () => {
-    if (!data) return;
-    finish(await importShared(data, 'merge'));
+    if (!data || importing.current) return;
+    importing.current = true;
+    const result = await importShared(data, 'merge');
+    importing.current = false;
+    finish(result);
   };
 
   const onTake = async () => {
-    if (!data) return;
+    if (!data || importing.current) return;
     if (localMatch !== null && needsTakeConfirm(localMatch)) {
       setConfirmTotals(totals(localMatch));
       return;
     }
-    finish(await importShared(data, 'take'));
+    importing.current = true;
+    const result = await importShared(data, 'take');
+    importing.current = false;
+    finish(result);
   };
 
   const onConfirmTake = async () => {
-    if (!data) return;
-    finish(await importShared(data, 'take'));
+    if (!data || importing.current) return;
+    importing.current = true;
+    const result = await importShared(data, 'take');
+    importing.current = false;
+    finish(result);
   };
 
   const onReplace = async () => {
-    if (!data) return;
+    if (!data || importing.current) return;
     if (!replaceArmed) {
       setReplaceArmed(true);
       return;
     }
-    finish(await importShared(data, 'replace'));
+    importing.current = true;
+    const result = await importShared(data, 'replace');
+    importing.current = false;
+    finish(result);
   };
 
   return (
     <>
       {scanning ? (
         <>
-          <div className="relative aspect-square w-full max-w-[320px] self-center overflow-hidden rounded-3xl bg-black">
+          <div className="relative aspect-square w-full max-w-[320px] shrink-0 self-center overflow-hidden rounded-3xl bg-[#000]">
             <video ref={videoRef} playsInline muted className="size-full object-cover" />
             <div
               aria-hidden
