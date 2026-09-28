@@ -401,6 +401,22 @@ describe('ImportSheet', () => {
       expect(await screen.findByRole('button', { name: S.stop })).toBeTruthy();
     });
 
+    it('does not restart the camera when an unrelated render happens while scanning', async () => {
+      renderSheet();
+      await userEvent.click(screen.getByRole('button', { name: S.scan }));
+      await waitFor(() => expect(scanner.instances).toHaveLength(1));
+
+      // Typing re-renders `ImportForm` for unrelated `text` state; the scanning effect's own
+      // helpers (`fail`, `readCode`, `stopScanner`) must keep the identity the compiler gives
+      // them, or this would tear the camera down and start a fresh one.
+      await userEvent.type(screen.getByRole('textbox', { name: S.pasteLabel }), 'not a code');
+
+      expect(scanner.instances).toHaveLength(1);
+      const instance = lastScannerInstance();
+      expect(instance.stop).not.toHaveBeenCalled();
+      expect(instance.destroy).not.toHaveBeenCalled();
+    });
+
     it('still supports pasting a link while the scan button is shown', async () => {
       const { code } = await codeFor({ roster: FAKE_ROSTER, stats: [], match: null }, 'all');
       renderSheet();

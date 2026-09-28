@@ -67,14 +67,10 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
     setConfirmTotals(null);
   };
 
-  // Frozen at mount (`useRef`, not `useCallback`, which nothing here uses): `fail` only ever
-  // touches stable setters, so one instance is correct forever and — unlike a plain `const` —
-  // its identity never changes on an unrelated render, so the scanning effect below can depend
-  // on it without restarting the camera on every keystroke elsewhere in the sheet.
-  const fail = useRef((message: string) => {
+  const fail = (message: string) => {
     setData(null);
     setError(message);
-  }).current;
+  };
 
   // Reads a code the app was opened with, once, as soon as the sheet opens, through the same
   // token guard as `onRead` and `onFile`. Inlined rather than calling `show`/`fail` directly, so
@@ -99,8 +95,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   // The guarded read path shared by pasting, the `#belot=` startup code and a completed scan:
   // bumps the token first, so a slower earlier read can never overwrite a faster later one.
-  // Frozen at mount for the same reason as `fail` above.
-  const readCode = useRef(async (code: string) => {
+  const readCode = async (code: string) => {
     const token = ++requestId.current;
     const result = await readShared(code);
     if (token !== requestId.current) return;
@@ -109,7 +104,7 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
       return;
     }
     show(result.data);
-  }).current;
+  };
 
   const onRead = async () => {
     const code = extractCode(text);
@@ -139,14 +134,13 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   // One cleanup path for the scanner instance, used by the stop button, a decoded code, a
   // failed `start()` and the effect's own cleanup (leaving scan mode or unmounting the sheet).
-  // Frozen at mount for the same reason as `fail` above.
-  const stopScanner = useRef(() => {
+  const stopScanner = () => {
     const instance = scannerRef.current;
     if (!instance) return;
     instance.stop();
     instance.destroy();
     scannerRef.current = null;
-  }).current;
+  };
 
   const startScan = () => {
     scanSession.current = null;
@@ -162,10 +156,24 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
 
   // Starts the camera once the video element is mounted (rendered as part of `scanning`, so
   // the ref is already populated by the time this effect runs). `qr-scanner` loads lazily,
-  // keeping it out of the sheet's initial chunk.
+  // keeping it out of the sheet's initial chunk — but a dynamic `import()` is exactly what
+  // makes the React Compiler bail out of memoizing this whole component (confirmed with the
+  // compiler's own diagnostics), so `fail`/`readCode`/`stopScanner` above can't be trusted to
+  // keep a stable identity here the way `show` can elsewhere in this file. Rather than depend
+  // on them, this effect stays self-contained — its own local `stop` and its own guarded-read
+  // tail — exactly like the `initialCode` effect above does for the same reason, so it only
+  // ever depends on `scanning` itself and never restarts the camera on an unrelated render.
   useEffect(() => {
     if (!scanning) return;
     let cancelled = false;
+
+    const stop = () => {
+      const instance = scannerRef.current;
+      if (!instance) return;
+      instance.stop();
+      instance.destroy();
+      scannerRef.current = null;
+    };
 
     const run = async () => {
       const video = videoRef.current;
@@ -176,10 +184,23 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
       const onResult = (result: { data: string }) => {
         const step = readScanText(result.data, scanSession.current);
         if (step.kind === 'code') {
-          stopScanner();
+          stop();
           setScanning(false);
           setScanProgress(null);
-          void readCode(step.code);
+          const token = ++requestId.current;
+          void readShared(step.code).then((result) => {
+            if (token !== requestId.current) return;
+            if (result.ok) {
+              setData(result.data);
+              setError(null);
+              setDone(null);
+              setReplaceArmed(false);
+              setConfirmTotals(null);
+            } else {
+              setData(null);
+              setError(S.badCode);
+            }
+          });
         } else if (step.kind === 'progress') {
           scanSession.current = step.progress;
           setScanProgress({ got: step.progress.parts.size, total: step.progress.total });
@@ -196,19 +217,20 @@ function ImportForm({ onClose, initialCode }: { onClose: () => void; initialCode
         await instance.start();
       } catch {
         if (cancelled) return;
-        stopScanner();
+        stop();
         setScanning(false);
         setScanProgress(null);
-        fail(S.cameraError);
+        setData(null);
+        setError(S.cameraError);
       }
     };
 
     void run();
     return () => {
       cancelled = true;
-      stopScanner();
+      stop();
     };
-  }, [scanning, fail, readCode, stopScanner]);
+  }, [scanning]);
 
   const finish = (result: ImportResult) => {
     setDone(importDone(result));
