@@ -33,7 +33,7 @@ export interface ImportSheetProps {
 export default function ImportSheet({ open, onClose, initialCode = null }: ImportSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} title={S.title} subtitle={S.intro}>
-      {open && <ImportForm onClose={onClose} initialCode={initialCode} />}
+      <ImportForm onClose={onClose} initialCode={initialCode} />
     </Sheet>
   );
 }

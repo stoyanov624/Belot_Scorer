@@ -15,7 +15,7 @@ const LABEL = 'text-[13px] font-extrabold uppercase tracking-[0.06em] text-muted
 export function ThemeSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Sheet open={open} onClose={onClose} title={S.title}>
-      {open && <ThemeForm onDone={onClose} />}
+      <ThemeForm onDone={onClose} />
     </Sheet>
   );
 }

@@ -25,7 +25,7 @@ export function EndMatchSheet({ open, onClose, onEnded }: EndMatchSheetProps) {
       title={S.title}
       subtitle={score && S.body(score.A, score.B)}
     >
-      {open && <EndMatchActions onClose={onClose} onEnded={onEnded} />}
+      <EndMatchActions onClose={onClose} onEnded={onEnded} />
     </Sheet>
   );
 }

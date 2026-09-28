@@ -92,12 +92,14 @@ describe('Chip', () => {
     expect(screen.getByRole('radio', { name: 'K' }).getAttribute('aria-checked')).toBe('false');
   });
 
-  it('sm chips extend the hit area to 44px without changing the visible size', () => {
+  it('sm chips extend the hit area to 44px tall, with minimal horizontal growth so neighbours in a gap-1 list never overlap', () => {
     render(<Chip size="sm">9</Chip>);
     const classes = screen.getByRole('button', { name: '9' }).className.split(' ');
     expect(classes).toContain('h-[26px]');
     expect(classes).toContain('relative');
-    expect(classes).toContain('before:-inset-[9px]');
+    expect(classes).toContain('before:-inset-y-[9px]');
+    expect(classes).toContain('before:-inset-x-0.5');
+    expect(classes).not.toContain('before:-inset-[9px]');
     expect(classes).toContain("before:content-['']");
   });
 });

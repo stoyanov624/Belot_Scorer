@@ -46,7 +46,7 @@ export function Chip({
       className={cx(
         'inline-flex items-center justify-center gap-1 font-extrabold transition-transform active:scale-95',
         size === 'sm'
-          ? "relative h-[26px] rounded-xl px-2.5 text-xs before:absolute before:-inset-[9px] before:content-['']"
+          ? "relative h-[26px] rounded-xl px-2.5 text-xs before:absolute before:-inset-x-0.5 before:-inset-y-[9px] before:content-['']"
           : 'h-[42px] min-w-11 rounded-[14px] px-3 text-base',
         selected ? 'bg-team-a text-on' : TONE[tone],
         className,

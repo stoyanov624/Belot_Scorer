@@ -23,14 +23,12 @@ export interface RegisterSheetProps {
 export function RegisterSheet({ open, playerId, onClose, onSaved }: RegisterSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} title={playerId ? S.titleEdit : S.titleNew}>
-      {open && (
-        <RegisterForm
-          key={playerId ?? 'new'}
-          playerId={playerId}
-          onDone={onClose}
-          onSaved={onSaved}
-        />
-      )}
+      <RegisterForm
+        key={playerId ?? 'new'}
+        playerId={playerId}
+        onDone={onClose}
+        onSaved={onSaved}
+      />
     </Sheet>
   );
 }

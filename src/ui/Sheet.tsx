@@ -1,5 +1,44 @@
-import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { cx } from './cx';
+
+/**
+ * F4: which element opened a given sheet, so focus returns there when the sheet closes. Sheets
+ * are sequenced, not stacked (docs/Architecture/Overview.md's "The table"): the second dialog's
+ * `showModal()` can run while the first is still open with `data-closing` (its exit animation
+ * playing), so the browser records the second dialog's "previously focused element" INSIDE the
+ * closing dialog, and focus falls to `<body>` once that second dialog closes rather than to the
+ * real opener. Module-level (not per-render) because the whole point is to survive across the
+ * two sheets, which are different component instances. Exported for a direct unit test of the
+ * bookkeeping: happy-dom's `<dialog>` has no focus/top-layer semantics (no autofocus on
+ * `showModal`, no native "previously focused element" restore on `close`), so the full sequence
+ * can't be exercised through the rendered `Sheet` alone.
+ */
+const openers = new WeakMap<HTMLDialogElement, HTMLElement>();
+
+/** Records `dialog`'s opener just before it opens (call right before `showModal()`). */
+export function recordOpener(dialog: HTMLDialogElement): void {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return;
+  // The active element sits inside a still-closing dialog (a sequenced sheet): that dialog's own
+  // opener is the real one to inherit, not the element the browser happens to be focused on now.
+  const closingAncestor = active.closest('dialog[data-closing]');
+  const inherited =
+    closingAncestor instanceof HTMLDialogElement ? openers.get(closingAncestor) : undefined;
+  openers.set(dialog, inherited ?? active);
+}
+
+/** Restores `dialog`'s recorded opener once its close completes, if focus was otherwise lost. */
+export function returnFocus(dialog: HTMLDialogElement): void {
+  const active = document.activeElement;
+  const closedAncestorDialog = active instanceof HTMLElement ? active.closest('dialog') : null;
+  const lost =
+    active === null ||
+    active === document.body ||
+    (closedAncestorDialog instanceof HTMLDialogElement && !closedAncestorDialog.open);
+  if (!lost) return;
+  const opener = openers.get(dialog);
+  if (opener?.isConnected) opener.focus();
+}
 
 export interface SheetProps {
   open: boolean;
@@ -15,7 +54,8 @@ export interface SheetProps {
 /**
  * Bottom sheet on the native <dialog>: focus trap, Esc and top layer come from the browser.
  * The caller owns `open`; `onClose` fires only for a user dismissal (Esc, overlay tap) while
- * open. Children stay mounted while closed.
+ * open. Children stay mounted through the closing animation (F2), so it never plays on an
+ * empty shell, and unmount only once the close actually completes.
  */
 /**
  * A sheet's closing row of actions. It sticks to the sheet's bottom edge, so the buttons stay
@@ -42,18 +82,49 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
   const hasSubtitle = subtitle !== undefined && subtitle !== null;
   const hasAside = aside !== undefined && aside !== null && aside !== false;
 
+  // F2: children stay mounted through the exit animation. `shown` flips true the instant `open`
+  // does (adjust-during-render, the codebase's `wasOpen` pattern — no flash of empty content) and
+  // false only once the closing phase actually finishes, in the same place `dialog.close()` runs
+  // below (including the reduced-motion fallback and the already-closed-natively path).
+  const [shown, setShown] = useState(open);
+  const [wasOpen, setWasOpen] = useState(open);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setShown(true);
+  }
+
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open) {
-      if (!dialog.open) dialog.showModal();
+      if (!dialog.open) {
+        recordOpener(dialog);
+        dialog.showModal();
+      }
       dialog.removeAttribute('data-closing');
       return;
     }
     // Esc/backdrop already closed the dialog natively (dialog.open is false by the time this
-    // effect runs): nothing to animate. Otherwise the caller closed it (backdrop tap → onClose →
-    // caller flips `open`, or any other caller-driven close): play the exit animation, then close.
-    if (!dialog.open) return;
+    // effect runs): nothing to animate, but focus may still have been lost the same way a
+    // sequenced programmatic close loses it (F4), so check anyway. Guarded on `shownRef` (not
+    // `shown` itself, which this effect must not depend on): the table mounts every sheet closed
+    // from the start, so this branch also runs once for each of them on first mount, and an
+    // unconditional `setShown(false)` there — a same-value update, since `shown` starts false —
+    // was observed to occasionally still surface as a stray extra render for a sheet that was
+    // opening in that same batch, clobbering the `shown: true` its own opening had just
+    // committed. Skipping the call entirely when content was never shown avoids relying on
+    // React's same-value bailout to paper over that.
+    if (!dialog.open) {
+      if (shownRef.current) {
+        returnFocus(dialog);
+        setShown(false);
+      }
+      return;
+    }
+    // Otherwise the caller closed it (backdrop tap → onClose → caller flips `open`, or any other
+    // caller-driven close): play the exit animation, then close.
     dialog.setAttribute('data-closing', '');
     let done = false;
     const finish = () => {
@@ -61,6 +132,8 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
       done = true;
       dialog.removeAttribute('data-closing');
       dialog.close();
+      returnFocus(dialog);
+      setShown(false);
     };
     const onAnimationEnd = (event: AnimationEvent) => {
       if (event.animationName === 'sheet-out') finish();
@@ -89,7 +162,10 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
         if (open) onClose();
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        // The `open` guard mirrors the native-close handler above: a backdrop tap that lands
+        // during the closing phase (open already false, data-closing playing) must not re-fire
+        // onClose.
+        if (open && event.target === event.currentTarget) onClose();
       }}
       className="sheet m-0 mx-auto mt-auto w-full max-w-[560px] max-h-[88dvh] overflow-hidden rounded-t-[28px] bg-s1 p-0 text-text"
     >
@@ -113,7 +189,7 @@ export function Sheet({ open, onClose, title, subtitle, aside, children }: Sheet
           </div>
           {aside}
         </div>
-        {children}
+        {shown && children}
       </div>
     </dialog>
   );

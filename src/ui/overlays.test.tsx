@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { createRef, useRef, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { Popover } from './Popover';
-import { Sheet } from './Sheet';
+import { recordOpener, returnFocus, Sheet } from './Sheet';
 
 describe('Sheet', () => {
   it('opens as a modal dialog titled by its heading', () => {
@@ -204,6 +204,81 @@ describe('Sheet', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  // F2: every caller used to gate its own content on `{open && …}`, so the body unmounted the
+  // instant `open` flipped false and the exit animation played on an empty shell. `Sheet` now
+  // owns that gate itself (`shown`), keeping content mounted through the whole closing phase.
+  it('keeps children mounted while data-closing, and unmounts them only once the close completes', () => {
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={() => {}} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.hasAttribute('data-closing')).toBe(true);
+    expect(screen.getByText('body')).toBeTruthy();
+
+    act(() => {
+      dialog.dispatchEvent(new AnimationEvent('animationend', { animationName: 'sheet-out' }));
+    });
+
+    expect(dialog.hasAttribute('data-closing')).toBe(false);
+    expect(screen.queryByText('body')).toBeNull();
+  });
+
+  it('mounts fresh content as soon as the sheet reopens after a completed close', () => {
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} title="T">
+        <p>first</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={() => {}} title="T">
+        <p>first</p>
+      </Sheet>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    act(() => {
+      dialog.dispatchEvent(new AnimationEvent('animationend', { animationName: 'sheet-out' }));
+    });
+    expect(screen.queryByText('first')).toBeNull();
+
+    rerender(
+      <Sheet open onClose={() => {}} title="T">
+        <p>second</p>
+      </Sheet>,
+    );
+
+    expect(screen.getByText('second')).toBeTruthy();
+  });
+
+  // F3: the backdrop handler needs the same `open` guard the native-close handler already has —
+  // a tap that lands during the closing phase (open already false, data-closing still playing,
+  // content still mounted per F2) must not re-fire onClose a second time.
+  it('ignores a backdrop tap during the closing phase', async () => {
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <Sheet open onClose={onClose} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={onClose} title="T">
+        <p>body</p>
+      </Sheet>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.hasAttribute('data-closing')).toBe(true);
+
+    await userEvent.click(dialog);
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('reports a native close (Esc) through onClose', () => {
     const onClose = vi.fn();
     render(
@@ -230,6 +305,89 @@ describe('Sheet', () => {
     // Browsers fire `close` in a later task; give a late event the chance to arrive.
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+// F4: happy-dom's <dialog> has no focus/top-layer semantics (no autofocus on showModal, no
+// native "previously focused element" restore on close), so a sequenced open/close through the
+// rendered Sheet can't actually move focus. These test the exported bookkeeping helpers
+// directly, simulating what the browser would otherwise do to document.activeElement.
+describe('Sheet focus bookkeeping (recordOpener/returnFocus, F4)', () => {
+  it('returns focus straight to the opener for a single sheet once focus is lost', () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener);
+    const dialog = document.createElement('dialog') as HTMLDialogElement;
+    document.body.appendChild(dialog);
+
+    opener.focus();
+    expect(document.activeElement).toBe(opener);
+
+    recordOpener(dialog);
+    const inner = document.createElement('button');
+    dialog.appendChild(inner);
+    inner.focus();
+
+    // The dialog closes; its content (including `inner`) is removed the way Sheet's own
+    // `shown` gate removes it once the close completes.
+    dialog.close();
+    dialog.removeChild(inner);
+
+    returnFocus(dialog);
+
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('does not steal focus when the close left it somewhere else on the page', () => {
+    const opener = document.createElement('button');
+    const elsewhere = document.createElement('button');
+    document.body.append(opener, elsewhere);
+    const dialog = document.createElement('dialog') as HTMLDialogElement;
+    document.body.appendChild(dialog);
+
+    opener.focus();
+    recordOpener(dialog);
+    dialog.close();
+    elsewhere.focus();
+
+    returnFocus(dialog);
+
+    expect(document.activeElement).toBe(elsewhere);
+  });
+
+  it('sequenced sheets (open A, start closing A, open B, close B) return focus to the real opener', () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener);
+    opener.focus();
+
+    // Open A from `opener`.
+    const dialogA = document.createElement('dialog') as HTMLDialogElement;
+    document.body.appendChild(dialogA);
+    recordOpener(dialogA);
+    const innerA = document.createElement('button');
+    dialogA.appendChild(innerA);
+    innerA.focus();
+
+    // A starts closing (still in the DOM, content still mounted per F2) while B opens: the
+    // browser's own focus is still on `innerA`, inside A.
+    dialogA.setAttribute('data-closing', '');
+    const dialogB = document.createElement('dialog') as HTMLDialogElement;
+    document.body.appendChild(dialogB);
+    recordOpener(dialogB);
+
+    // A's close finishes for real; its content (including innerA) unmounts.
+    dialogA.close();
+    dialogA.removeAttribute('data-closing');
+    dialogA.removeChild(innerA);
+    dialogA.remove();
+
+    // B closes; its own content is gone too, so document.activeElement falls back to <body>
+    // (happy-dom's activeElement getter drops a disconnected element and returns document.body).
+    dialogB.close();
+    dialogB.remove();
+
+    returnFocus(dialogB);
+
+    expect(document.activeElement).toBe(opener);
   });
 });
 

@@ -14,7 +14,7 @@ export interface ClearSheetProps {
 export function ClearSheet({ open, onClose }: ClearSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} title={S.title} subtitle={S.body}>
-      {open && <ClearForm onClose={onClose} />}
+      <ClearForm onClose={onClose} />
     </Sheet>
   );
 }

@@ -82,10 +82,8 @@ export function DealEndSheet({ open, onClose, onChangeContract, onSaved }: DealE
       subtitle={subtitle}
       aside={points && contract && <StepPill contract={contract} onClick={onChangeContract} />}
     >
-      {open && step === 'decls' && (
-        <ResolveStep onCancel={onClose} onNext={() => setChosen('points')} />
-      )}
-      {open && points && (
+      {step === 'decls' && <ResolveStep onCancel={onClose} onNext={() => setChosen('points')} />}
+      {points && (
         <PointsStep
           onBack={start === 'decls' ? () => setChosen('decls') : onClose}
           onSaved={onSaved}

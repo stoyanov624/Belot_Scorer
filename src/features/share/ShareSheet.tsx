@@ -60,15 +60,13 @@ export default function ShareSheet({
 
   return (
     <Sheet open={open} onClose={onClose} title={S.title} subtitle={summary}>
-      {open && (
-        <ShareForm
-          scope={scope}
-          onScopeChange={setScope}
-          allowMatch={allowMatch}
-          onClose={onClose}
-          onImport={onImport}
-        />
-      )}
+      <ShareForm
+        scope={scope}
+        onScopeChange={setScope}
+        allowMatch={allowMatch}
+        onClose={onClose}
+        onImport={onImport}
+      />
     </Sheet>
   );
 }

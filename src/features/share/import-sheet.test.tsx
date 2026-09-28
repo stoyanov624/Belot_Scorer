@@ -528,7 +528,10 @@ describe('ImportSheet', () => {
 
       await userEvent.click(screen.getByRole('button', { name: S.close }));
 
-      expect(instance.destroy).toHaveBeenCalled();
+      // F2: the sheet's content stays mounted through the exit animation now, so the scanning
+      // effect's cleanup (and with it, the scanner's destroy) only runs once the close actually
+      // completes — the 250ms reduced-motion fallback in this environment, not the click itself.
+      await waitFor(() => expect(instance.destroy).toHaveBeenCalled());
     });
   });
 });

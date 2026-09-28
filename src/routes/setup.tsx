@@ -174,20 +174,18 @@ export function Component() {
         title={S.replaceTitle}
         subtitle={replacing && S.replaceBody(totals(replacing).A, totals(replacing).B)}
       >
-        {replacing !== null && (
-          <div className="grid grid-cols-2 gap-2.5">
-            <Button onClick={() => setReplacing(null)}>{S.replaceCancel}</Button>
-            <Button
-              variant="danger"
-              onClick={() => {
-                setReplacing(null);
-                beginMatch();
-              }}
-            >
-              {S.replaceConfirm}
-            </Button>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-2.5">
+          <Button onClick={() => setReplacing(null)}>{S.replaceCancel}</Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setReplacing(null);
+              beginMatch();
+            }}
+          >
+            {S.replaceConfirm}
+          </Button>
+        </div>
       </Sheet>
     </div>
   );
@@ -255,41 +253,37 @@ function SeatSheet({
       onClose={onClose}
       title={seat === null ? '' : S.seatTitle(STRINGS.seats[seat])}
     >
-      {seat !== null && (
-        <>
-          <button
-            type="button"
-            onClick={onNewPlayer}
-            className="h-14 rounded-2xl border-2 border-dashed border-line text-base font-extrabold transition-transform active:scale-[0.98]"
-          >
-            {S.newPlayer}
-          </button>
-          <ul className="flex flex-col gap-2">
-            {roster.map((player) => {
-              const at = draft.indexOf(player.id);
-              return (
-                <li key={player.id}>
-                  <button
-                    type="button"
-                    onClick={() => onPick(player.id)}
-                    className="flex w-full items-center gap-3 rounded-2xl bg-s2 p-2.5 text-left transition-transform active:scale-[0.98]"
-                  >
-                    <PlayerAvatar player={player} size={48} decorative />
-                    <span className="min-w-0 flex-1 truncate text-base font-extrabold">
-                      {player.name}
-                    </span>
-                    {at >= 0 && (
-                      <span className="text-xs font-extrabold uppercase tracking-[0.06em] text-muted">
-                        {STRINGS.seats[at]}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
+      <button
+        type="button"
+        onClick={onNewPlayer}
+        className="h-14 rounded-2xl border-2 border-dashed border-line text-base font-extrabold transition-transform active:scale-[0.98]"
+      >
+        {S.newPlayer}
+      </button>
+      <ul className="flex flex-col gap-2">
+        {roster.map((player) => {
+          const at = draft.indexOf(player.id);
+          return (
+            <li key={player.id}>
+              <button
+                type="button"
+                onClick={() => onPick(player.id)}
+                className="flex w-full items-center gap-3 rounded-2xl bg-s2 p-2.5 text-left transition-transform active:scale-[0.98]"
+              >
+                <PlayerAvatar player={player} size={48} decorative />
+                <span className="min-w-0 flex-1 truncate text-base font-extrabold">
+                  {player.name}
+                </span>
+                {at >= 0 && (
+                  <span className="text-xs font-extrabold uppercase tracking-[0.06em] text-muted">
+                    {STRINGS.seats[at]}
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </Sheet>
   );
 }

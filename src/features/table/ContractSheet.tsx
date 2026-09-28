@@ -28,7 +28,7 @@ export interface ContractSheetProps {
 export function ContractSheet({ open, mode, onClose, onConfirmed }: ContractSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} title={S.title}>
-      {open && <ContractForm mode={mode} onConfirmed={onConfirmed} />}
+      <ContractForm mode={mode} onConfirmed={onConfirmed} />
     </Sheet>
   );
 }
