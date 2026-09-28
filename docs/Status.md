@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-28 at commit 1b1548a._ Current state only; history lives in git.
+_Last updated: 2026-09-28 at commit 2e4ea1b._ Current state only; history lives in git.
 
 ## Done
 
@@ -35,29 +35,23 @@ _Last updated: 2026-09-28 at commit 1b1548a._ Current state only; history lives 
   - Share sheet: the handoff's «Включи снимките във файла (линкът и QR са без снимки)» checkbox — file-only, link/QR stay photo-free.
   - Import sheet: «📷 Сканирай QR код» (`qr-scanner@1.4.2`, loaded on press), the aiming-frame video square, «Прочетени k от n части», «Спри камерата», and the handoff's camera error.
   - Browser-checked: a photo travelled A→B through the file end to end (data URL in the file, a fresh blob in B's store, the avatar renders); the scanner started on a fake camera and stopped cleanly.
+- Phase 7: PWA & polish ([plan](superpowers/plans/2026-09-28-phase-7-pwa-and-polish.md)). **v1 is feature-complete.**
+  - Installable PWA: generated icons (`scripts/icon.svg` → `pnpm icons`), manifest (name «Белот», standalone, `#1f1007`), `vite-plugin-pwa` with `autoUpdate` and offline precache (verified: offline reload renders from cache), a live `theme-color` meta following the in-app theme, and a favicon at last (the 404 is gone).
+  - 150–200 ms exit transitions for sheets and popovers (`data-closing` phase before the native close; reduced motion skips them), and the deal-end sheet's title no longer flips to the next deal while closing.
+  - Accessibility: every single-choice group (emoji, theme/felt tiles, contract tiles, caller, resolution chips) is a real radiogroup with roving tabindex and arrow keys (`src/ui/radio-nav.ts`); `sm` chips carry a 44px hit target; seats are `role="group"`; the history link announces «История»; history/stats headings are `h2`; picking or removing a declaration returns focus to the seat.
+  - The save-error banner clears itself on the next successful write; the step-2 contract pill is symbol-only («ВК») with the full game as its accessible name — no more wrapping at 390px.
+  - Committed Playwright e2e (`pnpm e2e`): the full happy path, a two-context share→import, and reload-resume; plus a DEV_UI-gated `/dev/ui` smoke. A bundle budget (`pnpm bundle`): entry 90.6 kB gz ≤ 105, total JS ≤ 210.
+- Product decisions (2026-09-28): keep «← Начало» on the table; the step-2 pill is symbol-only; the save-error banner self-clears; and all previously open copy/behaviour questions are **accepted as built** — the recovery screen and banner texts, «Класация по», «Какво да се сподели», «Линк или код», «QR код», «Продължи мача» also for an ended match, the tie match-numbering, «Текущия мач» offered from Home while a match plays, and import's photo-over-emoji rule (ADR 0013).
 
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/routes`, covered by tests.
 
 ## Next
 
-- Phase 7 (PWA & polish): write its plan; see the [roadmap](superpowers/plans/2026-09-25-roadmap.md).
+- v1 is done. Next: deploy over HTTPS (needed for the camera and installability on phones), then React Native (see the handover document).
 
 ## Open product questions
 
-- **Share/import (Phase 6a):**
-  - Copy not in the handoff — confirm: «Какво да се сподели» (the scope switch's accessible name), «Линк или код» (the paste field's), «QR код» (the QR image's alt).
-  - Home offers «Текущия мач» whenever a match is playing; the prototype offers that scope only from the table/end/history screens. Confirm ([ADR 0013](adr/0013-import-merge-take-replace.md) area).
-  - Import keeps the local photo and drops the imported emoji when both exist (photos never travel in 6a, ADR 0013). Confirm.
-
-- **Copy not in the handoff:** the note shown instead of «Изтрий играча» for a seated player (placeholder text is live in `src/core/strings.ts`'s `register.inMatch`), and the accessible labels of the team-name fields — confirm the wording.
-- **Copy not in the handoff (Phase 5c, ADR 0006):** confirm the wording of:
-  - the failed-load screen's title, body and «Започни наново» (`recovery.title`/`recovery.body`/`recovery.reset` in `src/core/strings.ts`). The body's «Копие е запазено» isn't strictly guaranteed (see [Backlog](Backlog.md)).
-  - the save-error banner (`recovery.saveError`).
-  - the accessible name of the leaderboard's players/pairs switch («Класация по», `stats.tabs`).
-- **End line after a tied match (deviates from the prototype):** «Край на мач K» uses the match number the table header shows, where ties don't count. The prototype's formula shows the previous match's number after a tie. Confirm.
-- **«Продължи мача» for an ended match:** Home still shows it, and it opens `/end`, whose buttons leave the match (ADR 0011). Keep that label, or use another for an ended match?
-- **«← Начало» on the table** is not in mockup 04 or the prototype. It was added (first in the header's button row) because resume-on-start would otherwise leave no way Home; keep or drop? The product owner decides after testing.
-- **Step-2 contract pill:** «Без коз», «Всичко коз» (and «Спатия» from deal 10) wrap below «Край на раздаване N» at 390px; a symbol-only pill would fit. The product owner decides after testing.
+- **Copy not in the handoff (Phase 5a):** the note shown instead of «Изтрий играча» for a seated player (`register.inMatch`) and the accessible labels of the team-name inputs — still awaiting wording confirmation.
 
 ## Known gaps
 
@@ -66,6 +60,5 @@ All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, 
 - On a portrait phone, setup scrolls (+143px at 390×844), as does the end screen (+20px), and the table header's button row scrolls sideways since «← Начало» was added.
 
 - `saveError` stays true until `resetData` ([ADR 0006](adr/0006-gate-persistence-writes-until-load.md)).
-- No favicon (404 in the browser console).
 - Deal-end sheet: typed card points, the capot toggle and the open step aren't persisted across a reload (the contract, declarations and their resolution are).
 - An untracked `package-lock.json` sits in the repo root. It isn't the project's (pnpm is used), so don't commit it.

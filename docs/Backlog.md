@@ -61,14 +61,19 @@ Deferred work, one line each, grouped by the phase it belongs to. Phase scope co
 
 ## Phase 7: PWA & polish
 
-- `vite-plugin-pwa`, manifest and icons, favicon, a11y pass, Playwright happy path, bundle check
-- a11y: single-choice groups (emoji grid, theme/felt tiles, contract tiles, caller buttons, resolution chips) use `aria-pressed` toggles; consider radio-group semantics
-- a11y: the table's declaration chips (`Chip` size `sm`) have a 26px hit area, below the 44px minimum
-- a11y: the table's seats are `<section>` landmarks; make them `role="group"`
-- a11y: focus return — after picking a declaration or removing a chip, and after the sequenced contract change (deal-end → contract sheet → deal-end)
-- a11y: the table's history link is announced as «История 1» (the count badge joins the name)
-- The deal-end sheet's title reads the next deal's number while it animates closed after a save; snapshot the title on open
-- Playwright smoke script for `/dev/ui`: every theme, avatar ring border widths, switching popovers, Sheet Esc, the dark pre-paint background
+- a11y: focus return after the sequenced contract change (deal-end → contract sheet → deal-end) is still unhandled (the pick/remove cases are done)
+- `src/ui/Segmented.tsx` still calls `preventDefault` with a modifier held; `src/ui/radio-nav.ts` does it right — port the guard over
+- `radio-nav.ts` could grow a `focusRadioAt(container, index)` helper: the focus three-liner is copied in 7 places
+- `contract-sheet.test.tsx`: no explicit "nothing is checked before a pick" assertion (structurally guaranteed today)
+- `Seat.tsx` mounts its Popover only while open (deliberate, see Testing.md), so the pop-out exit animation never runs for seat popovers — dormant until a permanently-mounted Popover user exists
+- `e2e/tsconfig.json` duplicates the app tsconfig options by value; drift risk if the root options change
+- The Sheet/Popover closing-phase pattern is duplicated; extract a shared hook if a third overlay type appears
+- The PWA's autoUpdate reloads unconditionally on a new deploy; typed-but-unsaved deal points are lost (resume returns to the table). Consider deferring while a `dialog[open]` exists
+- Arrow-keying onto an emoji in the register sheet drops a chosen photo (correct radio semantics, но a keyboard user loses the crop)
+- The two capo toggles share the accessible name «Капо»; add the team name to each (`aria-label`), predates Phase 7
+- `playwright.config.ts`'s `reuseExistingServer` skips the build when anything already listens on 4173, so a stale preview can be tested
+- The dynamic `theme-color` meta writes the theme's oklch string while the static one is hex; browsers that can't parse oklch keep the hex
+- After a deal save the deal-end sheet's subtitle/pill/body still empty during the exit animation (only the title is frozen) — accepted limitation
 
 ## Unassigned
 
