@@ -40,7 +40,8 @@ export function Home() {
         <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-team-a">
           {STRINGS.themes[theme].name}
         </p>
-        <h1 className="text-[64px] font-black leading-none">{STRINGS.appName}</h1>
+        {/* «Белотомания» is long: it scales with the width, up to the handoff's 64px. */}
+        <h1 className="text-[min(64px,13.5vw)] font-black leading-none">{STRINGS.appName}</h1>
         <p className="text-base font-semibold text-muted">{S.subtitle}</p>
       </header>
 
