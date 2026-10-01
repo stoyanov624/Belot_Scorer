@@ -345,24 +345,23 @@ describe('Contract sheet', () => {
     expect(appStore.getState().match?.caller).toBe(0);
   });
 
-  it('opens the contract sheet from "Край на раздаване" when there is no contract, with the "Напред към точките" CTA', async () => {
+  it('keeps "Край на раздаване" disabled until a contract is set (product owner, 2026-10-01)', async () => {
     startMatch();
     renderRoute('/table');
 
-    await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
+    const endDeal = screen.getByRole('button', { name: S.endDeal }) as HTMLButtonElement;
+    expect(endDeal.disabled).toBe(true);
 
+    await userEvent.click(screen.getByRole('button', { name: S.pickContract }));
     const sheet = screen.getByRole('dialog', { name: CS.title });
-
     await userEvent.click(within(sheet).getByRole('radio', { name: 'Пика' }));
     await userEvent.click(within(sheet).getByRole('radio', { name: 'Гошо' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: CS.toPoints }));
+    await userEvent.click(within(sheet).getByRole('button', { name: CS.done }));
 
-    expect(appStore.getState().match?.contract).toBe('spades');
-    expect(appStore.getState().match?.caller).toBe(3);
-    // The deal-end sheet follows; with no sequences it starts at the points step.
+    expect(endDeal.disabled).toBe(false);
+    await userEvent.click(endDeal);
+    // With no sequences the deal-end sheet starts at the points step.
     expect(screen.getByRole('dialog', { name: DS.pointsTitle(1) })).toBeTruthy();
-    // The contract sheet is sequenced, not stacked: it's animating closed underneath.
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
   });
 });
 

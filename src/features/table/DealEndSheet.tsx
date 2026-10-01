@@ -460,8 +460,11 @@ function ResolveCard({
             teamOf(decl.seat) === 'A' ? 'bg-team-a' : 'bg-team-b',
           )}
         />
-        <span className="min-w-0 flex-1 truncate font-bold">{name}</span>
-        <span id={labelId} className="font-black">
+        {/* Always readable (product owner, 2026-10-01): the name wraps instead of truncating. */}
+        <span className="min-w-0 flex-1 break-words text-[15px] font-extrabold text-text">
+          {name}
+        </span>
+        <span id={labelId} className="shrink-0 font-black">
           {resolutionCardLabel(decl, rules)}
         </span>
       </div>

@@ -27,6 +27,8 @@ const ImportSheet = lazy(() => import('../features/share/ImportSheet'));
 const S = STRINGS.table;
 const SEATS = [0, 1, 2, 3] as const satisfies readonly SeatIndex[];
 const GRID_AREAS = { gridTemplateAreas: "'. n .' 'w c e' '. s .'" };
+/** The felt's diameter: the row's height, or its width less most of the two side seats. */
+const FELT_SIZE = 'min(calc(100cqw - 128px), 100cqh)';
 
 export function Table() {
   // The match object only changes on store writes, so selecting it whole is stable.
@@ -67,7 +69,11 @@ export function Table() {
 
   return (
     // §4: page padding 16px on top, 20px below (RootLayout pads sideways only).
-    <div className="flex flex-1 flex-col gap-[min(14px,1.7dvh)] pt-4 pb-5">
+    // An inline-size container, so the round felt's row (below) can size itself by the width.
+    <div
+      style={{ containerType: 'inline-size' }}
+      className="flex flex-1 flex-col gap-[min(14px,1.7dvh)] pt-4 pb-5"
+    >
       <TableHeader
         line={headerLine(match)}
         dealNo={match.games.length + 1}
@@ -79,18 +85,26 @@ export function Table() {
 
       <div
         style={GRID_AREAS}
-        className="grid flex-1 grid-cols-[minmax(88px,1fr)_minmax(0,1.5fr)_minmax(88px,1fr)] grid-rows-[auto_minmax(min(200px,22dvh),1fr)_auto] place-items-center gap-[min(12px,1.5dvh)]"
+        className="grid flex-1 grid-cols-[minmax(88px,1fr)_minmax(0,1.5fr)_minmax(88px,1fr)] grid-rows-[auto_minmax(min(200px,22dvh),min(calc(100cqw-128px),50dvh))_auto] content-center place-items-center gap-[min(12px,1.5dvh)]"
       >
+        {/* A round felt (product owner, 2026-10-01): it spans the whole middle row under the
+            West and East seats, which sit on its rim. The row is a size container and the felt a
+            circle sized by its narrower side, so it never stretches into a rectangle. */}
         <div
-          style={{ gridArea: 'c', ...feltStyle(felt) }}
-          className="flex flex-col items-center justify-center gap-2.5 place-self-stretch rounded-[32px] border-[6px] p-3 shadow-[inset_0_0_50px_oklch(0.1_0.02_50/0.6),0_20px_40px_oklch(0.08_0.02_50/0.5)]"
+          style={{ gridArea: '2 / 1 / 3 / 4', containerType: 'size' }}
+          className="flex items-center justify-center place-self-stretch"
         >
-          <ContractPill
-            contract={match.contract}
-            line={contractLine(match, (seat) => playerAt(seat).name)}
-            onClick={() => setContractSheet('set')}
-          />
-          <Coaster match={match} />
+          <div
+            style={{ ...feltStyle(felt), width: FELT_SIZE, height: FELT_SIZE }}
+            className="flex flex-col items-center justify-center gap-2.5 rounded-full border-[6px] p-[11%] shadow-[inset_0_0_50px_oklch(0.1_0.02_50/0.6),0_20px_40px_oklch(0.08_0.02_50/0.5)]"
+          >
+            <ContractPill
+              contract={match.contract}
+              line={contractLine(match, (seat) => playerAt(seat).name)}
+              onClick={() => setContractSheet('set')}
+            />
+            <Coaster match={match} />
+          </div>
         </div>
 
         {SEATS.map((seat) => {
@@ -128,12 +142,13 @@ export function Table() {
       </div>
 
       <div className="grid grid-cols-[1.4fr_1fr] gap-2.5">
+        {/* A deal ends only once its contract is set (product owner, 2026-10-01); until then
+            the highlighted «Избери игра» pill on the felt is the way in. */}
         <Button
           variant="primary"
           size="bar"
-          onClick={() =>
-            match.contract === null ? setContractSheet('toPoints') : setDealEndOpen(true)
-          }
+          disabled={match.contract === null}
+          onClick={() => setDealEndOpen(true)}
         >
           {S.endDeal}
         </Button>

@@ -82,7 +82,7 @@ export function Home() {
                   className="flex w-full flex-col items-center gap-1.5 transition-transform active:scale-95"
                 >
                   <PlayerAvatar player={player} size={68} decorative />
-                  <span className="w-full truncate text-center text-sm font-extrabold">
+                  <span className="line-clamp-2 w-full break-words text-center text-sm leading-tight font-extrabold">
                     {player.name}
                   </span>
                 </button>

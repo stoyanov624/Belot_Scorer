@@ -142,7 +142,7 @@ export function Seat({
       )}
       <p
         className={cx(
-          'truncate text-center text-[15px] font-extrabold',
+          'line-clamp-2 break-words text-center text-[15px] leading-tight font-extrabold',
           vertical ? 'max-w-[120px]' : 'max-w-[110px]',
         )}
       >

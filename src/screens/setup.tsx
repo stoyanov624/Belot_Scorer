@@ -221,7 +221,12 @@ function SeatRow({
         <span className="text-xs font-extrabold uppercase tracking-[0.06em] text-muted">
           {STRINGS.seats[seat]}
         </span>
-        <span className={cx('truncate text-[17px] font-extrabold', !player && 'text-muted')}>
+        <span
+          className={cx(
+            'line-clamp-2 break-words text-[17px] leading-tight font-extrabold',
+            !player && 'text-muted',
+          )}
+        >
           {player?.name ?? S.pickPlayer}
         </span>
       </span>
@@ -271,7 +276,7 @@ function SeatSheet({
                 className="flex w-full items-center gap-3 rounded-2xl bg-s2 p-2.5 text-left transition-transform active:scale-[0.98]"
               >
                 <PlayerAvatar player={player} size={48} decorative />
-                <span className="min-w-0 flex-1 truncate text-base font-extrabold">
+                <span className="line-clamp-2 min-w-0 flex-1 break-words text-base leading-tight font-extrabold">
                   {player.name}
                 </span>
                 {at >= 0 && (

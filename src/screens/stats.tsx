@@ -124,7 +124,7 @@ function LeaderRowView({
         ))}
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="truncate text-base font-black">{name}</h2>
+        <h2 className="line-clamp-2 break-words text-base leading-tight font-black">{name}</h2>
         <p className="truncate text-xs font-bold text-muted">{statsSub(row, kind)}</p>
       </div>
       <div className="flex flex-none flex-col items-end">

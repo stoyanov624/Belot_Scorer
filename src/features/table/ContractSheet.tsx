@@ -161,7 +161,9 @@ function ContractForm({
                   ring={teamOf(seat) === 'A' ? 'a' : 'b'}
                   decorative
                 />
-                <span className="max-w-full truncate text-xs font-extrabold">{player.name}</span>
+                <span className="line-clamp-2 max-w-full break-words text-center text-xs leading-tight font-extrabold">
+                  {player.name}
+                </span>
               </button>
             );
           })}
