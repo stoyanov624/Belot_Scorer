@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-28 at commit 2e4ea1b._ Current state only; history lives in git.
+_Last updated: 2026-10-01, after the stakeholder changes._ Current state only; history lives in git.
 
 ## Done
 
@@ -36,18 +36,27 @@ _Last updated: 2026-09-28 at commit 2e4ea1b._ Current state only; history lives 
   - Import sheet: «📷 Сканирай QR код» (`qr-scanner@1.4.2`, loaded on press), the aiming-frame video square, «Прочетени k от n части», «Спри камерата», and the handoff's camera error.
   - Browser-checked: a photo travelled A→B through the file end to end (data URL in the file, a fresh blob in B's store, the avatar renders); the scanner started on a fake camera and stopped cleanly.
 - Phase 7: PWA & polish ([plan](superpowers/plans/2026-09-28-phase-7-pwa-and-polish.md)). **v1 is feature-complete.**
-  - Installable PWA: generated icons (`scripts/icon.svg` → `pnpm icons`), manifest (name «Белот», standalone, `#1f1007`), `vite-plugin-pwa` with `autoUpdate` and offline precache (verified: offline reload renders from cache), a live `theme-color` meta following the in-app theme, and a favicon at last (the 404 is gone).
+  - Installable PWA: generated icons (`scripts/icon.svg` → `pnpm icons`), manifest (name «Белотомания» since 2026-10-01, standalone, `#1f1007`), `vite-plugin-pwa` with `autoUpdate` and offline precache (verified: offline reload renders from cache), a live `theme-color` meta following the in-app theme, and a favicon at last (the 404 is gone).
   - 150–200 ms exit transitions for sheets and popovers (`data-closing` phase before the native close; reduced motion skips them), and the deal-end sheet's title no longer flips to the next deal while closing.
   - Accessibility: every single-choice group (emoji, theme/felt tiles, contract tiles, caller, resolution chips) is a real radiogroup with roving tabindex and arrow keys (`src/ui/radio-nav.ts`); `sm` chips carry a 44px hit target; seats are `role="group"`; the history link announces «История»; history/stats headings are `h2`; picking or removing a declaration returns focus to the seat.
   - The save-error banner clears itself on the next successful write; the step-2 contract pill is symbol-only («ВК») with the full game as its accessible name — no more wrapping at 390px.
   - Committed Playwright e2e (`pnpm e2e`): the full happy path, a two-context share→import, and reload-resume; plus a DEV_UI-gated `/dev/ui` smoke. A bundle budget (`pnpm bundle`): entry 90.6 kB gz ≤ 105, total JS ≤ 210.
 - Product decisions (2026-09-28): keep «← Начало» on the table; the step-2 pill is symbol-only; the save-error banner self-clears; and all previously open copy/behaviour questions are **accepted as built** — the recovery screen and banner texts, «Класация по», «Какво да се сподели», «Линк или код», «QR код», «Продължи мача» also for an ended match, the tie match-numbering, «Текущия мач» offered from Home while a match plays, and import's photo-over-emoji rule (ADR 0013).
 
+- Stakeholder changes (2026-10-01, [plan](superpowers/plans/2026-10-01-stakeholder-changes.md)):
+  - [ADR 0018](adr/0018-chosen-hanging-and-zero-card-match-end.md): a rounded tie hangs only when «Висяща» is pressed (off counts as made); a match can't end on a deal in which its losers took no card points, replacing «a capot never ends the match». Golden deals 18–19.
+  - [ADR 0019](adr/0019-declarations-shown-in-real-points.md): declarations are shown in real points (терца 20, кварта 50, квинта 100) on the popover, resolution cards, history, coaster and leaderboard; scoring and storage stay rounded.
+  - Table: «Край на раздаване» is disabled until a contract is set; the «Избери игра» pill is larger and ringed; the felt is a circle (sized by the narrower side of its row) with the side seats on its rim. Player names wrap to two lines everywhere instead of truncating.
+  - Leaderboard: a «Период» button with presets and a month calendar for a day range (`src/features/stats/period.ts`, pure); rows lead with matches and wins.
+  - The visible name is «Белотомания» (title, PWA manifest, Home heading).
+  - Browser-checked at 390×844 and 1280×800: the round table, the gated button, the resolution step with a long name, and the period sheet filtering last year.
+
 All behaviour so far lives in `src/core`, `src/storage`, `src/store`, `src/ui`, `src/app`, `src/features` and `src/screens`, covered by tests.
 
 ## Next
 
-- v1 is done. Next: deploy over HTTPS (needed for the camera and installability on phones), then React Native — start from the [handover document](React%20Native%20handover.md).
+- Mirror the stakeholder changes into the mobile repo (`../Belot Scorer Mobile`): copy `src/core`, the copy helpers and `features/stats/period.ts` verbatim, rebuild the UI parts there.
+- Deploy over HTTPS (needed for the camera and installability on phones), then React Native — start from the [handover document](React%20Native%20handover.md).
 
 ## Open product questions
 

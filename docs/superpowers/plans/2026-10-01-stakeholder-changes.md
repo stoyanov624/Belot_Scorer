@@ -25,28 +25,28 @@
 
 ### Task 1: Core rules — chosen hanging, match-end rule, display points
 
-- [ ] `score.ts`: `DealInput.hangOnTie: boolean`; a raw tie hangs only when it is set, else verdict `ok`. `DealScore.tie: boolean` (raw totals equal) for the UI.
-- [ ] `match.ts`: `saveDeal` input gains `hangOnTie`; the end rule becomes «max ≥ target, totals differ, and the match loser's card points in this deal > 0». Export `endBlocked(m, score)` for the verdict line.
-- [ ] `rules.ts`: `DECL_DISPLAY_FACTOR = 10`, `declDisplayPoints(d, rules)`.
-- [ ] Golden deals: existing hanging cases set `hangOnTie: true`; add «tie not hanging» and the four match-end cases.
-- [ ] Commit `feat(core): chosen hanging and the zero-card match-end rule`.
+- [x] `score.ts`: `DealInput.hangOnTie: boolean`; a raw tie hangs only when it is set, else verdict `ok`. `DealScore.tie: boolean` (raw totals equal) for the UI.
+- [x] `match.ts`: `saveDeal` input gains `hangOnTie`; the end rule becomes «max ≥ target, totals differ, and the match loser's card points in this deal > 0». Export `endBlocked(m, score)` for the verdict line.
+- [x] `rules.ts`: `DECL_DISPLAY_FACTOR = 10`, `declDisplayPoints(d, rules)`.
+- [x] Golden deals: existing hanging cases set `hangOnTie: true`; add «tie not hanging» and the four match-end cases.
+- [x] Commit `feat(core): chosen hanging and the zero-card match-end rule`.
 
 ### Task 2: Copy and table UI
 
-- [ ] Strings: `deal.hangToggle`, `deal.hangToggleHint`, `deal.endBlocked`, capot note without the old end sentence, `appName` «Белотомания», stats hint/sub with matches, period strings.
-- [ ] Copy helpers use `declDisplayPoints` (option buttons, resolution cards, history rows); coaster and leaderboard multiply sums.
-- [ ] Deal-end points step: the «Висяща» toggle shown only on a tie; the verdict reads the toggle; an end-blocked note.
-- [ ] Table: «Край на раздаване» disabled without a contract; the pill gets a ring/glow and larger size; round felt with seats around it.
-- [ ] Names audit (resolution cards, seats, contract sheet callers, history, end).
-- [ ] Commit `feat(table): hanging toggle, contract gating, round felt, real-point declarations`.
+- [x] Strings: `deal.hangToggle`, `deal.hangToggleHint`, `deal.endBlocked`, capot note without the old end sentence, `appName` «Белотомания», stats hint/sub with matches, period strings.
+- [x] Copy helpers use `declDisplayPoints` (option buttons, resolution cards, history rows); coaster and leaderboard multiply sums.
+- [x] Deal-end points step: the «Висяща» toggle shown only on a tie; the verdict reads the toggle; an end-blocked note.
+- [x] Table: «Край на раздаване» disabled without a contract; the pill gets a ring/glow and larger size; round felt with seats around it.
+- [x] Names audit (resolution cards, seats, contract sheet callers, history, end).
+- [x] Commit `feat(table): hanging toggle, contract gating, round felt, real-point declarations`.
 
 ### Task 3: Leaderboard period filter
 
-- [ ] `src/features/stats/period.ts` (pure, platform-free, verbatim on mobile): month grid, range presets, range label, record filter.
-- [ ] Stats screen: «Период» button, calendar sheet, presets; rows show matches.
-- [ ] Commit `feat(stats): period filter and match counts`.
+- [x] `src/features/stats/period.ts` (pure, platform-free, verbatim on mobile): month grid, range presets, range label, record filter.
+- [x] Stats screen: «Период» button, calendar sheet, presets; rows show matches.
+- [x] Commit `feat(stats): period filter and match counts`.
 
 ### Task 4: Rename and vault
 
-- [ ] `<title>`, PWA manifest, icons' names; Status, ADRs 0018/0019, Home, Backlog.
-- [ ] Commit `docs: stakeholder changes`.
+- [x] `<title>`, PWA manifest, icons' names; Status, ADRs 0018/0019, Home, Backlog.
+- [x] Commit `docs: stakeholder changes`.

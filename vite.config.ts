@@ -18,8 +18,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Белот',
-        short_name: 'Белот',
+        name: 'Белотомания',
+        short_name: 'Белотомания',
         description: STRINGS.home.subtitle,
         lang: 'bg',
         start_url: '/',
