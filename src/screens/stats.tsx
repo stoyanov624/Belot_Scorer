@@ -6,6 +6,8 @@ import { DECL_DISPLAY_FACTOR } from '../core/rules';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { statsName, statsSub } from '../features/stats/copy';
+import { PeriodSheet } from '../features/stats/PeriodSheet';
+import { type Day, filterRecords, type Period, periodLabel } from '../features/stats/period';
 import { useAppStore } from '../store/instance';
 import { Button, buttonClass } from '../ui/Button';
 import { cx } from '../ui/cx';
@@ -22,6 +24,12 @@ function rankClasses(rank: number) {
   return { row: 'bg-s1', text: 'text-muted' };
 }
 
+/** A timestamp's local calendar day. */
+const dayOf = (timestamp: number): Day => {
+  const d = new Date(timestamp);
+  return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
+};
+
 /** The leaderboard screen (§11): players/pairs ranked by valid declaration points. */
 export function Component() {
   const stats = useAppStore((s) => s.stats);
@@ -30,8 +38,13 @@ export function Component() {
   const clearStats = useAppStore((s) => s.clearStats);
   const [tab, setTab] = useState<Tab>('players');
   const [armed, setArmed] = useState(false);
+  // Not persisted: every visit starts at «Всички» (product owner, 2026-10-01).
+  const [period, setPeriod] = useState<Period>(null);
+  const [periodOpen, setPeriodOpen] = useState(false);
+  const today = dayOf(Date.now());
 
-  const { players, pairs } = leaderboard(stats, roster, rules);
+  const shown = filterRecords(stats, period, dayOf);
+  const { players, pairs } = leaderboard(shown, roster, rules);
   const rows = tab === 'players' ? players : pairs;
 
   // A player no longer in the roster falls back to the row's name with no photo/emoji.
@@ -56,7 +69,12 @@ export function Component() {
         <h1 className="text-2xl font-black">{S.title}</h1>
       </div>
 
-      <p className="text-wrap-pretty text-sm font-semibold text-muted">{S.hint(stats.length)}</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-wrap-pretty text-sm font-semibold text-muted">{S.hint(shown.length)}</p>
+        <Button size="sm" className="shrink-0" onClick={() => setPeriodOpen(true)}>
+          {`${S.period}: ${periodLabel(period, today)}`}
+        </Button>
+      </div>
 
       <Segmented
         label={S.tabs}
@@ -70,7 +88,7 @@ export function Component() {
 
       {rows.length === 0 ? (
         <p className="rounded-[20px] border-2 border-dashed border-line p-10 text-center text-[15px] font-semibold text-muted">
-          {S.empty}
+          {stats.length > 0 ? S.emptyPeriod : S.empty}
         </p>
       ) : (
         <div className="flex flex-col gap-2">
@@ -85,6 +103,17 @@ export function Component() {
           {armed ? S.resetArmed : S.reset}
         </Button>
       )}
+
+      <PeriodSheet
+        open={periodOpen}
+        onClose={() => setPeriodOpen(false)}
+        period={period}
+        today={today}
+        onApply={(next) => {
+          setPeriod(next);
+          setPeriodOpen(false);
+        }}
+      />
     </div>
   );
 }
@@ -125,7 +154,7 @@ function LeaderRowView({
       </div>
       <div className="min-w-0 flex-1">
         <h2 className="line-clamp-2 break-words text-base leading-tight font-black">{name}</h2>
-        <p className="truncate text-xs font-bold text-muted">{statsSub(row, kind)}</p>
+        <p className="text-xs font-bold text-muted">{statsSub(row, kind)}</p>
       </div>
       <div className="flex flex-none flex-col items-end">
         <p

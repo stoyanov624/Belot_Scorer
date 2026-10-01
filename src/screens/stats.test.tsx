@@ -198,3 +198,41 @@ describe('Leaderboard', () => {
     });
   });
 });
+
+describe('Leaderboard period filter (product owner, 2026-10-01)', () => {
+  it('starts at «Всички» and narrows to last year from the period sheet', async () => {
+    lowerTargetScore();
+    startMatch();
+    playAndEndMatch();
+    const [record] = appStore.getState().stats;
+    if (!record) throw new Error('no record');
+    const lastYear = new Date(new Date().getFullYear() - 1, 5, 15).getTime();
+    appStore.setState({
+      match: null,
+      stats: [record, { ...record, id: 'old', date: lastYear }],
+    });
+    await renderStats();
+
+    expect(screen.getByText(S.hint(2))).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: `${S.period}: ${S.presets.all}` }));
+    const sheet = screen.getByRole('dialog', { name: S.period });
+    await userEvent.click(within(sheet).getByRole('button', { name: S.presets.lastYear }));
+
+    expect(screen.getByText(S.hint(1))).toBeTruthy();
+    expect(screen.getByRole('button', { name: `${S.period}: ${S.presets.lastYear}` })).toBeTruthy();
+  });
+
+  it('says so when no match falls in the period', async () => {
+    lowerTargetScore();
+    startMatch();
+    playAndEndMatch();
+    appStore.setState({ match: null });
+    await renderStats();
+
+    await userEvent.click(screen.getByRole('button', { name: `${S.period}: ${S.presets.all}` }));
+    const sheet = screen.getByRole('dialog', { name: S.period });
+    await userEvent.click(within(sheet).getByRole('button', { name: S.presets.lastYear }));
+
+    expect(screen.getByText(S.emptyPeriod)).toBeTruthy();
+  });
+});
