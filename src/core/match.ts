@@ -98,7 +98,7 @@ export type SaveDealResult =
 
 export function saveDeal(
   m: Match,
-  input: { cardPointsA: number | null; capo: Team | null; hangOnTie?: boolean },
+  input: { cardPointsA: number | null; capo: Team | null },
 ): SaveDealResult {
   if (m.status === 'ended') return { ok: false, error: 'match-ended' };
   if (m.contract === null || m.caller === null) return { ok: false, error: 'no-contract' };
@@ -131,7 +131,7 @@ export function saveDeal(
     games: [...m.games, deal],
     hang: score.nextHang,
   };
-  const ended = endsMatch(totals(next), score.cards, m.rules.targetScore) === 'ends';
+  const ended = endsMatch(totals(next), score.exactCards, m.rules.targetScore) === 'ends';
   return { ok: true, match: ended ? endMatch(next) : next, ended };
 }
 

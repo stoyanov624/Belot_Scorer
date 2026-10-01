@@ -155,8 +155,11 @@ export const STRINGS = {
     cancel: 'Отказ',
     next: 'Напред',
     pointsTitle: (n: number) => `Край на раздаване ${n}`,
-    hintColor: (max: number) => `Закръглени точки от картите с последните 10 (общо ${max}).`,
-    hintNt: (max: number) => `Закръглени точки от картите (общо ${max}), удвояват се.`,
+    // ADR 0020: exact points are entered; the score is written rounded.
+    hintColor: (total: number) =>
+      `Точки от картите с последните 10 (общо ${total}). Записват се закръглени.`,
+    hintNt: (total: number) =>
+      `Точки от картите с последните 10 (общо ${total}). Записват се закръглени и удвоени.`,
     capo: 'Капо',
     rows: {
       cards: 'Карти',
@@ -175,9 +178,6 @@ export const STRINGS = {
     // ADR 0018: the match can't end on a deal in which its losers took no card points.
     endBlocked: (team: string) =>
       `Мачът не приключва: ${team} ${agree(team, NO_CARDS)} точки от картите — играе се още едно раздаване.`,
-    // ADR 0018: shown only when the rounded totals tie; the user says whether it really hangs.
-    hangToggle: 'Висяща',
-    hangToggleHint: 'Точките са точно равни',
     errMissing: 'Въведете точките от картите.',
     errRange: (max: number) => `Точките от картите трябва да са между 0 и ${max}.`,
     back: 'Назад',

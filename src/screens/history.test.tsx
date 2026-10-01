@@ -49,7 +49,7 @@ function lastDeclId(): string {
 function buildHistory() {
   const s = appStore.getState();
   s.setContract('clubs', 1);
-  const r1 = s.saveDeal({ cardPointsA: 6, capo: null }); // deal 1: a=6, b=10
+  const r1 = s.saveDeal({ cardPointsA: 60, capo: null }); // deal 1: a=6, b=10
   if (!r1.ok) throw new Error('saveDeal 1 failed');
 
   s.setContract('hearts', 0);
@@ -57,11 +57,11 @@ function buildHistory() {
   s.updateDeclaration(lastDeclId(), { top: 'K' });
   s.addDeclaration(1, 'terca');
   s.updateDeclaration(lastDeclId(), { top: '9' });
-  const r2 = s.saveDeal({ cardPointsA: 10, capo: null }); // deal 2: a=12, b=6
+  const r2 = s.saveDeal({ cardPointsA: 100, capo: null }); // deal 2: a=12, b=6
   if (!r2.ok) throw new Error('saveDeal 2 failed');
 
   s.setContract('spades', 2);
-  const r3 = s.saveDeal({ cardPointsA: 5, capo: null }); // deal 3: inside, a=0, b=16
+  const r3 = s.saveDeal({ cardPointsA: 50, capo: null }); // deal 3: inside, a=0, b=16
   if (!r3.ok) throw new Error('saveDeal 3 failed');
 
   s.setContract('diamonds', 3);
@@ -156,7 +156,7 @@ describe('History', () => {
   it('shows a hanging note', async () => {
     startMatch();
     appStore.getState().setContract('clubs', 1);
-    const r = appStore.getState().saveDeal({ cardPointsA: 8, capo: null, hangOnTie: true });
+    const r = appStore.getState().saveDeal({ cardPointsA: 81, capo: null });
     if (!r.ok) throw new Error('saveDeal failed');
     await renderHistory();
 

@@ -26,7 +26,8 @@ const fresh = (bestOf: BestOf) =>
   });
 
 const save = (m: Match, cardPointsA: number) => {
-  const r = saveDeal(m, { cardPointsA, capo: null });
+  // Rounded points in, exact out (ADR 0020).
+  const r = saveDeal(m, { cardPointsA: cardPointsA * 10, capo: null });
   if (!r.ok) throw new Error(r.error);
   return r.match;
 };

@@ -46,8 +46,9 @@ const withGames = (m: Match, ...scores: [number, number][]): Match => ({
   games: scores.map(([a, b]) => fakeDeal(a, b)),
 });
 
-const save = (m: Match, cardPointsA: number, capo: 'A' | 'B' | null = null) => {
-  const r = saveDeal(setContract(m, 'hearts', 0), { cardPointsA, capo });
+/** Saves a hearts deal called by North with `rounded` card points for team A (exact = ×10). */
+const save = (m: Match, rounded: number, capo: 'A' | 'B' | null = null) => {
+  const r = saveDeal(setContract(m, 'hearts', 0), { cardPointsA: rounded * 10, capo });
   if (!r.ok) throw new Error(r.error);
   return r;
 };
@@ -161,7 +162,7 @@ describe('current deal', () => {
 
 describe('saveDeal', () => {
   it('needs a contract', () => {
-    expect(saveDeal(fresh(), { cardPointsA: 10, capo: null })).toEqual({
+    expect(saveDeal(fresh(), { cardPointsA: 100, capo: null })).toEqual({
       ok: false,
       error: 'no-contract',
     });
@@ -170,7 +171,7 @@ describe('saveDeal', () => {
   it('refuses to save with unresolved declarations', () => {
     let m = setContract(fresh(), 'hearts', 0);
     m = addDeclaration(m, { id: 'k', seat: 0, key: 'kare' });
-    expect(saveDeal(m, { cardPointsA: 10, capo: null })).toEqual({
+    expect(saveDeal(m, { cardPointsA: 100, capo: null })).toEqual({
       ok: false,
       error: 'kare-rank-missing',
     });
@@ -179,7 +180,7 @@ describe('saveDeal', () => {
   it('records the deal and resets the current one', () => {
     let m = setContract(fresh(), 'hearts', 0);
     m = addDeclaration(m, { id: 'b', seat: 0, key: 'belot' });
-    const r = saveDeal(m, { cardPointsA: 10, capo: null });
+    const r = saveDeal(m, { cardPointsA: 100, capo: null });
     if (!r.ok) throw new Error(r.error);
     expect(r.ended).toBe(false);
     expect(r.match.games[0]).toMatchObject({
@@ -234,7 +235,8 @@ describe('saveDeal', () => {
   it('does not end on 0 typed card points for the losers, whatever their declarations', () => {
     let m = setContract(withGames(fresh(), [140, 100]), 'hearts', 0);
     m = addDeclaration(m, { id: 't', seat: 1, key: 'terca' });
-    const r = saveDeal(m, { cardPointsA: 16, capo: null });
+    // 162: the losers took not a single card point (160 would leave them 2).
+    const r = saveDeal(m, { cardPointsA: 162, capo: null });
     if (!r.ok) throw new Error(r.error);
     expect(totals(r.match)).toEqual({ A: 156, B: 102 });
     expect(r.ended).toBe(false);
@@ -259,7 +261,7 @@ describe('saveDeal', () => {
   it('respects the target score snapshotted onto the match', () => {
     const rules = { ...DEFAULT_RULES, targetScore: 101 };
     const r = saveDeal(setContract(withGames(fresh(1, rules), [95, 0]), 'hearts', 0), {
-      cardPointsA: 10,
+      cardPointsA: 100,
       capo: null,
     });
     expect(r.ok && r.ended).toBe(true);
@@ -269,7 +271,7 @@ describe('saveDeal', () => {
     const rules = { ...DEFAULT_RULES, declPoints: { ...DEFAULT_RULES.declPoints, belot: 3 } };
     let m = setContract(fresh(1, rules), 'hearts', 0);
     m = addDeclaration(m, { id: 'b', seat: 0, key: 'belot' });
-    const r = saveDeal(m, { cardPointsA: 10, capo: null });
+    const r = saveDeal(m, { cardPointsA: 100, capo: null });
     if (!r.ok) throw new Error(r.error);
     expect(r.match.games[0]?.decls).toEqual([
       { seat: 0, key: 'belot', top: null, rank: null, valid: true },
@@ -281,9 +283,8 @@ describe('saveDeal', () => {
 describe('undoLastDeal', () => {
   it('removes the last deal and restores hanging points', () => {
     const hung = saveDeal(setContract(fresh(), 'clubs', 1), {
-      cardPointsA: 8,
+      cardPointsA: 81,
       capo: null,
-      hangOnTie: true,
     });
     if (!hung.ok) throw new Error(hung.error);
     expect(hung.match.hang).toBe(8);
@@ -335,7 +336,7 @@ describe('ended match', () => {
 
   it('saveDeal returns match-ended even with a contract on the match object', () => {
     const m: Match = { ...ended(), contract: 'hearts', caller: 0 };
-    expect(saveDeal(m, { cardPointsA: 10, capo: null })).toEqual({
+    expect(saveDeal(m, { cardPointsA: 100, capo: null })).toEqual({
       ok: false,
       error: 'match-ended',
     });
@@ -344,7 +345,7 @@ describe('ended match', () => {
   it('saveDeal on an ended match refuses even with a contract already set', () => {
     let m = setContract(fresh(), 'hearts', 0);
     m = endMatch(m);
-    expect(saveDeal(m, { cardPointsA: 10, capo: null })).toEqual({
+    expect(saveDeal(m, { cardPointsA: 100, capo: null })).toEqual({
       ok: false,
       error: 'match-ended',
     });

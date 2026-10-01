@@ -198,7 +198,7 @@ describe('Setup', () => {
       bestOf: 1,
     });
     appStore.getState().setContract('hearts', 0);
-    const saved = appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+    const saved = appStore.getState().saveDeal({ cardPointsA: 100, capo: null });
     if (!saved.ok) throw new Error('setup failed');
     const before = appStore.getState().match;
     if (!before) throw new Error('setup failed');
@@ -253,7 +253,7 @@ describe('Setup', () => {
       bestOf: 1,
     });
     appStore.getState().setContract('hearts', 0);
-    const saved = appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+    const saved = appStore.getState().saveDeal({ cardPointsA: 100, capo: null });
     if (!saved.ok) throw new Error('setup failed');
     appStore.getState().endMatch();
 

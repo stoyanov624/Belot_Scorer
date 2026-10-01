@@ -24,7 +24,7 @@ import {
   type RulesConfig,
   teamOf,
 } from '../../core/rules';
-import { type DealScore, maxCardPoints } from '../../core/score';
+import { type DealScore, exactCardPoints } from '../../core/score';
 import { STRINGS } from '../../core/strings';
 
 /** The name of a declaration, with its top card or four-of-a-kind rank when it has one. */
@@ -76,9 +76,11 @@ export function contractLine(
 }
 
 /** The card-points hint for the deal-end sheet, with the contract's own max. */
-export function pointsHint(contract: ContractKey, rules: RulesConfig): string {
-  const max = maxCardPoints(contract, rules);
-  return CONTRACT_KIND[contract] === 'nt' ? STRINGS.deal.hintNt(max) : STRINGS.deal.hintColor(max);
+export function pointsHint(contract: ContractKey): string {
+  const total = exactCardPoints(contract);
+  return CONTRACT_KIND[contract] === 'nt'
+    ? STRINGS.deal.hintNt(total)
+    : STRINGS.deal.hintColor(total);
 }
 
 /** Verdict lines for a contested sequence and/or four-of-a-kind clash. Empty when uncontested. */
@@ -166,6 +168,6 @@ export function endBlockedNote(
 ): string | null {
   const before = totals(match);
   const after = { A: before.A + score.match.A, B: before.B + score.match.B };
-  if (endsMatch(after, score.cards, match.rules.targetScore) !== 'blocked') return null;
+  if (endsMatch(after, score.exactCards, match.rules.targetScore) !== 'blocked') return null;
   return STRINGS.deal.endBlocked(teamName(after.A < after.B ? 'A' : 'B'));
 }

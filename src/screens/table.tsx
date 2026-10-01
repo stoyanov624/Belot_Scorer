@@ -96,7 +96,7 @@ export function Table() {
         >
           <div
             style={{ ...feltStyle(felt), width: FELT_SIZE, height: FELT_SIZE }}
-            className="flex flex-col items-center justify-center gap-2.5 rounded-full border-[6px] p-[11%] shadow-[inset_0_0_50px_oklch(0.1_0.02_50/0.6),0_20px_40px_oklch(0.08_0.02_50/0.5)]"
+            className="flex flex-col items-center justify-center gap-6 rounded-full border-[6px] p-[11%] shadow-[inset_0_0_50px_oklch(0.1_0.02_50/0.6),0_20px_40px_oklch(0.08_0.02_50/0.5)]"
           >
             <ContractPill
               contract={match.contract}

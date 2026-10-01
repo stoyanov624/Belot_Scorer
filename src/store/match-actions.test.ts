@@ -27,7 +27,7 @@ const start = (bestOf: 1 | 3 = 1) =>
 /** Hearts, called by North; team A takes 10 of 16 card points → A 10, B 6. */
 const playDeal = () => {
   s().setContract('hearts', 0);
-  return s().saveDeal({ cardPointsA: 10, capo: null });
+  return s().saveDeal({ cardPointsA: 100, capo: null });
 };
 
 const lowTarget = (targetScore: number) =>
@@ -55,7 +55,10 @@ describe('match actions', () => {
   it('does nothing without a match', () => {
     s().setContract('hearts', 0);
     expect(s().match).toBeNull();
-    expect(s().saveDeal({ cardPointsA: 10, capo: null })).toEqual({ ok: false, error: 'no-match' });
+    expect(s().saveDeal({ cardPointsA: 100, capo: null })).toEqual({
+      ok: false,
+      error: 'no-match',
+    });
   });
 
   it('adds declarations with generated ids and removes them', () => {
@@ -79,7 +82,7 @@ describe('match actions', () => {
   it('returns the core error and keeps state when the deal is invalid', () => {
     start();
     s().setContract('hearts', 0);
-    expect(s().saveDeal({ cardPointsA: 99, capo: null })).toEqual({
+    expect(s().saveDeal({ cardPointsA: 999, capo: null })).toEqual({
       ok: false,
       error: 'points-range',
     });

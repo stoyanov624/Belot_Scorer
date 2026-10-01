@@ -9,6 +9,7 @@ import {
   KARE_RANKS,
   otherTeam,
   RulesConfigSchema,
+  roundCardPoints,
   seatsOf,
   seqLength,
   teamOf,
@@ -111,5 +112,18 @@ describe('declDisplayPoints (ADR 0019)', () => {
     expect(declDisplayPoints({ key: 'kare', rank: 'J' })).toBe(200);
     expect(declDisplayPoints({ key: 'kare', rank: '9' })).toBe(150);
     expect(declDisplayPoints({ key: 'kare', rank: 'A' })).toBe(100);
+  });
+});
+
+describe('roundCardPoints (ADR 0020)', () => {
+  it('rounds up from 6 in a suit game, 4 in all trumps, 5 in no trumps', () => {
+    expect([75, 76].map((x) => roundCardPoints(x, 'color'))).toEqual([7, 8]);
+    expect([83, 84].map((x) => roundCardPoints(x, 'at'))).toEqual([8, 9]);
+    expect([64, 65].map((x) => roundCardPoints(x, 'nt'))).toEqual([6, 7]);
+    expect(
+      [162, 258, 130].map((x, i) =>
+        roundCardPoints(x, (['color', 'at', 'nt'] as const)[i] ?? 'color'),
+      ),
+    ).toEqual([16, 26, 13]);
   });
 });

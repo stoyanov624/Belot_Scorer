@@ -119,32 +119,19 @@ describe('contractLine', () => {
   });
 });
 
-describe('pointsHint', () => {
-  it('hints the card points for a colour contract', () => {
-    expect(pointsHint('hearts', DEFAULT_RULES)).toBe(
-      'Закръглени точки от картите с последните 10 (общо 16).',
+describe('pointsHint (ADR 0020)', () => {
+  it('hints the exact card points for a colour contract and all trumps', () => {
+    expect(pointsHint('hearts')).toBe(
+      'Точки от картите с последните 10 (общо 162). Записват се закръглени.',
+    );
+    expect(pointsHint('at')).toBe(
+      'Точки от картите с последните 10 (общо 258). Записват се закръглени.',
     );
   });
 
-  it('hints the card points for all-trumps', () => {
-    expect(pointsHint('at', DEFAULT_RULES)).toBe(
-      'Закръглени точки от картите с последните 10 (общо 26).',
-    );
-  });
-
-  it('hints the doubled card points for no-trumps', () => {
-    expect(pointsHint('nt', DEFAULT_RULES)).toBe(
-      'Закръглени точки от картите (общо 13), удвояват се.',
-    );
-  });
-
-  it('follows a custom max from the rules', () => {
-    const rules: RulesConfig = {
-      ...DEFAULT_RULES,
-      maxCardPoints: { ...DEFAULT_RULES.maxCardPoints, color: 20 },
-    };
-    expect(pointsHint('hearts', rules)).toBe(
-      'Закръглени точки от картите с последните 10 (общо 20).',
+  it('hints the doubling for no trumps', () => {
+    expect(pointsHint('nt')).toBe(
+      'Точки от картите с последните 10 (общо 130). Записват се закръглени и удвоени.',
     );
   });
 });
@@ -202,7 +189,7 @@ describe('resolutionErrors', () => {
 describe('dealVerdict', () => {
   it('reports a made deal', () => {
     const score = scoreDeal(
-      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 10, capo: null, hang: 0 },
+      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 100, capo: null, hang: 0 },
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe('Ние изкарахме играта.');
@@ -215,7 +202,7 @@ describe('dealVerdict', () => {
 
   it('reports an inside deal', () => {
     const score = scoreDeal(
-      { contract: 'hearts', caller: 0, decls: [], cardPointsA: 7, capo: null, hang: 0 },
+      { contract: 'hearts', caller: 0, decls: [], cardPointsA: 70, capo: null, hang: 0 },
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe(
@@ -229,10 +216,9 @@ describe('dealVerdict', () => {
         contract: 'clubs',
         caller: 0,
         decls: [],
-        cardPointsA: 8,
+        cardPointsA: 81,
         capo: null,
         hang: 0,
-        hangOnTie: true,
       },
       DEFAULT_RULES,
     );
@@ -243,7 +229,7 @@ describe('dealVerdict', () => {
 
   it('appends the carried hanging points to a made deal', () => {
     const score = scoreDeal(
-      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 10, capo: null, hang: 8 },
+      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 100, capo: null, hang: 8 },
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 8, teamName, DEFAULT_RULES)).toBe(
@@ -265,7 +251,7 @@ describe('dealVerdict', () => {
 describe('calcRows', () => {
   it('shows cards, declarations and a plain total', () => {
     const score = scoreDeal(
-      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 10, capo: null, hang: 0 },
+      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 100, capo: null, hang: 0 },
       DEFAULT_RULES,
     );
     expect(calcRows(score, null)).toEqual([
@@ -286,7 +272,7 @@ describe('calcRows', () => {
 
   it('doubles the total label for no-trumps', () => {
     const score = scoreDeal(
-      { contract: 'nt', caller: 3, decls: [], cardPointsA: 5, capo: null, hang: 0 },
+      { contract: 'nt', caller: 3, decls: [], cardPointsA: 50, capo: null, hang: 0 },
       DEFAULT_RULES,
     );
     const rows = calcRows(score, null);
@@ -334,13 +320,13 @@ describe('endBlockedNote (ADR 0018)', () => {
 
   it('names the losers when they took no card points in the deciding deal', () => {
     const match = { ...m, games: [deal(140, 100)] };
-    expect(endBlockedNote(match, score(16), name)).toBe(
+    expect(endBlockedNote(match, score(162), name)).toBe(
       'Мачът не приключва: Те не взеха точки от картите — играе се още едно раздаване.',
     );
   });
 
   it('is null when the losers took card points, or the target is not reached', () => {
-    expect(endBlockedNote({ ...m, games: [deal(140, 100)] }, score(14), name)).toBeNull();
-    expect(endBlockedNote({ ...m, games: [deal(100, 100)] }, score(16), name)).toBeNull();
+    expect(endBlockedNote({ ...m, games: [deal(140, 100)] }, score(140), name)).toBeNull();
+    expect(endBlockedNote({ ...m, games: [deal(100, 100)] }, score(162), name)).toBeNull();
   });
 });

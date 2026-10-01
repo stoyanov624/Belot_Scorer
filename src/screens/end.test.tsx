@@ -36,7 +36,7 @@ function lowerTargetScore() {
 /** Plays a hearts deal called by North with 10 card points for team A: totals become 10 : 6. */
 function playWinningDeal() {
   appStore.getState().setContract('hearts', 0);
-  const result = appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+  const result = appStore.getState().saveDeal({ cardPointsA: 100, capo: null });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 

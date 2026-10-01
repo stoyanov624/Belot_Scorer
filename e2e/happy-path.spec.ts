@@ -93,7 +93,9 @@ async function enterPoints(
     name: STRINGS.deal.pointsTitle(dealNumber),
     exact: true,
   });
-  await dialog.getByRole('textbox', { name: teamALabel, exact: true }).fill(String(cardPointsA));
+  await dialog
+    .getByRole('textbox', { name: teamALabel, exact: true })
+    .fill(String(cardPointsA * 10)); // exact points (ADR 0020)
   await dialog.getByRole('button', { name: STRINGS.deal.save, exact: true }).click();
   await expect(dialog).toBeHidden();
 }

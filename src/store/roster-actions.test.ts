@@ -125,7 +125,7 @@ describe('clearStats', () => {
       bestOf: 1,
     });
     setContract('hearts', 0);
-    saveDeal({ cardPointsA: 10, capo: null });
+    saveDeal({ cardPointsA: 100, capo: null });
     endMatch();
     expect(store.getState().stats).toHaveLength(1);
 

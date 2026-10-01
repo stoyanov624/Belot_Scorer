@@ -349,7 +349,7 @@ describe('ImportSheet', () => {
         bestOf: 1,
       });
       appStore.getState().setContract('hearts', 0);
-      appStore.getState().saveDeal({ cardPointsA: 10, capo: null });
+      appStore.getState().saveDeal({ cardPointsA: 100, capo: null });
       const before = appStore.getState().match;
       if (!before) throw new Error('setup failed');
       const t = totals(before);

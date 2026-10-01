@@ -31,7 +31,9 @@ function startMatch(bestOf: BestOf = 1) {
 /** Saves a hearts deal called by North with the given card points for team A. */
 function saveHeartsDeal(cardPointsA: number) {
   appStore.getState().setContract('hearts', 0);
-  const result = appStore.getState().saveDeal({ cardPointsA, capo: null, hangOnTie: true });
+  // Rounded points in, exact out (ADR 0020); 8 means an exact tie, 81 : 81, which hangs.
+  const exact = cardPointsA === 8 ? 81 : cardPointsA * 10;
+  const result = appStore.getState().saveDeal({ cardPointsA: exact, capo: null });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 
@@ -403,7 +405,7 @@ describe('Deal-end sheet', () => {
     expect(appStore.getState().match?.contract).toBe('nt');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: CS.title })).toBeNull());
     const again = screen.getByRole('dialog', { name: DS.pointsTitle(1) });
-    expect(within(again).getByText(DS.hintNt(13))).toBeTruthy();
+    expect(within(again).getByText(DS.hintNt(130))).toBeTruthy();
   });
 
   it('leaves no sheet open when the contract change is cancelled', async () => {
@@ -427,7 +429,7 @@ describe('Deal-end sheet', () => {
     renderRoute('/table');
 
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
-    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.type(screen.getByLabelText('Ние'), '100');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
 
     // The sheet's title freezes at "1" (the saved deal) while it animates closed.
@@ -448,7 +450,7 @@ describe('Deal-end sheet', () => {
     const { router } = renderRoute('/table');
 
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
-    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.type(screen.getByLabelText('Ние'), '100');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
 
     expect(await screen.findByRole('button', { name: STRINGS.end.rematch })).toBeTruthy();
@@ -494,7 +496,7 @@ describe('Leaving the table', () => {
     await userEvent.click(await screen.findByRole('link', { name: STRINGS.home.continueMatch }));
 
     await userEvent.click(screen.getByRole('button', { name: S.endDeal }));
-    await userEvent.type(screen.getByLabelText('Ние'), '10');
+    await userEvent.type(screen.getByLabelText('Ние'), '100');
     await userEvent.click(screen.getByRole('button', { name: DS.save }));
     await screen.findByRole('button', { name: STRINGS.end.rematch });
 

@@ -48,7 +48,7 @@ function playAndEndMatch() {
   const s = appStore.getState();
   s.setContract('hearts', 0);
   s.addDeclaration(0, 'belot');
-  const result = s.saveDeal({ cardPointsA: 10, capo: null });
+  const result = s.saveDeal({ cardPointsA: 100, capo: null });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 

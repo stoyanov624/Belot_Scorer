@@ -24,9 +24,9 @@ const fresh = () =>
     rules: { ...DEFAULT_RULES, targetScore: 999 },
   });
 
+/** `cardPointsA` is exact (ADR 0020). */
 const save = (m: Match, cardPointsA: number | null, capo: 'A' | 'B' | null = null) => {
-  // «Висяща» on: deal 4 is meant to hang; the other deals don't tie (ADR 0018).
-  const r = saveDeal(m, { cardPointsA, capo, hangOnTie: true });
+  const r = saveDeal(m, { cardPointsA, capo });
   if (!r.ok) throw new Error(r.error);
   return r.match;
 };
@@ -44,20 +44,20 @@ const save = (m: Match, cardPointsA: number | null, capo: 'A' | 'B' | null = nul
 function buildMatch(): Match {
   let m = fresh();
 
-  m = save(setContract(m, 'clubs', 1), 6); // deal 1: a=6, b=10
+  m = save(setContract(m, 'clubs', 1), 60); // deal 1: a=6, b=10
 
   m = setContract(m, 'hearts', 0);
   m = addDeclaration(m, { id: 'd1', seat: 0, key: 'terca' });
   m = updateDeclaration(m, 'd1', { top: 'K' });
   m = addDeclaration(m, { id: 'd2', seat: 1, key: 'terca' });
   m = updateDeclaration(m, 'd2', { top: '9' });
-  m = save(m, 10); // deal 2: a=12, b=6
+  m = save(m, 100); // deal 2: a=12, b=6
 
-  m = save(setContract(m, 'spades', 2), 5); // deal 3: inside, a=0, b=16
+  m = save(setContract(m, 'spades', 2), 50); // deal 3: inside, a=0, b=16
 
-  m = save(setContract(m, 'clubs', 1), 8); // deal 4: hang, a=8, b=0
+  m = save(setContract(m, 'clubs', 1), 81); // deal 4: an exact tie hangs, a=8, b=0
 
-  m = save(setContract(m, 'clubs', 1), 5); // deal 5: hangTo B, a=5, b=19
+  m = save(setContract(m, 'clubs', 1), 50); // deal 5: hangTo B, a=5, b=19
 
   m = save(setContract(m, 'spades', 2), null, 'A'); // deal 6: capot for A, a=25, b=0
 

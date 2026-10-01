@@ -24,7 +24,7 @@ function buildMatch(): Match {
   });
   m = setContract(m, 'hearts', 0);
   m = addDeclaration(m, { id: 'd1', seat: 0, key: 'belot' });
-  const r = saveDeal(m, { cardPointsA: 10, capo: null });
+  const r = saveDeal(m, { cardPointsA: 100, capo: null });
   if (!r.ok) throw new Error(r.error);
   return r.match;
 }

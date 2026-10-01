@@ -31,7 +31,9 @@ function startMatch() {
 /** Saves a hearts deal called by North with the given card points for team A. */
 function saveHeartsDeal(cardPointsA: number) {
   appStore.getState().setContract('hearts', 0);
-  const result = appStore.getState().saveDeal({ cardPointsA, capo: null, hangOnTie: true });
+  // Rounded points in, exact out (ADR 0020); 8 means an exact tie, 81 : 81, which hangs.
+  const exact = cardPointsA === 8 ? 81 : cardPointsA * 10;
+  const result = appStore.getState().saveDeal({ cardPointsA: exact, capo: null });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 

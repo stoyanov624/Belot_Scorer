@@ -53,6 +53,20 @@ export const CONTRACT_KIND: Record<ContractKey, ContractKind> = {
   at: 'at',
 };
 
+/**
+ * Exact card points in a deal, last ten included (ADR 0020): a suit game 152 + 10, «Всичко коз»
+ * 248 + 10, «Без коз» 120 + 10. Players enter these; the score is written rounded.
+ */
+export const EXACT_CARD_POINTS: Record<ContractKind, number> = { color: 162, at: 258, nt: 130 };
+
+/** The last digit from which exact card points round up: 76 → 8 in a suit game, 84 → 9 in ВК. */
+export const ROUND_UP_FROM: Record<ContractKind, number> = { color: 6, at: 4, nt: 5 };
+
+/** Exact card points rounded the table way for the game kind (ADR 0020). */
+export function roundCardPoints(exact: number, kind: ContractKind): number {
+  return Math.floor(exact / 10) + (exact % 10 >= ROUND_UP_FROM[kind] ? 1 : 0);
+}
+
 export const RED_CONTRACTS: ReadonlySet<ContractKey> = new Set(['diamonds', 'hearts']);
 
 /** Explicit order — z.enum().options depends on JS object key order, not definition order. */

@@ -231,7 +231,7 @@ describe('DealEndSheet, step 2', () => {
 
     const sheet = screen.getByRole('dialog', { name: S.pointsTitle(1) });
     expect(sheet.getAttribute('aria-describedby')).toBe(
-      within(sheet).getByText(S.hintColor(16)).id,
+      within(sheet).getByText(S.hintColor(162)).id,
     );
     const pill = within(sheet).getByRole('button', { name: '♥ Купа' });
     expect(pill.textContent).toBe('♥');
@@ -249,7 +249,7 @@ describe('DealEndSheet, step 2', () => {
     startMatch('nt');
     renderSheet();
 
-    expect(screen.getByText(S.hintNt(13))).toBeTruthy();
+    expect(screen.getByText(S.hintNt(130))).toBeTruthy();
   });
 
   it('asks the table to change the contract from the pill', async () => {
@@ -261,27 +261,27 @@ describe('DealEndSheet, step 2', () => {
     expect(onChangeContract).toHaveBeenCalledOnce();
   });
 
-  it('labels the inputs by team name, numeric, and fills the other with max − value', async () => {
+  it('labels the inputs by team name, numeric, and fills the other with 162 − value (ADR 0020)', async () => {
     startMatch();
     renderSheet();
 
     expect(inputA().getAttribute('inputmode')).toBe('numeric');
     expect(inputB().getAttribute('inputmode')).toBe('numeric');
 
-    await userEvent.type(inputA(), '10');
-    expect(inputB().value).toBe('6');
+    await userEvent.type(inputA(), '100');
+    expect(inputB().value).toBe('62');
 
     await userEvent.clear(inputB());
     expect(inputA().value).toBe('');
-    await userEvent.type(inputB(), '4');
-    expect(inputA().value).toBe('12');
+    await userEvent.type(inputB(), '40');
+    expect(inputA().value).toBe('122');
   });
 
   it('shows the calculation and the made verdict', async () => {
     startMatch();
     renderSheet();
 
-    await userEvent.type(inputA(), '10');
+    await userEvent.type(inputA(), '100');
 
     expect(calcRow(S.rows.cards)).toEqual([S.rows.cards, '10', '6']);
     expect(calcRow(S.rows.decls)).toEqual([S.rows.decls, '0', '0']);
@@ -295,7 +295,7 @@ describe('DealEndSheet, step 2', () => {
     startMatch('nt');
     renderSheet();
 
-    await userEvent.type(inputA(), '8');
+    await userEvent.type(inputA(), '80');
 
     expect(calcRow(S.rows.totalNt)).toEqual([S.rows.totalNt, '16', '10']);
   });
@@ -304,7 +304,7 @@ describe('DealEndSheet, step 2', () => {
     startMatch('hearts', 1);
     renderSheet();
 
-    await userEvent.type(inputA(), '10');
+    await userEvent.type(inputA(), '100');
 
     expect(verdictBox()?.textContent).toBe('Вътре! Ние взимаме всички 16 точки.');
     expect(verdictBox()?.getAttribute('data-verdict')).toBe('inside');
@@ -312,30 +312,31 @@ describe('DealEndSheet, step 2', () => {
     expect(verdictBox()?.className).toContain('text-on');
   });
 
-  it('counts a tie as made until «Висяща» is pressed (ADR 0018)', async () => {
+  it('hangs on an exact tie, with no extra button (ADR 0020)', async () => {
     startMatch();
     renderSheet();
+
+    await userEvent.type(inputA(), '81');
+
     expect(screen.queryByRole('button', { name: /Висяща/ })).toBeNull();
-
-    await userEvent.type(inputA(), '8');
-
-    const toggle = screen.getByRole('button', { name: /Висяща/ });
-    expect(toggle.getAttribute('aria-pressed')).toBe('false');
-    expect(verdictBox()?.getAttribute('data-verdict')).toBe('ok');
-  });
-
-  it('shows the hanging verdict with «Висяща» pressed', async () => {
-    startMatch();
-    renderSheet();
-
-    await userEvent.type(inputA(), '8');
-    await userEvent.click(screen.getByRole('button', { name: /Висяща/ }));
-
     expect(verdictBox()?.textContent).toBe(
       'Висяща: Ние не записваме, 8 т. висят за следващото раздаване.',
     );
     expect(verdictBox()?.getAttribute('data-verdict')).toBe('hang');
     expect(verdictBox()?.className).toContain('bg-s3');
+  });
+
+  it('decides a rounded 8 : 8 by the exact points (ADR 0020)', async () => {
+    startMatch();
+    renderSheet();
+
+    await userEvent.type(inputA(), '82');
+    expect(verdictBox()?.getAttribute('data-verdict')).toBe('ok');
+
+    await userEvent.clear(inputA());
+    await userEvent.type(inputA(), '76');
+    expect(calcRow(S.rows.cards)).toEqual([S.rows.cards, '8', '8']);
+    expect(verdictBox()?.getAttribute('data-verdict')).toBe('inside');
   });
 
   it('toggles capot per team: inputs show max/0 and the rows and verdict follow', async () => {
@@ -348,7 +349,7 @@ describe('DealEndSheet, step 2', () => {
     await userEvent.click(capoA);
 
     expect(capoA.getAttribute('aria-pressed')).toBe('true');
-    expect(inputA().value).toBe('16');
+    expect(inputA().value).toBe('162');
     expect(inputB().value).toBe('0');
     expect(calcRow(S.rows.cardsCapo)).toEqual([S.rows.cardsCapo, '25', '0']);
     expect(verdictBox()?.textContent?.startsWith('Капо за Ние (+9).')).toBe(true);
@@ -369,7 +370,7 @@ describe('DealEndSheet, step 2', () => {
     await userEvent.click(capoB);
 
     expect(inputA().value).toBe('0');
-    expect(inputB().value).toBe('16');
+    expect(inputB().value).toBe('162');
   });
 
   it('typing clears capot', async () => {
@@ -380,10 +381,10 @@ describe('DealEndSheet, step 2', () => {
 
     await userEvent.click(capoA);
     await userEvent.clear(inputA());
-    await userEvent.type(inputA(), '9');
+    await userEvent.type(inputA(), '90');
 
     expect(capoA.getAttribute('aria-pressed')).toBe('false');
-    expect(inputB().value).toBe('7');
+    expect(inputB().value).toBe('72');
   });
 
   it('blocks saving with an error for missing or out-of-range points', async () => {
@@ -397,9 +398,9 @@ describe('DealEndSheet, step 2', () => {
     await userEvent.click(save);
     expect(onSaved).not.toHaveBeenCalled();
 
-    await userEvent.type(inputA(), '17');
+    await userEvent.type(inputA(), '163');
 
-    expect(screen.getByText(S.errRange(16))).toBeTruthy();
+    expect(screen.getByText(S.errRange(162))).toBeTruthy();
     expect(save.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(save);
     expect(onSaved).not.toHaveBeenCalled();
@@ -410,7 +411,7 @@ describe('DealEndSheet, step 2', () => {
     startMatch();
     const { onSaved } = renderSheet();
 
-    await userEvent.type(inputA(), '10');
+    await userEvent.type(inputA(), '100');
     await userEvent.click(screen.getByRole('button', { name: S.save }));
 
     expect(appStore.getState().match?.games).toEqual([

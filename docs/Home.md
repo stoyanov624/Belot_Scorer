@@ -41,6 +41,7 @@ Read in this order:
 - [0013 Import applies merge, take-match and replace, with an id remap](adr/0013-import-merge-take-replace.md)
 - [0018 Hanging is chosen on a tie; a match can't end while its losers took no card points](adr/0018-chosen-hanging-and-zero-card-match-end.md)
 - [0019 Declarations are shown in real points; scoring stays rounded](adr/0019-declarations-shown-in-real-points.md)
+- [0020 Exact card points decide the verdict; the score is written rounded](adr/0020-exact-card-points-decide-the-verdict.md)
 
 ADRs 0014–0017 are the mobile repo's (`../Belot Scorer Mobile/docs/adr/`).
 

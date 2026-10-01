@@ -1,5 +1,7 @@
 # Hanging is chosen on a tie; a match can't end while its losers took no card points
 
+> **Hanging part superseded by [ADR 0020](0020-exact-card-points-decide-the-verdict.md)** (same day): the toggle is gone; exact card points decide. The match-end rule below still holds.
+
 The product owner changed two scoring rules on 2026-10-01.
 
 **Hanging.** Points are entered rounded, so a rounded tie (8 : 8) can hide a real difference (caller 82, defenders 80): the prototype and v1 made every rounded tie hang. Now the deal-end sheet shows a «Висяща» toggle, off by default, only when the two teams' raw totals tie. On, the deal hangs as before; off, it counts as made by the caller. Exact card points were considered and rejected (a different input, and a data-shape change for every stored deal).

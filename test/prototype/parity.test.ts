@@ -10,23 +10,38 @@ import type {
   Seat,
 } from '../../src/core/model';
 import { DEFAULT_RULES } from '../../src/core/rules';
-import { maxCardPoints, scoreDeal } from '../../src/core/score';
+import { exactCardPoints, maxCardPoints, scoreDeal } from '../../src/core/score';
 import { GOLDEN_DEALS } from '../../src/core/testing/golden-deals';
 // @ts-expect-error untyped verbatim JS port
 import { calc, seatOptions } from './legacy.js';
 
-// The prototype always hangs on a tie; since ADR 0018 that is ours with «Висяща» on.
+/**
+ * The prototype takes rounded card points and hangs on every rounded tie. Since ADR 0020 we take
+ * exact points and hang only on an exact tie, so a case is fed to us as 10× its rounded points
+ * (which round back to the same values) and a rounded tie is left out unless it is exact
+ * (no trumps, 130, splits evenly).
+ */
+const exactFor = (rounded: number | null, contract: ContractKey) => {
+  if (rounded === null) return null;
+  const max = maxCardPoints(contract, DEFAULT_RULES);
+  // The full rounded max is the exact total (26 in ВК is 258, not 260); max + 1 stays out of range.
+  return rounded > max ? rounded * 10 : Math.min(rounded * 10, exactCardPoints(contract));
+};
+
 describe('parity with the HTML prototype: scoring', () => {
   it.each(GOLDEN_DEALS)('$name', ({ input }) => {
-    const ours = scoreDeal({ ...input, hangOnTie: true });
+    const ours = scoreDeal(input);
     const theirs = calc({
       contract: input.contract,
       caller: input.caller,
       capo: input.capo,
       hang: input.hang,
-      inA: input.cardPointsA === null ? '' : String(input.cardPointsA),
+      inA: ours.error || input.capo ? '' : String(ours.cards.A),
       current: input.decls.map((d, i) => ({ ...d, id: i })),
     });
+    // Golden cases are already exact; the prototype sees their rounded points. Rounded ties
+    // that aren't exact ties (18–20) are where ADR 0020 deliberately departs from it.
+    if (theirs.verdict === 'hang' && ours.verdict !== 'hang') return;
     expect({ A: theirs.mA, B: theirs.mB }).toEqual(ours.match);
     expect(theirs.verdict).toBe(ours.verdict);
     expect(theirs.hangTo).toBe(ours.hangTo);
@@ -177,7 +192,7 @@ describe('parity sweep', () => {
   }
 
   it.each(cases)('$name', ({ input }) => {
-    const ours = scoreDeal({ ...input, hangOnTie: true });
+    const ours = scoreDeal({ ...input, cardPointsA: exactFor(input.cardPointsA, input.contract) });
     const theirs = calc({
       contract: input.contract,
       caller: input.caller,
@@ -186,6 +201,8 @@ describe('parity sweep', () => {
       inA: input.cardPointsA === null ? '' : String(input.cardPointsA),
       current: input.decls.map((d, i) => ({ ...d, id: i })),
     });
+    // A rounded tie that isn't an exact one: ADR 0020 departs from the prototype here.
+    if (theirs.verdict === 'hang' && ours.verdict !== 'hang') return;
     expect({ A: theirs.mA, B: theirs.mB }).toEqual(ours.match);
     expect(theirs.verdict).toBe(ours.verdict);
     expect(theirs.hangTo).toBe(ours.hangTo);

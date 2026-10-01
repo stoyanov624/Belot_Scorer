@@ -13,12 +13,25 @@ describe('scoreDeal: golden cases', () => {
   });
 });
 
-describe('scoreDeal: card points', () => {
+describe('scoreDeal: card points (ADR 0020)', () => {
   const input = { contract: 'hearts', caller: 0, decls: [], capo: null, hang: 0 } as const;
 
-  it('fills the other team as max − entered', () => {
-    expect(scoreDeal({ ...input, cardPointsA: 3 }).cards).toEqual({ A: 3, B: 13 });
-    expect(scoreDeal({ ...input, contract: 'at', cardPointsA: 3 }).cards).toEqual({ A: 3, B: 23 });
+  it('rounds the calling team the table way and gives the other team the rest', () => {
+    expect(scoreDeal({ ...input, cardPointsA: 76 }).cards).toEqual({ A: 8, B: 8 });
+    expect(scoreDeal({ ...input, cardPointsA: 75 }).cards).toEqual({ A: 7, B: 9 });
+    // 76 : 86 both end in 6; the calling team rounds (86 → 9), the other gets the rest.
+    expect(scoreDeal({ ...input, caller: 1, cardPointsA: 76 }).cards).toEqual({ A: 7, B: 9 });
+    expect(scoreDeal({ ...input, contract: 'at', cardPointsA: 124 }).cards).toEqual({
+      A: 13,
+      B: 13,
+    });
+    expect(scoreDeal({ ...input, contract: 'nt', cardPointsA: 65 }).cards).toEqual({ A: 7, B: 6 });
+  });
+
+  it('keeps the exact points of both teams', () => {
+    const s = scoreDeal({ ...input, cardPointsA: 76 });
+    expect(s.exactCards).toEqual({ A: 76, B: 86 });
+    expect(s.total).toBe(162);
   });
 
   it('reports missing points', () => {
@@ -27,9 +40,10 @@ describe('scoreDeal: card points', () => {
   });
 
   it('reports points out of range', () => {
-    expect(scoreDeal({ ...input, cardPointsA: 17 }).error).toBe('points-range');
+    expect(scoreDeal({ ...input, cardPointsA: 163 }).error).toBe('points-range');
     expect(scoreDeal({ ...input, cardPointsA: -1 }).error).toBe('points-range');
-    expect(scoreDeal({ ...input, contract: 'nt', cardPointsA: 14 }).error).toBe('points-range');
+    expect(scoreDeal({ ...input, contract: 'nt', cardPointsA: 131 }).error).toBe('points-range');
+    expect(scoreDeal({ ...input, contract: 'at', cardPointsA: 258 }).error).toBeNull();
   });
 
   it('ignores typed points when capot is on', () => {
@@ -42,32 +56,30 @@ describe('scoreDeal: card points', () => {
   });
 });
 
-describe('scoreDeal: a tie (ADR 0018)', () => {
-  const tie = {
-    contract: 'clubs',
-    caller: 1,
-    decls: [],
-    capo: null,
-    hang: 0,
-    cardPointsA: 8,
-  } as const;
+describe('scoreDeal: the exact totals decide the verdict (ADR 0020)', () => {
+  const deal = { contract: 'clubs', caller: 1, decls: [], capo: null, hang: 0 } as const;
 
-  it('reports the tie, and counts it as made without «Висяща»', () => {
-    const s = scoreDeal(tie);
-    expect(s.tie).toBe(true);
-    expect(s.verdict).toBe('ok');
-    expect(s.match).toEqual({ A: 8, B: 8 });
-  });
-
-  it('hangs with «Висяща»', () => {
-    const s = scoreDeal({ ...tie, hangOnTie: true });
+  it('hangs only on an exact tie', () => {
+    const s = scoreDeal({ ...deal, cardPointsA: 81 });
     expect(s.verdict).toBe('hang');
     expect(s.nextHang).toBe(8);
   });
 
-  it('ignores «Висяща» when the totals differ', () => {
-    const s = scoreDeal({ ...tie, cardPointsA: 9, hangOnTie: true });
-    expect(s.tie).toBe(false);
+  it('counts a rounded tie as made when the caller has more exact points', () => {
+    expect(scoreDeal({ ...deal, cardPointsA: 80 }).verdict).toBe('ok');
+  });
+
+  it('sends a rounded tie inside when the caller has fewer exact points', () => {
+    const s = scoreDeal({ ...deal, cardPointsA: 84 });
+    expect(s.cards).toEqual({ A: 8, B: 8 });
     expect(s.verdict).toBe('inside');
+    expect(s.match).toEqual({ A: 16, B: 0 });
+  });
+
+  it('counts declarations in real points in the comparison', () => {
+    const terca = { seat: 1, key: 'terca', top: null, rank: null } as const;
+    // B: 62 + 20 = 82 against A: 100 → inside; with 82 exact cards B has 102 → made.
+    expect(scoreDeal({ ...deal, decls: [terca], cardPointsA: 100 }).verdict).toBe('inside');
+    expect(scoreDeal({ ...deal, decls: [terca], cardPointsA: 80 }).verdict).toBe('ok');
   });
 });
