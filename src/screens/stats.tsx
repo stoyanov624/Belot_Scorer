@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PreloadLink } from '../app/PreloadLink';
 import { type LeaderRow, leaderboard } from '../core/leaderboard';
 import type { Player } from '../core/model';
+import { DECL_DISPLAY_FACTOR } from '../core/rules';
 import { STRINGS } from '../core/strings';
 import { PlayerAvatar } from '../features/players/PlayerAvatar';
 import { statsName, statsSub } from '../features/stats/copy';
@@ -133,7 +134,7 @@ function LeaderRowView({
             rank === 1 && 'text-team-a',
           )}
         >
-          {row.pts}
+          {row.pts * DECL_DISPLAY_FACTOR}
         </p>
         <p className="text-[11px] font-extrabold text-muted">{S.points}</p>
       </div>

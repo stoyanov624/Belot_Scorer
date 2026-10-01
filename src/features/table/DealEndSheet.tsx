@@ -20,6 +20,7 @@ import { Sheet, SheetActions } from '../../ui/Sheet';
 import {
   calcRows,
   dealVerdict,
+  endBlockedNote,
   pointsHint,
   resolutionCardLabel,
   resolutionErrors,
@@ -132,6 +133,8 @@ function PointsStep({
   const saveDeal = useAppStore((s) => s.saveDeal);
   const [cardA, setCardA] = useState('');
   const [capo, setCapo] = useState<Team | null>(null);
+  // ADR 0018: read only when the rounded totals tie; off, a tie counts as made.
+  const [hangOnTie, setHangOnTie] = useState(false);
 
   if (!match || match.contract === null || match.caller === null) return null;
 
@@ -144,6 +147,7 @@ function PointsStep({
       hang: match.hang,
       cardPointsA: parsed,
       capo,
+      hangOnTie,
     },
     match.rules,
   );
@@ -155,6 +159,8 @@ function PointsStep({
       : score.error === 'points-range'
         ? S.errRange(max)
         : null;
+
+  const endBlocked = error === null ? endBlockedNote(match, score, teamName) : null;
 
   let shownA = cardA;
   let shownB = parsed === null ? '' : String(max - parsed);
@@ -175,7 +181,7 @@ function PointsStep({
 
   const save = () => {
     if (error) return;
-    const result = saveDeal({ cardPointsA: parsed, capo });
+    const result = saveDeal({ cardPointsA: parsed, capo, hangOnTie });
     if (result.ok) onSaved(result.ended);
   };
 
@@ -237,6 +243,31 @@ function PointsStep({
         </table>
       </div>
 
+      {error === null && score.tie && (
+        <button
+          type="button"
+          aria-pressed={hangOnTie}
+          onClick={() => setHangOnTie((current) => !current)}
+          className={cx(
+            'flex flex-none items-center gap-3 rounded-2xl border-2 bg-s2 px-3.5 py-2.5 text-left transition-transform active:scale-[0.98]',
+            hangOnTie ? 'border-team-b' : 'border-transparent',
+          )}
+        >
+          <span
+            aria-hidden
+            className={cx(
+              'flex size-6 flex-none items-center justify-center rounded-lg border-2 border-team-b text-sm font-black',
+              hangOnTie && 'bg-team-b text-on',
+            )}
+          >
+            {hangOnTie && '✓'}
+          </span>
+          <span className="flex flex-col">
+            <span className="text-[15px] font-black">{S.hangToggle}</span>
+            <span className="text-[13px] font-bold text-muted">{S.hangToggleHint}</span>
+          </span>
+        </button>
+      )}
       {error === null && (
         <p
           data-verdict={score.verdict}
@@ -248,6 +279,7 @@ function PointsStep({
           {dealVerdict(score, match.caller, capo, match.hang, teamName, match.rules)}
         </p>
       )}
+      {endBlocked && <p className="text-sm font-extrabold text-team-b">{endBlocked}</p>}
       {error && <p className="text-sm font-extrabold text-team-b">{error}</p>}
 
       <SheetActions className="grid grid-cols-[1fr_1.6fr] gap-2.5">

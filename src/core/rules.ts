@@ -86,10 +86,24 @@ export const seqLength = (key: DeclKey): number => (isSequence(key) ? SEQ_LENGTH
 export const validTops = (key: DeclKey): Card[] =>
   isSequence(key) ? CARDS.slice(SEQ_LENGTH[key] - 1) : [];
 
+/**
+ * Declarations are scored in rounded points (a терца is 2) but shown in real points (20), as
+ * players announce them (ADR 0019). Card points and match scores stay rounded on screen.
+ */
+export const DECL_DISPLAY_FACTOR = 10;
+
 export function declPoints(
   decl: { key: DeclKey; rank: KareRank | null },
   rules: RulesConfig = DEFAULT_RULES,
 ): number {
   if (decl.key === 'kare') return decl.rank ? rules.karePoints[decl.rank] : rules.karePoints.Q;
   return rules.declPoints[decl.key];
+}
+
+/** A declaration's value as shown to players, in real points: a терца is 20, a квинта 100. */
+export function declDisplayPoints(
+  decl: { key: DeclKey; rank: KareRank | null },
+  rules: RulesConfig = DEFAULT_RULES,
+): number {
+  return declPoints(decl, rules) * DECL_DISPLAY_FACTOR;
 }

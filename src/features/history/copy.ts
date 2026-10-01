@@ -5,7 +5,7 @@
  */
 
 import type { Card, Deal, DeclKey, KareRank, Match, Seat, Team } from '../../core/model';
-import { declPoints, RED_CONTRACTS, teamOf } from '../../core/rules';
+import { declDisplayPoints, RED_CONTRACTS, teamOf } from '../../core/rules';
 import { STRINGS } from '../../core/strings';
 import { contractLine, declLabel } from '../table/copy';
 
@@ -46,7 +46,7 @@ function declRows(decls: readonly DeclLike[], rules: Match['rules']): HistoryDec
     seat: d.seat,
     team: teamOf(d.seat),
     label: declLabel(d),
-    points: declPoints(d, rules),
+    points: declDisplayPoints(d, rules),
     valid: d.valid,
   }));
 }

@@ -98,7 +98,7 @@ export type SaveDealResult =
 
 export function saveDeal(
   m: Match,
-  input: { cardPointsA: number | null; capo: Team | null },
+  input: { cardPointsA: number | null; capo: Team | null; hangOnTie?: boolean },
 ): SaveDealResult {
   if (m.status === 'ended') return { ok: false, error: 'match-ended' };
   if (m.contract === null || m.caller === null) return { ok: false, error: 'no-contract' };
@@ -131,9 +131,24 @@ export function saveDeal(
     games: [...m.games, deal],
     hang: score.nextHang,
   };
-  const t = totals(next);
-  const ended = Math.max(t.A, t.B) >= m.rules.targetScore && t.A !== t.B && input.capo === null;
+  const ended = endsMatch(totals(next), score.cards, m.rules.targetScore) === 'ends';
   return { ok: true, match: ended ? endMatch(next) : next, ended };
+}
+
+/**
+ * Whether a deal ends the match (ADR 0018): a team has reached the target, the totals differ,
+ * and the team that would lose the match took card points in this deal. A losing team without
+ * a single card point (a capot against it, or 0 typed in) gets another deal, whatever its
+ * declarations. `blocked` is that last case, for the verdict line.
+ */
+export function endsMatch(
+  after: Record<Team, number>,
+  cards: Record<Team, number>,
+  target: number,
+): 'ends' | 'blocked' | 'continues' {
+  if (Math.max(after.A, after.B) < target || after.A === after.B) return 'continues';
+  const loser: Team = after.A < after.B ? 'A' : 'B';
+  return cards[loser] > 0 ? 'ends' : 'blocked';
 }
 
 export function undoLastDeal(m: Match): Match {

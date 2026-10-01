@@ -15,9 +15,10 @@ import { GOLDEN_DEALS } from '../../src/core/testing/golden-deals';
 // @ts-expect-error untyped verbatim JS port
 import { calc, seatOptions } from './legacy.js';
 
+// The prototype always hangs on a tie; since ADR 0018 that is ours with «Висяща» on.
 describe('parity with the HTML prototype: scoring', () => {
   it.each(GOLDEN_DEALS)('$name', ({ input }) => {
-    const ours = scoreDeal(input);
+    const ours = scoreDeal({ ...input, hangOnTie: true });
     const theirs = calc({
       contract: input.contract,
       caller: input.caller,
@@ -176,7 +177,7 @@ describe('parity sweep', () => {
   }
 
   it.each(cases)('$name', ({ input }) => {
-    const ours = scoreDeal(input);
+    const ours = scoreDeal({ ...input, hangOnTie: true });
     const theirs = calc({
       contract: input.contract,
       caller: input.caller,

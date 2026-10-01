@@ -13,6 +13,12 @@ export interface DealInput {
   capo: Team | null;
   /** Hanging points carried into this deal. */
   hang: number;
+  /**
+   * When the two teams' raw totals tie, whether the deal hangs (the «Висяща» toggle). The
+   * rounded points can't tell an exact tie from a near one, so the user says (ADR 0018); off,
+   * a tie counts as made by the caller.
+   */
+  hangOnTie?: boolean;
 }
 
 export interface DealScore {
@@ -24,6 +30,8 @@ export interface DealScore {
   raw: Record<Team, number>;
   match: Record<Team, number>;
   verdict: Verdict;
+  /** The raw totals tie: the deal hangs only if `hangOnTie` was set. */
+  tie: boolean;
   hangPoints: number;
   hangTo: Team | null;
   nextHang: number;
@@ -64,7 +72,7 @@ export function scoreDeal(input: DealInput, rules: RulesConfig = DEFAULT_RULES):
   if (raw[T] < raw[O]) {
     verdict = 'inside';
     match[O] = raw.A + raw.B;
-  } else if (raw[T] === raw[O]) {
+  } else if (raw[T] === raw[O] && input.hangOnTie) {
     verdict = 'hang';
     match[O] = raw[O];
     hangPoints = raw[T];
@@ -89,6 +97,7 @@ export function scoreDeal(input: DealInput, rules: RulesConfig = DEFAULT_RULES):
     raw,
     match,
     verdict,
+    tie: raw.A === raw.B,
     hangPoints,
     hangTo,
     nextHang,

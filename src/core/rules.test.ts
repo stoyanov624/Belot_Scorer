@@ -4,6 +4,7 @@ import {
   CARDS,
   DEAL_ORDER,
   DEFAULT_RULES,
+  declDisplayPoints,
   declPoints,
   KARE_RANKS,
   otherTeam,
@@ -99,5 +100,16 @@ describe('RulesConfigSchema', () => {
 
   it('rejects a zero target score', () => {
     expect(RulesConfigSchema.safeParse({ ...DEFAULT_RULES, targetScore: 0 }).success).toBe(false);
+  });
+});
+
+describe('declDisplayPoints (ADR 0019)', () => {
+  it('shows declarations in real points', () => {
+    const p = (key: 'belot' | 'terca' | 'kvarta' | 'kvinta') =>
+      declDisplayPoints({ key, rank: null });
+    expect([p('belot'), p('terca'), p('kvarta'), p('kvinta')]).toEqual([20, 20, 50, 100]);
+    expect(declDisplayPoints({ key: 'kare', rank: 'J' })).toBe(200);
+    expect(declDisplayPoints({ key: 'kare', rank: '9' })).toBe(150);
+    expect(declDisplayPoints({ key: 'kare', rank: 'A' })).toBe(100);
   });
 });

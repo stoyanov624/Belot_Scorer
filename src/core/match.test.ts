@@ -6,6 +6,7 @@ import {
   currentDeclarationSum,
   dealer,
   endMatch,
+  endsMatch,
   isSeriesOver,
   matchNumber,
   maxCardPointsFor,
@@ -195,13 +196,13 @@ describe('saveDeal', () => {
 
   it('ends the match at 151 and credits the series', () => {
     let m = fresh(3);
-    for (let i = 0; i < 9; i++) {
-      const r = save(m, 16);
+    for (let i = 0; i < 10; i++) {
+      const r = save(m, 15);
       expect(r.ended).toBe(false);
       m = r.match;
     }
-    const last = save(m, 16);
-    expect(totals(last.match)).toEqual({ A: 160, B: 0 });
+    const last = save(m, 15);
+    expect(totals(last.match)).toEqual({ A: 165, B: 11 });
     expect(last.ended).toBe(true);
     expect(last.match.status).toBe('ended');
     expect(last.match.series).toEqual({ A: 1, B: 0 });
@@ -213,10 +214,46 @@ describe('saveDeal', () => {
     expect(r.ended).toBe(false);
   });
 
-  it('does not end on a capot deal', () => {
-    const r = save(withGames(fresh(), [150, 0]), 0, 'A');
-    expect(totals(r.match).A).toBe(175);
+  // ADR 0018: the match loser must have taken card points in the deal that would end it.
+  it('does not end when the losing team took no card points (capot by the leaders)', () => {
+    const r = save(withGames(fresh(), [145, 100]), 0, 'A');
+    expect(totals(r.match)).toEqual({ A: 170, B: 100 });
     expect(r.ended).toBe(false);
+  });
+
+  it('does not end when a capot against the leaders makes them the losers', () => {
+    const r = saveDeal(setContract(withGames(fresh(), [145, 135]), 'hearts', 1), {
+      cardPointsA: null,
+      capo: 'B',
+    });
+    if (!r.ok) throw new Error(r.error);
+    expect(totals(r.match)).toEqual({ A: 145, B: 160 });
+    expect(r.ended).toBe(false);
+  });
+
+  it('does not end on 0 typed card points for the losers, whatever their declarations', () => {
+    let m = setContract(withGames(fresh(), [140, 100]), 'hearts', 0);
+    m = addDeclaration(m, { id: 't', seat: 1, key: 'terca' });
+    const r = saveDeal(m, { cardPointsA: 16, capo: null });
+    if (!r.ok) throw new Error(r.error);
+    expect(totals(r.match)).toEqual({ A: 156, B: 102 });
+    expect(r.ended).toBe(false);
+  });
+
+  it('ends when the losing team took some card points', () => {
+    const r = save(withGames(fresh(), [140, 100]), 14);
+    expect(totals(r.match)).toEqual({ A: 154, B: 102 });
+    expect(r.ended).toBe(true);
+  });
+
+  it('ends when the winners took no card points but the losers did', () => {
+    const r = saveDeal(setContract(withGames(fresh(), [170, 100]), 'hearts', 1), {
+      cardPointsA: null,
+      capo: 'B',
+    });
+    if (!r.ok) throw new Error(r.error);
+    expect(totals(r.match)).toEqual({ A: 170, B: 125 });
+    expect(r.ended).toBe(true);
   });
 
   it('respects the target score snapshotted onto the match', () => {
@@ -243,7 +280,11 @@ describe('saveDeal', () => {
 
 describe('undoLastDeal', () => {
   it('removes the last deal and restores hanging points', () => {
-    const hung = saveDeal(setContract(fresh(), 'clubs', 1), { cardPointsA: 8, capo: null });
+    const hung = saveDeal(setContract(fresh(), 'clubs', 1), {
+      cardPointsA: 8,
+      capo: null,
+      hangOnTie: true,
+    });
     if (!hung.ok) throw new Error(hung.error);
     expect(hung.match.hang).toBe(8);
     const undone = undoLastDeal(hung.match);
@@ -408,5 +449,21 @@ describe('toMatchRecord', () => {
       totalB: 6,
       games: [{ decls: [] }],
     });
+  });
+});
+
+describe('endsMatch', () => {
+  it('continues below the target or on equal totals', () => {
+    expect(endsMatch({ A: 150, B: 10 }, { A: 10, B: 6 }, 151)).toBe('continues');
+    expect(endsMatch({ A: 160, B: 160 }, { A: 10, B: 6 }, 151)).toBe('continues');
+  });
+
+  it('blocks when the losing team took no card points', () => {
+    expect(endsMatch({ A: 160, B: 10 }, { A: 16, B: 0 }, 151)).toBe('blocked');
+    expect(endsMatch({ A: 10, B: 160 }, { A: 0, B: 16 }, 151)).toBe('blocked');
+  });
+
+  it('ends otherwise, even when the winners took no card points', () => {
+    expect(endsMatch({ A: 160, B: 10 }, { A: 0, B: 16 }, 151)).toBe('ends');
   });
 });

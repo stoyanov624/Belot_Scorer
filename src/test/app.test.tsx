@@ -8,7 +8,7 @@ describe('renderRoute', () => {
   it('renders the home screen with an empty roster after resetApp', () => {
     resetApp();
     renderRoute('/');
-    expect(screen.getByRole('heading', { name: 'Белот' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Белотомания' })).toBeTruthy();
     expect(appStore.getState().roster).toEqual([]);
   });
 

@@ -41,3 +41,33 @@ describe('scoreDeal: card points', () => {
     expect(scoreDeal({ ...input, cardPointsA: 5 }).multiplier).toBe(1);
   });
 });
+
+describe('scoreDeal: a tie (ADR 0018)', () => {
+  const tie = {
+    contract: 'clubs',
+    caller: 1,
+    decls: [],
+    capo: null,
+    hang: 0,
+    cardPointsA: 8,
+  } as const;
+
+  it('reports the tie, and counts it as made without «Висяща»', () => {
+    const s = scoreDeal(tie);
+    expect(s.tie).toBe(true);
+    expect(s.verdict).toBe('ok');
+    expect(s.match).toEqual({ A: 8, B: 8 });
+  });
+
+  it('hangs with «Висяща»', () => {
+    const s = scoreDeal({ ...tie, hangOnTie: true });
+    expect(s.verdict).toBe('hang');
+    expect(s.nextHang).toBe(8);
+  });
+
+  it('ignores «Висяща» when the totals differ', () => {
+    const s = scoreDeal({ ...tie, cardPointsA: 9, hangOnTie: true });
+    expect(s.tie).toBe(false);
+    expect(s.verdict).toBe('inside');
+  });
+});

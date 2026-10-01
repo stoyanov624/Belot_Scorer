@@ -3,7 +3,7 @@
  * computed by the core (`resolve`, `scoreDeal`, `matchNumber`, rules) — it never scores or
  * resolves anything itself.
  */
-import { matchNumber } from '../../core/match';
+import { endsMatch, matchNumber, totals } from '../../core/match';
 import type {
   BestOf,
   Card,
@@ -17,7 +17,8 @@ import type {
 import type { Resolution } from '../../core/resolve';
 import {
   CONTRACT_KIND,
-  declPoints,
+  DECL_DISPLAY_FACTOR,
+  declDisplayPoints,
   isSequence,
   otherTeam,
   type RulesConfig,
@@ -33,19 +34,22 @@ export function declLabel(d: { key: DeclKey; top: Card | null; rank: KareRank | 
   return STRINGS.decls[d.key];
 }
 
-/** A resolution card's heading, e.g. "Терца · 2"; a four of a kind shows points only once ranked. */
+/** A resolution card's heading, e.g. "Терца · 20"; a four of a kind shows points only once ranked. */
 export function resolutionCardLabel(
   d: { key: DeclKey; rank: KareRank | null },
   rules: RulesConfig,
 ): string {
   if (d.key === 'kare' && d.rank === null) return STRINGS.decls.kare;
-  return `${STRINGS.decls[d.key]} · ${declPoints(d, rules)}`;
+  return `${STRINGS.decls[d.key]} · ${declDisplayPoints(d, rules)}`;
 }
 
-/** The points shown on a declaration's option button. Kare shows its lowest value with a "+". */
+/**
+ * The points shown on a declaration's option button, in real points (ADR 0019). Kare shows its
+ * lowest value with a "+".
+ */
 export function declOptionPoints(key: DeclKey, rules: RulesConfig): string {
-  if (key !== 'kare') return String(declPoints({ key, rank: null }, rules));
-  const values = Object.values(rules.karePoints);
+  if (key !== 'kare') return String(declDisplayPoints({ key, rank: null }, rules));
+  const values = Object.values(rules.karePoints).map((v) => v * DECL_DISPLAY_FACTOR);
   const min = Math.min(...values);
   const max = Math.max(...values);
   return min === max ? String(min) : `${min}+`;
@@ -149,4 +153,19 @@ export function calcRows(
 /** Looks up a team's display name on the match. */
 export function teamNameOf(m: Pick<Match, 'teamA' | 'teamB'>): (t: Team) => string {
   return (t: Team) => (t === 'A' ? m.teamA : m.teamB);
+}
+
+/**
+ * The note under the verdict when this deal would reach the target but can't end the match,
+ * because the match's losers took no card points in it (ADR 0018). Null otherwise.
+ */
+export function endBlockedNote(
+  match: Pick<Match, 'games' | 'rules'>,
+  score: DealScore,
+  teamName: (t: Team) => string,
+): string | null {
+  const before = totals(match);
+  const after = { A: before.A + score.match.A, B: before.B + score.match.B };
+  if (endsMatch(after, score.cards, match.rules.targetScore) !== 'blocked') return null;
+  return STRINGS.deal.endBlocked(teamName(after.A < after.B ? 'A' : 'B'));
 }

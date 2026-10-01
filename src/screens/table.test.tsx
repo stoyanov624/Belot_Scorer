@@ -31,7 +31,7 @@ function startMatch(bestOf: BestOf = 1) {
 /** Saves a hearts deal called by North with the given card points for team A. */
 function saveHeartsDeal(cardPointsA: number) {
   appStore.getState().setContract('hearts', 0);
-  const result = appStore.getState().saveDeal({ cardPointsA, capo: null });
+  const result = appStore.getState().saveDeal({ cardPointsA, capo: null, hangOnTie: true });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 
@@ -152,7 +152,7 @@ describe('Table', () => {
 
     const chip = within(seat('Север')).getByRole('button', { name: S.removeDecl('Терца') });
     expect(chip.textContent).toContain('Терца');
-    expect(screen.getByText(S.declared(2, 0))).toBeTruthy();
+    expect(screen.getByText(S.declared(20, 0))).toBeTruthy();
 
     await userEvent.click(chip);
 
@@ -220,7 +220,7 @@ describe('Declarations popover', () => {
     await userEvent.click(within(seat('Север')).getByRole('button', { name: 'Иван' }));
 
     const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
-    for (const name of ['Белот 2', 'Терца 2', 'Кварта 5', 'Квинта 10', 'Каре 10+']) {
+    for (const name of ['Белот 20', 'Терца 20', 'Кварта 50', 'Квинта 100', 'Каре 100+']) {
       expect(within(dialog).getByRole('button', { name })).toBeTruthy();
     }
   });
@@ -235,7 +235,7 @@ describe('Declarations popover', () => {
     const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
     await userEvent.click(avatar);
     const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 2' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 20' }));
 
     expect(avatar.getAttribute('aria-expanded')).toBe('false');
     expect(appStore.getState().match?.current).toEqual([
@@ -255,17 +255,17 @@ describe('Declarations popover', () => {
     // Квинта (5 cards), then Терца (3 more): exactly the seat's 8 cards, the real legal path to
     // the boundary (a quinte plus a quarte, 9 cards, is illegal and the store already refuses it).
     await userEvent.click(avatar);
-    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Квинта 10' }));
+    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Квинта 100' }));
 
     await userEvent.click(avatar);
-    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Терца 2' }));
+    await userEvent.click(within(openDialog()).getByRole('button', { name: 'Терца 20' }));
 
     await userEvent.click(avatar);
     const dialog = openDialog();
-    expect(within(dialog).getByRole('button', { name: 'Белот 2' })).toBeTruthy();
+    expect(within(dialog).getByRole('button', { name: 'Белот 20' })).toBeTruthy();
     expect(within(dialog).queryAllByRole('button')).toHaveLength(1);
 
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Белот 2' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Белот 20' }));
     await userEvent.click(avatar);
 
     expect(within(openDialog()).getByText(S.blocked['no-cards'])).toBeTruthy();
@@ -297,7 +297,7 @@ describe('Declarations popover', () => {
     const avatar = within(seat('Север')).getByRole('button', { name: 'Иван' });
     await userEvent.click(avatar);
     const dialog = screen.getByRole('dialog', { name: S.declares('Иван') });
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 2' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Терца 20' }));
 
     expect(document.activeElement).toBe(avatar);
   });

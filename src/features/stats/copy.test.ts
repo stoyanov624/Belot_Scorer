@@ -38,7 +38,7 @@ describe('statsSub', () => {
     const row = players.find((p) => p.key === 'p0');
     if (!row) throw new Error('missing row');
 
-    expect(statsSub(row, 'players')).toBe('1 обяви · 1 белота · 1/1 победи');
+    expect(statsSub(row, 'players')).toBe('1 мач · 1 победа · 1 обяви · 1 белота');
   });
 
   it('formats the pairs line prefixed with the team name', () => {
@@ -46,14 +46,16 @@ describe('statsSub', () => {
     if (!row) throw new Error('missing row');
 
     expect(row.teamName).toBe('Шефовете');
-    expect(statsSub(row, 'pairs')).toBe('Шефовете · 1 обяви · 1 белота · 1/1 победи');
+    expect(statsSub(row, 'pairs')).toBe('Шефовете · 1 мач · 1 победа · 1 обяви · 1 белота');
   });
 
   it('omits the prefix for a pair with no team name', () => {
     const row = pairs.find((p) => p.key === 'p0|p2');
     if (!row) throw new Error('missing row');
 
-    expect(statsSub({ ...row, teamName: null }, 'pairs')).toBe('1 обяви · 1 белота · 1/1 победи');
+    expect(statsSub({ ...row, teamName: null }, 'pairs')).toBe(
+      '1 мач · 1 победа · 1 обяви · 1 белота',
+    );
   });
 });
 

@@ -1,5 +1,6 @@
 import { currentDeclarationSum, totals } from '../../core/match';
 import type { Match } from '../../core/model';
+import { DECL_DISPLAY_FACTOR } from '../../core/rules';
 import { STRINGS } from '../../core/strings';
 import { cx } from '../../ui/cx';
 
@@ -33,7 +34,7 @@ export function Coaster({
         </div>
       </div>
       <p className="text-center text-[11px] font-bold text-muted">
-        {STRINGS.table.declared(declared.A, declared.B)}
+        {STRINGS.table.declared(declared.A * DECL_DISPLAY_FACTOR, declared.B * DECL_DISPLAY_FACTOR)}
       </p>
       {match.hang > 0 && (
         <p className="text-[11px] font-black text-team-b">{STRINGS.table.hanging(match.hang)}</p>

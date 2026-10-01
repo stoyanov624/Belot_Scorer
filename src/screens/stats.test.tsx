@@ -110,18 +110,18 @@ describe('Leaderboard', () => {
       const { container } = await setUp();
 
       expect(container.querySelector('[data-rank="1"]')?.textContent).toContain(
-        '1 обяви · 1 белота · 1/1 победи',
+        '1 мач · 1 победа · 1 обяви · 1 белота',
       );
       expect(container.querySelector('[data-rank="2"]')?.textContent).toContain(
-        '0 обяви · 0 белота · 1/1 победи',
+        '1 мач · 1 победа · 0 обяви · 0 белота',
       );
       expect(container.querySelector('[data-rank="3"]')?.textContent).toContain(
-        '0 обяви · 0 белота · 0/1 победи',
+        '1 мач · 0 победи · 0 обяви · 0 белота',
       );
       expect(screen.getAllByText(S.points)).toHaveLength(4);
       const first = container.querySelector<HTMLElement>('[data-rank="1"]');
       if (!first) throw new Error('missing row');
-      expect(within(first).getByText('2')).toBeTruthy(); // Иван's points
+      expect(within(first).getByText('20')).toBeTruthy(); // Иван's points, in real points (ADR 0019)
       // Decorative: avatars carry no accessible name of their own.
       expect(screen.queryAllByRole('img')).toHaveLength(0);
     });
@@ -133,10 +133,10 @@ describe('Leaderboard', () => {
 
       expect(rowNames()).toEqual(['Иван и Мария', 'Петър и Гошо']);
       expect(container.querySelector('[data-rank="1"]')?.textContent).toContain(
-        'Ние · 1 обяви · 1 белота · 1/1 победи',
+        'Ние · 1 мач · 1 победа · 1 обяви · 1 белота',
       );
       expect(container.querySelector('[data-rank="2"]')?.textContent).toContain(
-        'Вие · 0 обяви · 0 белота · 0/1 победи',
+        'Вие · 1 мач · 0 победи · 0 обяви · 0 белота',
       );
       const avatars = container.querySelectorAll('[data-rank="1"] [aria-hidden="true"]');
       expect(avatars.length).toBeGreaterThanOrEqual(2);

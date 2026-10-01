@@ -39,6 +39,10 @@ Read in this order:
 - [0011 Resume a stored match, continue it from Home, confirm before replacing it](adr/0011-resume-and-replace-matches.md)
 - [0012 Scale the table, end screen, setup and sheets with the viewport height](adr/0012-scale-with-viewport-height.md)
 - [0013 Import applies merge, take-match and replace, with an id remap](adr/0013-import-merge-take-replace.md)
+- [0018 Hanging is chosen on a tie; a match can't end while its losers took no card points](adr/0018-chosen-hanging-and-zero-card-match-end.md)
+- [0019 Declarations are shown in real points; scoring stays rounded](adr/0019-declarations-shown-in-real-points.md)
+
+ADRs 0014–0017 are the mobile repo's (`../Belot Scorer Mobile/docs/adr/`).
 
 ## Product spec
 

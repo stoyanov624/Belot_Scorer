@@ -16,12 +16,14 @@ const PAY: Conjugation = { we: 'черпим', you: 'черпите', they: 'ч�
 const MADE: Conjugation = { we: 'изкарахме', you: 'изкарахте', they: 'изкараха' };
 const TAKE: Conjugation = { we: 'взимаме', you: 'взимате', they: 'взимат' };
 const NO_SCORE: Conjugation = { we: 'не записваме', you: 'не записвате', they: 'не записват' };
+const NO_CARDS: Conjugation = { we: 'не взехме', you: 'не взехте', they: 'не взеха' };
 
 /** Bulgarian UI copy. Core returns codes; the UI looks the words up here. */
 export const STRINGS = {
-  appName: 'Белот',
+  // The product's name (product owner, 2026-10-01); «Белот» stays the game's name in the header.
+  appName: 'Белотомания',
   screens: {
-    home: 'Белот',
+    home: 'Белотомания',
     setup: 'Нова игра',
   },
   themes: {
@@ -169,8 +171,13 @@ export const STRINGS = {
     hang: (team: string, n: number) =>
       `Висяща: ${team} ${agree(team, NO_SCORE)}, ${n} т. висят за следващото раздаване.`,
     hangTo: (n: number, team: string) => ` +${n} висящи за ${team}.`,
-    capoNote: (team: string, bonus: number, text: string) =>
-      `Капо за ${team} (+${bonus}). ${text} С капо мачът не може да приключи — играе се още едно раздаване.`,
+    capoNote: (team: string, bonus: number, text: string) => `Капо за ${team} (+${bonus}). ${text}`,
+    // ADR 0018: the match can't end on a deal in which its losers took no card points.
+    endBlocked: (team: string) =>
+      `Мачът не приключва: ${team} ${agree(team, NO_CARDS)} точки от картите — играе се още едно раздаване.`,
+    // ADR 0018: shown only when the rounded totals tie; the user says whether it really hangs.
+    hangToggle: 'Висяща',
+    hangToggleHint: 'Точките са точно равни',
     errMissing: 'Въведете точките от картите.',
     errRange: (max: number) => `Точките от картите трябва да са между 0 и ${max}.`,
     back: 'Назад',
@@ -226,7 +233,7 @@ export const STRINGS = {
   stats: {
     back: '← Начало',
     title: 'Класация',
-    hint: (n: number) => `Зачетени обяви в закръглени точки от ${n} завършени мача.`,
+    hint: (n: number) => `Зачетени обяви в точки от ${n} завършени мача.`,
     players: 'По играчи',
     pairs: 'По отбори',
     // Not in the handoff: the accessible name of the players/pairs Segmented.
@@ -234,7 +241,52 @@ export const STRINGS = {
     // Both sentences are from the prototype; the handoff README has no empty-state copy here.
     empty: 'Още няма завършени мачове. Класацията се попълва след всеки приключен мач.',
     sub: (count: number, belots: number, wins: number, matches: number) =>
-      `${count} обяви · ${belots} белота · ${wins}/${matches} победи`,
+      `${matches} ${matches === 1 ? 'мач' : 'мача'} · ${wins} ${wins === 1 ? 'победа' : 'победи'} · ${count} обяви · ${belots} белота`,
+    // The period filter (product owner, 2026-10-01). Not persisted: «Всички» on every visit.
+    period: 'Период',
+    presets: {
+      all: 'Всички',
+      thisYear: 'Тази година',
+      lastYear: 'Миналата година',
+      thisMonth: 'Този месец',
+    },
+    months: [
+      'януари',
+      'февруари',
+      'март',
+      'април',
+      'май',
+      'юни',
+      'юли',
+      'август',
+      'септември',
+      'октомври',
+      'ноември',
+      'декември',
+    ],
+    monthsShort: [
+      'яну',
+      'фев',
+      'мар',
+      'апр',
+      'май',
+      'юни',
+      'юли',
+      'авг',
+      'сеп',
+      'окт',
+      'ное',
+      'дек',
+    ],
+    weekdays: ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'],
+    range: (from: string, to: string) => `${from} – ${to}`,
+    pickHint: 'Изберете първия и последния ден.',
+    prevMonth: 'Предишен месец',
+    nextMonth: 'Следващ месец',
+    prevYear: 'Предишна година',
+    nextYear: 'Следваща година',
+    apply: 'Покажи',
+    emptyPeriod: 'Няма завършени мачове в този период.',
     points: 'точки',
     reset: 'Нулирай класацията',
     resetArmed: 'Натиснете пак, за да изтриете цялата класация',

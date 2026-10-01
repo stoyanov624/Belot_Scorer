@@ -156,7 +156,7 @@ describe('History', () => {
   it('shows a hanging note', async () => {
     startMatch();
     appStore.getState().setContract('clubs', 1);
-    const r = appStore.getState().saveDeal({ cardPointsA: 8, capo: null });
+    const r = appStore.getState().saveDeal({ cardPointsA: 8, capo: null, hangOnTie: true });
     if (!r.ok) throw new Error('saveDeal failed');
     await renderHistory();
 

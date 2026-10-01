@@ -39,6 +39,8 @@ export interface MatchActions {
   saveDeal(input: {
     cardPointsA: number | null;
     capo: Team | null;
+    /** The «Висяща» toggle, read only when the deal's totals tie (ADR 0018). */
+    hangOnTie?: boolean;
   }): SaveDealResult | { ok: false; error: 'no-match' };
   /** Ends the match by hand (after the user confirms) and records it. */
   endMatch(): void;

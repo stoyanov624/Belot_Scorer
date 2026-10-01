@@ -25,7 +25,8 @@ const fresh = () =>
   });
 
 const save = (m: Match, cardPointsA: number | null, capo: 'A' | 'B' | null = null) => {
-  const r = saveDeal(m, { cardPointsA, capo });
+  // «Висяща» on: deal 4 is meant to hang; the other deals don't tie (ADR 0018).
+  const r = saveDeal(m, { cardPointsA, capo, hangOnTie: true });
   if (!r.ok) throw new Error(r.error);
   return r.match;
 };
@@ -100,8 +101,8 @@ describe('historyEntries', () => {
   it('marks a dropped declaration invalid, with a stable index-based id', () => {
     const deal2 = entries.find((e) => e.no === 2);
     expect(deal2?.decls).toEqual([
-      { id: 0, seat: 0, team: 'A', label: 'Терца до K', points: 2, valid: true },
-      { id: 1, seat: 1, team: 'B', label: 'Терца до 9', points: 2, valid: false },
+      { id: 0, seat: 0, team: 'A', label: 'Терца до K', points: 20, valid: true },
+      { id: 1, seat: 1, team: 'B', label: 'Терца до 9', points: 20, valid: false },
     ]);
   });
 
@@ -144,8 +145,8 @@ describe('currentEntry', () => {
     expect(currentEntry(m)).toEqual({
       no: 1,
       decls: [
-        { id: 0, seat: 0, team: 'A', label: 'Белот', points: 2, valid: true },
-        { id: 1, seat: 3, team: 'B', label: 'Каре J', points: 20, valid: true },
+        { id: 0, seat: 0, team: 'A', label: 'Белот', points: 20, valid: true },
+        { id: 1, seat: 3, team: 'B', label: 'Каре J', points: 200, valid: true },
       ],
     });
   });

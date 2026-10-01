@@ -31,7 +31,7 @@ function startMatch() {
 /** Saves a hearts deal called by North with the given card points for team A. */
 function saveHeartsDeal(cardPointsA: number) {
   appStore.getState().setContract('hearts', 0);
-  const result = appStore.getState().saveDeal({ cardPointsA, capo: null });
+  const result = appStore.getState().saveDeal({ cardPointsA, capo: null, hangOnTie: true });
   if (!result.ok) throw new Error('saveDeal failed');
 }
 

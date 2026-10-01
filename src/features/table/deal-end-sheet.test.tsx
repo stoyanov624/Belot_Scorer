@@ -64,7 +64,7 @@ const chipLabels = (el: HTMLElement) =>
     .map((b) => b.textContent);
 
 describe('DealEndSheet, step 1', () => {
-  it('shows one card per sequence with the player, "Терца · 2", "до" and the tops from core', () => {
+  it('shows one card per sequence with the player, "Терца · 20", "до" and the tops from core', () => {
     startMatch();
     declare([0, 'terca'], [1, 'terca'], [0, 'belot']);
     renderSheet();
@@ -76,11 +76,11 @@ describe('DealEndSheet, step 1', () => {
 
     for (const name of ['Иван', 'Петър']) {
       const c = card(name);
-      expect(within(c).getByText('Терца · 2')).toBeTruthy();
+      expect(within(c).getByText('Терца · 20')).toBeTruthy();
       expect(within(c).getByText(S.to)).toBeTruthy();
       expect(chipLabels(c)).toEqual(['9', '10', 'J', 'Q', 'K', 'A']);
       // Each card's chips form their own radiogroup, named by the card's declaration label.
-      expect(within(c).getByRole('radiogroup', { name: 'Терца · 2' })).toBeTruthy();
+      expect(within(c).getByRole('radiogroup', { name: 'Терца · 20' })).toBeTruthy();
     }
   });
 
@@ -97,7 +97,7 @@ describe('DealEndSheet, step 1', () => {
     await userEvent.click(within(c).getByRole('radio', { name: 'J' }));
 
     expect(current()[0]?.rank).toBe('J');
-    expect(within(card('Мария')).getByText('Каре · 20')).toBeTruthy();
+    expect(within(card('Мария')).getByText('Каре · 200')).toBeTruthy();
     expect(
       within(card('Мария')).getByRole('radio', { name: 'J' }).getAttribute('aria-checked'),
     ).toBe('true');
@@ -312,11 +312,24 @@ describe('DealEndSheet, step 2', () => {
     expect(verdictBox()?.className).toContain('text-on');
   });
 
-  it('shows the hanging verdict', async () => {
+  it('counts a tie as made until «Висяща» is pressed (ADR 0018)', async () => {
+    startMatch();
+    renderSheet();
+    expect(screen.queryByRole('button', { name: /Висяща/ })).toBeNull();
+
+    await userEvent.type(inputA(), '8');
+
+    const toggle = screen.getByRole('button', { name: /Висяща/ });
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    expect(verdictBox()?.getAttribute('data-verdict')).toBe('ok');
+  });
+
+  it('shows the hanging verdict with «Висяща» pressed', async () => {
     startMatch();
     renderSheet();
 
     await userEvent.type(inputA(), '8');
+    await userEvent.click(screen.getByRole('button', { name: /Висяща/ }));
 
     expect(verdictBox()?.textContent).toBe(
       'Висяща: Ние не записваме, 8 т. висят за следващото раздаване.',

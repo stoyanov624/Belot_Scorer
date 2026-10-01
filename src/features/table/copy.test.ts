@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createMatch, matchNumber } from '../../core/match';
-import type { Match, Seat, Team } from '../../core/model';
+import type { Deal, Match, Seat, Team } from '../../core/model';
 import { resolve } from '../../core/resolve';
 import { DEFAULT_RULES, type RulesConfig } from '../../core/rules';
 import { scoreDeal } from '../../core/score';
@@ -11,6 +11,7 @@ import {
   dealVerdict,
   declLabel,
   declOptionPoints,
+  endBlockedNote,
   headerLine,
   pointsHint,
   resolutionCardLabel,
@@ -42,24 +43,24 @@ describe('declLabel', () => {
 
 describe('resolutionCardLabel', () => {
   it('labels a sequence with its points from the rules', () => {
-    expect(resolutionCardLabel({ key: 'terca', rank: null }, DEFAULT_RULES)).toBe('Терца · 2');
-    expect(resolutionCardLabel({ key: 'kvinta', rank: null }, DEFAULT_RULES)).toBe('Квинта · 10');
+    expect(resolutionCardLabel({ key: 'terca', rank: null }, DEFAULT_RULES)).toBe('Терца · 20');
+    expect(resolutionCardLabel({ key: 'kvinta', rank: null }, DEFAULT_RULES)).toBe('Квинта · 100');
   });
 
   it('labels a four-of-a-kind with its points once the rank is set, else just "Каре"', () => {
-    expect(resolutionCardLabel({ key: 'kare', rank: 'J' }, DEFAULT_RULES)).toBe('Каре · 20');
+    expect(resolutionCardLabel({ key: 'kare', rank: 'J' }, DEFAULT_RULES)).toBe('Каре · 200');
     expect(resolutionCardLabel({ key: 'kare', rank: null }, DEFAULT_RULES)).toBe('Каре');
   });
 });
 
 describe('declOptionPoints', () => {
   it('reads fixed declaration points from the default rules', () => {
-    expect(declOptionPoints('belot', DEFAULT_RULES)).toBe('2');
-    expect(declOptionPoints('kvinta', DEFAULT_RULES)).toBe('10');
+    expect(declOptionPoints('belot', DEFAULT_RULES)).toBe('20');
+    expect(declOptionPoints('kvinta', DEFAULT_RULES)).toBe('100');
   });
 
   it('shows kare as the lowest value with a plus when values differ', () => {
-    expect(declOptionPoints('kare', DEFAULT_RULES)).toBe('10+');
+    expect(declOptionPoints('kare', DEFAULT_RULES)).toBe('100+');
   });
 
   it('drops the plus when every kare value is equal', () => {
@@ -67,7 +68,7 @@ describe('declOptionPoints', () => {
       ...DEFAULT_RULES,
       karePoints: { Q: 20, K: 20, '10': 20, A: 20, '9': 20, J: 20 },
     };
-    expect(declOptionPoints('kare', rules)).toBe('20');
+    expect(declOptionPoints('kare', rules)).toBe('200');
   });
 });
 
@@ -224,7 +225,15 @@ describe('dealVerdict', () => {
 
   it('reports a hanging deal', () => {
     const score = scoreDeal(
-      { contract: 'clubs', caller: 0, decls: [], cardPointsA: 8, capo: null, hang: 0 },
+      {
+        contract: 'clubs',
+        caller: 0,
+        decls: [],
+        cardPointsA: 8,
+        capo: null,
+        hang: 0,
+        hangOnTie: true,
+      },
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, null, 0, teamName, DEFAULT_RULES)).toBe(
@@ -248,7 +257,7 @@ describe('dealVerdict', () => {
       DEFAULT_RULES,
     );
     expect(dealVerdict(score, 0, 'A', 0, teamName, DEFAULT_RULES)).toBe(
-      'Капо за Ние (+9). Ние изкарахме играта. С капо мачът не може да приключи — играе се още едно раздаване.',
+      'Капо за Ние (+9). Ние изкарахме играта.',
     );
   });
 });
@@ -296,5 +305,42 @@ describe('teamNameOf', () => {
 describe('STRINGS table copy sanity', () => {
   it('exposes the contract symbols and labels', () => {
     expect(STRINGS.contracts.hearts).toEqual({ sym: '♥', label: 'Купа' });
+  });
+});
+
+describe('endBlockedNote (ADR 0018)', () => {
+  const m = createMatch({
+    seats: ['p0', 'p1', 'p2', 'p3'],
+    teamA: 'Ние',
+    teamB: 'Те',
+    bestOf: 1,
+    rules: DEFAULT_RULES,
+  });
+  const name = (t: Team) => (t === 'A' ? 'Ние' : 'Те');
+  const deal = (a: number, b: number): Deal => ({
+    a,
+    b,
+    contract: 'hearts',
+    caller: 0,
+    verdict: 'ok',
+    capo: null,
+    raw: [a, b],
+    hangTo: null,
+    prevHang: 0,
+    decls: [],
+  });
+  const score = (cardPointsA: number) =>
+    scoreDeal({ contract: 'hearts', caller: 0, decls: [], cardPointsA, capo: null, hang: 0 });
+
+  it('names the losers when they took no card points in the deciding deal', () => {
+    const match = { ...m, games: [deal(140, 100)] };
+    expect(endBlockedNote(match, score(16), name)).toBe(
+      'Мачът не приключва: Те не взеха точки от картите — играе се още едно раздаване.',
+    );
+  });
+
+  it('is null when the losers took card points, or the target is not reached', () => {
+    expect(endBlockedNote({ ...m, games: [deal(140, 100)] }, score(14), name)).toBeNull();
+    expect(endBlockedNote({ ...m, games: [deal(100, 100)] }, score(16), name)).toBeNull();
   });
 });

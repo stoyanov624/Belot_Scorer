@@ -29,7 +29,7 @@ export const GOLDEN_DEALS: GoldenDeal[] = [
   },
   {
     name: '03 hanging, playing team B',
-    input: { ...base, contract: 'clubs', caller: 1, cardPointsA: 8 },
+    input: { ...base, hangOnTie: true, contract: 'clubs', caller: 1, cardPointsA: 8 },
     expect: { match: { A: 8, B: 0 }, verdict: 'hang', hangTo: null, nextHang: 8 },
   },
   {
@@ -39,7 +39,7 @@ export const GOLDEN_DEALS: GoldenDeal[] = [
   },
   {
     name: '05 hanging on hanging accumulates',
-    input: { ...base, contract: 'spades', caller: 2, cardPointsA: 8, hang: 8 },
+    input: { ...base, hangOnTie: true, contract: 'spades', caller: 2, cardPointsA: 8, hang: 8 },
     expect: { match: { A: 0, B: 8 }, verdict: 'hang', hangTo: null, nextHang: 16 },
   },
   {
@@ -115,6 +115,7 @@ export const GOLDEN_DEALS: GoldenDeal[] = [
     name: '15 belot counts for the side that lost sequences, producing a hang',
     input: {
       ...base,
+      hangOnTie: true,
       contract: 'hearts',
       caller: 0,
       cardPointsA: 8,
@@ -137,5 +138,15 @@ export const GOLDEN_DEALS: GoldenDeal[] = [
     name: '17 inside with points hanging: the defenders take both',
     input: { ...base, contract: 'hearts', caller: 0, cardPointsA: 7, hang: 8 },
     expect: { match: { A: 0, B: 24 }, verdict: 'inside', hangTo: 'B', nextHang: 0 },
+  },
+  {
+    name: '18 a tie without «Висяща» counts as made',
+    input: { ...base, contract: 'clubs', caller: 1, cardPointsA: 8 },
+    expect: { match: { A: 8, B: 8 }, verdict: 'ok', hangTo: null, nextHang: 0 },
+  },
+  {
+    name: '19 a tie without «Висяща» still takes the hanging points',
+    input: { ...base, contract: 'spades', caller: 2, cardPointsA: 8, hang: 8 },
+    expect: { match: { A: 8, B: 8 }, verdict: 'ok', hangTo: null, nextHang: 8 },
   },
 ];
