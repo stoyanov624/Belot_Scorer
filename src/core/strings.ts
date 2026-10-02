@@ -110,6 +110,8 @@ export const STRINGS = {
     clear: 'Изчисти',
     theme: 'Тема',
     history: 'История',
+    // Mobile: the header's actions sit behind one menu button; its accessible name.
+    menu: 'Меню',
     deal: (n: number) => `Раздаване ${n}`,
     headerSingle: (target: number) => `Белот · до ${target}`,
     headerSeries: (matchNo: number, a: number, b: number, format: string) =>
