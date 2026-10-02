@@ -202,6 +202,8 @@ export const STRINGS = {
   },
   history: {
     back: '← Назад',
+    // Mobile: history opened from the table is a dialog closed with this.
+    close: 'Затвори',
     title: 'История на мача',
     to: (target: number) => `до ${target}`,
     inProgress: (n: number) => `Раздаване ${n} · в ход`,
